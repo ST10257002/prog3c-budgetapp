@@ -1,0 +1,47 @@
+name: Enforce Conventions
+
+# - About ----------------------------------------------------------------------
+# CI/CD GitHub Action to enforce branch naming conventions.
+#
+# The workflow will parse the name of every branch except for main and staging
+# whenever code is pushed to the remote. If the branch name does not follow any
+# accepted convention, this workflow will fail. The purpose of these validation
+# rules is to ensure that branch names are CLI compliant.
+#
+# See resources below for assistance.
+#
+# See: https://ultahost.com/knowledge-base/rename-local-and-remote-git-branch/
+# Ref: https://stackoverflow.com/questions/78027957/
+# ------------------------------------------------------------------------------
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - staging
+
+jobs:
+  execute:
+    name: Conventional Branches
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Lint style against allowed conventions
+        run: |
+          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+
+          echo "🔍 Validating branch: $BRANCH_NAME"
+          
+          if [[ "$BRANCH_NAME" =~ ^(main|staging|topic\/[a-z0-9-]+|rollback\/[a-z0-9-]+|debug\/[a-z0-9-]+)$ ]]; then
+            echo "✅ Follows accepted conventions."
+            exit 0
+          else
+            echo "❌ Invalid branch name: '$BRANCH_NAME'                  "
+            echo "Allowed conventions:                                    "
+            echo "  - main                                                "
+            echo "  - staging                                             "
+            echo "  - rollback/<lowercase-name> (letters, numbers, dashes)"
+            echo "  - topic/<lowercase-name> (letters, numbers, dashes)   "
+            echo "  - debug/<lowercase-name> (letters, numbers, dashes)   "
+            exit 1
+          fi

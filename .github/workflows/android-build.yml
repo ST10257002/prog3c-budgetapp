@@ -1,0 +1,57 @@
+name: Build
+
+# - About ----------------------------------------------------------------------
+# CI/CD GitHub Action to ensure that the application compiles successfully.
+#
+# The workflow will automate the compilation of the application using the debug
+# configuration to ensure that the remote contains a working copy of the source
+# code at all times. This prevents conflicts and blockers.
+# ------------------------------------------------------------------------------
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - 'topic/**'
+      - 'rollback/**'
+      - 'debug/**'
+  pull_request:
+    branches:
+      - main
+      - staging
+      - 'topic/**'
+      - 'rollback/**'
+      - 'debug/**'
+
+jobs:
+  execute:
+    name: Build Application
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts','**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Ensure gradlew is executable
+        run: chmod +x ./gradlew
+
+      - name: Assemble (Debug)
+        run: ./gradlew assembleDebug --no-daemon --stacktrace

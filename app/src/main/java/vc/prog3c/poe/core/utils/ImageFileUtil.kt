@@ -20,6 +20,8 @@ import java.util.Locale
 object ImageFileUtil {
 // <editor-fold desc="Fields">
 
+    private const val TAG = "ImageFileUtil"
+
     /**
      * A simple date format to generate uniquely timestamped filenames.
      *
@@ -46,6 +48,9 @@ object ImageFileUtil {
         ).apply {
             if (exists() == false) {
                 mkdirs()
+                Blogger.i(
+                    TAG, "Created storage directory: $this"
+                )
             }
         }
     }
@@ -81,16 +86,26 @@ object ImageFileUtil {
      */
     suspend fun copyUriToDirectory(
         caller: FragmentActivity, sourceImage: Uri, destination: File
-    ): Boolean {
-        withContext(Dispatchers.IO) {
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
             caller.contentResolver.openInputStream(sourceImage)?.use { input ->
                 FileOutputStream(destination).use { output ->
                     input.copyTo(output)
                 }
             }
-        }
 
-        return true
+            Blogger.i(
+                TAG, "Copied image file from  $sourceImage to $destination"
+            )
+
+            true
+        } catch (e: IOException) {
+            Blogger.e(
+                TAG, "Failed to copy image file from $sourceImage to $destination", e
+            )
+
+            false
+        }
     }
 
 // </editor-fold>

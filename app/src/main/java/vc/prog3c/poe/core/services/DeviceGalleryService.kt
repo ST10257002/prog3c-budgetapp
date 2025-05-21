@@ -12,6 +12,7 @@ import vc.prog3c.poe.core.models.ImageResult
 import vc.prog3c.poe.core.models.ImageResult.Blocked
 import vc.prog3c.poe.core.models.ImageResult.Failure
 import vc.prog3c.poe.core.models.ImageResult.Success
+import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.core.utils.ImageFileUtil
 
 /**
@@ -42,6 +43,10 @@ class DeviceGalleryService(
      * @author ST10257002
      */
     fun launchPicker() {
+        Blogger.i(
+            TAG, "Started launching the picker"
+        )
+
         galleryLauncher.launch(MULTIMEDIA_TYPE)
     }
 
@@ -50,12 +55,18 @@ class DeviceGalleryService(
     override fun registerForLauncherResult(
         callback: (ImageResult) -> Unit
     ) {
+        Blogger.i(
+            TAG, "Started registering for launcher result"
+        )
+
         this.callback = callback
         galleryLauncher = caller.registerForActivityResult(
             ActivityResultContracts.GetContent()
         ) { uri ->
             if (uri == null) {
-                callback(Blocked(Exception(BLOCKED_MESSAGE)))
+                val e = Exception(BLOCKED_MESSAGE)
+                Blogger.d(TAG, BLOCKED_MESSAGE)
+                callback(Blocked(e))
             } else {
                 caller.lifecycleScope.launch {
                     val directory = createImageFile()
@@ -67,7 +78,9 @@ class DeviceGalleryService(
                         if (completed) {
                             callback(Success(directory.toUri()))
                         } else {
-                            callback(Failure(Exception(FAILURE_MESSAGE)))
+                            val e = Exception(FAILURE_MESSAGE)
+                            Blogger.e(TAG, FAILURE_MESSAGE, e)
+                            callback(Failure(e))
                         }
                     }
                 }
@@ -81,6 +94,7 @@ class DeviceGalleryService(
 
 
     private companion object {
+        const val TAG = "DeviceGalleryService"
         const val BLOCKED_MESSAGE = "No image was selected"
         const val FAILURE_MESSAGE = "Failed to copy image to directory"
         const val MULTIMEDIA_TYPE = "image/*"

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 
+    The directory that the application will use to capture and store images.
+    This directory is privately scoped so that only the application is able
+    to access it. This directory will be cleared if the application is
+    uninstalled from the device.
+    
+    @argument [name] The alias that will be used to refer to this directory.
+    @argument [path] The relative path to the actual directory.
+    
+    @author ST10257002
+    -->
+    <external-files-path
+            name="images"
+            path="Pictures/BoostaCam/" />
+    
+</paths>

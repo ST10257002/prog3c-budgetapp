@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")
     id("kotlin-kapt")
 }
 
@@ -56,4 +57,9 @@ dependencies {
     // - PermissionX
 
     implementation(libs.permissionx)
+    
+    // - Firebase
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
 }

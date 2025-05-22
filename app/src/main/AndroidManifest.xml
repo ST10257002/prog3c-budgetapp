@@ -11,17 +11,47 @@
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/Theme.BudgetApp"
-            tools:targetApi="31">
+            android:theme="@style/Theme.BankBoosta"
+            tools:targetApi="31"
+            tools:replace="android:appComponentFactory"
+            android:appComponentFactory="androidx.core.app.CoreComponentFactory">
         <activity
-                android:name=".ui.views.MainActivity"
+                android:name=".ui.views.LoginView"
                 android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.views.RegisterView"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.views.CompleteProfileView"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.views.GoalSettingView"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.views.DashboardView"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.views.TransactionsView"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.views.AddIncomeView"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.views.AddExpenseView"
+            android:exported="false" />
+
     </application>
 
 </manifest>

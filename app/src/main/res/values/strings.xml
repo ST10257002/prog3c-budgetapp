@@ -1,3 +1,38 @@
 <resources>
-    <string name="app_name">BudgetApp</string>
+    <string name="app_name">Bank Boosta</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="transactions">Transactions</string>
+    <string name="add_income">Add Income</string>
+    <string name="add_expense">Add Expense</string>
+    <string name="amount">Amount</string>
+    <string name="category">Category</string>
+    <string name="date">Date</string>
+    <string name="description">Description</string>
+    <string name="save">Save</string>
+    <string name="total_income">Total Income</string>
+    <string name="total_expenses">Total Expenses</string>
+    <string name="filter">Filter</string>
+    <string name="all">All</string>
+    <string name="income">Income</string>
+    <string name="expenses">Expenses</string>
+    <string name="summary">Summary</string>
+    <string name="please_enter_valid_amount">Please enter a valid amount</string>
+    <string name="expense_added_successfully">Expense added successfully</string>
+    <string name="income_added_successfully">Income added successfully</string>
+    
+    <!-- Login and Registration -->
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="create_account">Create Account</string>
+    <string name="already_have_account">Already have an account? Login</string>
+    <string name="bypass_login">Bypass Login (Testing)</string>
+    <string name="invalid_email">Please enter a valid email address</string>
+    <string name="invalid_password">Password must be at least 6 characters</string>
+    <string name="passwords_dont_match">Passwords don\'t match</string>
+    <string name="login_successful">Login successful</string>
+    <string name="registration_successful">Registration successful</string>
 </resources>

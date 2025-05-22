@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
+    <color name="primary">#FF6200EE</color>
+    <color name="primary_dark">#FF3700B3</color>
+    <color name="primary_light">#FFE8DEF8</color>
+    <color name="accent">#FF03DAC5</color>
+    <color name="background">#FFFFFFFF</color>
+    <color name="text_primary">#DE000000</color>
+    <color name="text_secondary">#99000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="bottom_nav_text_color">#FF757575</color>
+    <color name="bottom_nav_icon_color">#FF757575</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#F44336</color>
+    <color name="gray">#757575</color>
+    <color name="light_gray">#EEEEEE</color>
+    <color name="divider">#BDBDBD</color>
+    <color name="password_strength_unknown">#FF757575</color>
 </resources>

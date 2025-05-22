@@ -9,40 +9,42 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 object Blogger {
 // <editor-fold desc="Fields">
 
-    
-    private val crashlytics = FirebaseCrashlytics.getInstance()
+    private var crashlytics: FirebaseCrashlytics? = null
 
+    init {
+        try {
+            crashlytics = FirebaseCrashlytics.getInstance()
+        } catch (e: Exception) {
+            Log.e("Blogger", "Failed to initialize Firebase Crashlytics", e)
+        }
+    }
 
 // </editor-fold>
 // <editor-fold desc="Logging">
-
 
     /**
      * Log an information message.
      */
     fun i(tag: String, message: String) {
         Log.i(tag, message)
-        crashlytics.log("[I][${tag}]: $message.")
+        crashlytics?.log("[I][${tag}]: $message.")
     }
-
 
     /**
      * Log a warning message.
      */
     fun w(tag: String, message: String) {
         Log.w(tag, message)
-        crashlytics.log("[W][${tag}]: $message.")
+        crashlytics?.log("[W][${tag}]: $message.")
     }
-
 
     /**
      * Log a debug message.
      */
     fun d(tag: String, message: String) {
         Log.d(tag, message)
-        crashlytics.log("[D][${tag}]: $message.")
+        crashlytics?.log("[D][${tag}]: $message.")
     }
-
 
     /**
      * Log an error message.
@@ -53,12 +55,11 @@ object Blogger {
      */
     fun e(tag: String, message: String, throwable: Throwable? = null) {
         Log.e(tag, message, throwable)
-        crashlytics.log("[E][${tag}]: $message.")
+        crashlytics?.log("[E][${tag}]: $message.")
         if (throwable != null) {
-            crashlytics.recordException(throwable)
+            crashlytics?.recordException(throwable)
         }
     }
-
 
 // </editor-fold>
 }

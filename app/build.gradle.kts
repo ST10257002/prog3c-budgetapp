@@ -2,6 +2,9 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
+    id("com.google.gms.google-services") version "4.4.2" apply false
+    id("com.google.firebase.crashlytics") version "3.0.3" apply false
+    id("com.google.firebase.firebase-perf") version "1.4.2" apply false
 }
 
 android {
@@ -72,6 +75,13 @@ dependencies {
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0") {
         exclude(group = "com.android.support")
     }
+    
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
     
     // Testing
     testImplementation("junit:junit:4.13.2")

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--suppress ALL -->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="vc.prog3c.poe.ui.views.LoginView"
+        android:label="Login">
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_login_to_dashboard"
+            app:destination="@id/dashboardFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="vc.prog3c.poe.ui.views.RegisterView"
+        android:label="Register">
+        <action
+            android:id="@+id/action_register_to_login"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="vc.prog3c.poe.ui.views.DashboardView"
+        android:label="Dashboard">
+        <action
+            android:id="@+id/action_dashboard_to_add_expense"
+            app:destination="@id/addExpenseFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_add_income"
+            app:destination="@id/addIncomeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addExpenseFragment"
+        android:name="vc.prog3c.poe.ui.views.AddExpenseView"
+        android:label="Add Expense">
+        <action
+            android:id="@+id/action_add_expense_to_dashboard"
+            app:destination="@id/dashboardFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addIncomeFragment"
+        android:name="vc.prog3c.poe.ui.views.AddIncomeView"
+        android:label="Add Income">
+        <action
+            android:id="@+id/action_add_income_to_dashboard"
+            app:destination="@id/dashboardFragment" />
+    </fragment>
+
+</navigation> 

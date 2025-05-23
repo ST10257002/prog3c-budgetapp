@@ -3,6 +3,34 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Features -->
+
+    <uses-feature
+            android:name="android.hardware.camera"
+            android:required="false" />
+
+    <!-- Permissions -->
+
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-permission
+            android:name="android.permission.READ_MEDIA_IMAGES"
+            tools:targetApi="33" /> <!-- Android 13 -->
+
+    <uses-permission
+            android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED"
+            tools:targetApi="34" /> <!-- Android 14 -->
+
+    <uses-permission
+            android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+            android:maxSdkVersion="28" /> <!-- Android 10 -->
+
+    <uses-permission
+            android:name="android.permission.READ_EXTERNAL_STORAGE"
+            android:maxSdkVersion="32" /> <!-- Android 12 -->
+
+    <!-- Application -->
+
     <application
             android:allowBackup="true"
             android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,6 +43,22 @@
             tools:targetApi="31"
             tools:replace="android:appComponentFactory"
             android:appComponentFactory="androidx.core.app.CoreComponentFactory">
+
+        <!-- Directory Provider -->
+
+        <provider
+                android:name="androidx.core.content.FileProvider"
+                android:authorities="${applicationId}.fileprovider"
+                android:exported="false"
+                android:grantUriPermissions="true">
+
+            <meta-data
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/directory_paths" />
+        </provider>
+
+        <!-- Activities -->
+
         <activity
                 android:name=".ui.views.LoginView"
                 android:exported="true">
@@ -25,32 +69,32 @@
         </activity>
 
         <activity
-            android:name=".ui.views.RegisterView"
-            android:exported="false" />
+                android:name=".ui.views.RegisterView"
+                android:exported="false" />
 
         <activity
-            android:name=".ui.views.CompleteProfileView"
-            android:exported="false" />
+                android:name=".ui.views.CompleteProfileView"
+                android:exported="false" />
 
         <activity
-            android:name=".ui.views.GoalSettingView"
-            android:exported="false" />
+                android:name=".ui.views.GoalSettingView"
+                android:exported="false" />
 
         <activity
-            android:name=".ui.views.DashboardView"
-            android:exported="false" />
+                android:name=".ui.views.DashboardView"
+                android:exported="false" />
 
         <activity
-            android:name=".ui.views.TransactionsView"
-            android:exported="false" />
+                android:name=".ui.views.TransactionsView"
+                android:exported="false" />
 
         <activity
-            android:name=".ui.views.AddIncomeView"
-            android:exported="false" />
+                android:name=".ui.views.AddIncomeView"
+                android:exported="false" />
 
         <activity
-            android:name=".ui.views.AddExpenseView"
-            android:exported="false" />
+                android:name=".ui.views.AddExpenseView"
+                android:exported="false" />
 
     </application>
 

@@ -6,8 +6,6 @@ import android.view.LayoutInflater
 import android.widget.LinearLayout
 import androidx.lifecycle.LifecycleOwner
 import vc.prog3c.poe.databinding.ViewProfileBinding
-import vc.prog3c.poe.ui.views.LoginView
-import vc.prog3c.poe.ui.views.ManageGoalsView
 
 class ProfileView @JvmOverloads constructor(
     context: Context,
@@ -48,8 +46,8 @@ class ProfileView @JvmOverloads constructor(
             // 3. Update lastLogin timestamp in Firestore
             // 4. Handle offline state during logout
 
-            // Navigate to LoginView
-            /*val loginView = LoginView(context)
+            // Navigate to SignInActivity
+            /*val loginView = SignInActivity(context)
             (parent as? LinearLayout)?.apply {
                 removeAllViews()
                 addView(loginView)

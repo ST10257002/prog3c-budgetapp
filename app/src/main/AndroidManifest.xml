@@ -60,7 +60,7 @@
         <!-- Activities -->
 
         <activity
-                android:name=".ui.views.LoginView"
+                android:name=".ui.views.SignInActivity"
                 android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -69,7 +69,7 @@
         </activity>
 
         <activity
-                android:name=".ui.views.RegisterView"
+                android:name=".ui.views.SignUpActivity"
                 android:exported="false" />
 
         <activity

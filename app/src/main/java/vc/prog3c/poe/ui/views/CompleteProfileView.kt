@@ -1,24 +1,22 @@
 package vc.prog3c.poe.ui.views
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import vc.prog3c.poe.databinding.ActivityCompleteProfileBinding
-import vc.prog3c.poe.ui.viewmodels.LoginViewModel
+import vc.prog3c.poe.ui.viewmodels.AuthViewModel
 
 class CompleteProfileView : AppCompatActivity() {
     private lateinit var binding: ActivityCompleteProfileBinding
-    private lateinit var viewModel: LoginViewModel
+    private lateinit var viewModel: AuthViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCompleteProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[LoginViewModel::class.java]
+        viewModel = ViewModelProvider(this)[AuthViewModel::class.java]
 
         setupToolbar()
         setupProfilePicture()

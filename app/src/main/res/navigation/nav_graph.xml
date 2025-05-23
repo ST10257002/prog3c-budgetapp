@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/loginFragment"
-        android:name="vc.prog3c.poe.ui.views.LoginView"
+        android:name="vc.prog3c.poe.ui.views.SignInActivity"
         android:label="Login">
         <action
             android:id="@+id/action_login_to_register"
@@ -19,7 +19,7 @@
 
     <fragment
         android:id="@+id/registerFragment"
-        android:name="vc.prog3c.poe.ui.views.RegisterView"
+        android:name="vc.prog3c.poe.ui.views.SignUpActivity"
         android:label="Register">
         <action
             android:id="@+id/action_register_to_login"

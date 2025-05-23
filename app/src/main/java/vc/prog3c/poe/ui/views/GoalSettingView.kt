@@ -6,18 +6,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import vc.prog3c.poe.databinding.ActivityGoalSettingBinding
-import vc.prog3c.poe.ui.viewmodels.LoginViewModel
+import vc.prog3c.poe.ui.viewmodels.AuthViewModel
 
 class GoalSettingView : AppCompatActivity() {
     private lateinit var binding: ActivityGoalSettingBinding
-    private lateinit var viewModel: LoginViewModel
+    private lateinit var viewModel: AuthViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGoalSettingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[LoginViewModel::class.java]
+        viewModel = ViewModelProvider(this)[AuthViewModel::class.java]
 
         setupSaveButton()
         observeViewModel()

@@ -2,6 +2,7 @@ package vc.prog3c.poe.ui.views
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -78,6 +79,12 @@ class LoginView : AppCompatActivity() {
             //    - Set up guest user preferences
             //    - Initialize guest user data
             //    - Set expiration for guest data
+
+            Log.d("BYPASS", "Bypass login clicked")
+
+            // 🔧 Firestore test logic
+            vc.prog3c.poe.utils.TestData.runFirestoreTest()
+
             viewModel.bypassLogin()
             // For guest login, go directly to dashboard
             startActivity(Intent(this, DashboardView::class.java))

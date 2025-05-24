@@ -10,7 +10,8 @@ class UserRepository {
     private val auth = FirebaseAuth.getInstance()
 
     fun addUser(user: User, onComplete: (Boolean) -> Unit) {
-        val userId = auth.currentUser?.uid
+        val userId = "testUser123" // fake user ID for development
+        // val userId = auth.currentUser?.uid
         if (userId == null) {
             onComplete(false)
             return
@@ -24,7 +25,8 @@ class UserRepository {
     }
 
     fun getUser(onComplete: (User?) -> Unit) {
-        val userId = auth.currentUser?.uid
+        val userId = "testUser123" // fake user ID for development
+        // val userId = auth.currentUser?.uid
         if (userId == null) {
             onComplete(null)
             return

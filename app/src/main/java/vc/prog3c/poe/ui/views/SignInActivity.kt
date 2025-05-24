@@ -83,12 +83,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongCli
 
 
     private fun navigateToNextScreen() {
-        val intent = if (vModel.isProfileComplete.value == false) {
-            Intent(this, DashboardView::class.java)
-        } else {
-            Intent(this, CompleteProfileView::class.java)
-        }
-
+        val intent = Intent(this, DashboardView::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

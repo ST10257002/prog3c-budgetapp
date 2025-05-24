@@ -4,9 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.github.mikephil.charting.animation.Easing
-import com.github.mikephil.charting.utils.ColorTemplate
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import vc.prog3c.poe.R
 import vc.prog3c.poe.databinding.ActivityDashboardBinding
 import vc.prog3c.poe.ui.viewmodels.DashboardViewModel
@@ -31,14 +28,14 @@ class DashboardView : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        binding.topBar.setOnClickListener {
+        binding.profileImage.setOnClickListener {
             // TODO: Backend Implementation Required
             // 1. User Profile Data:
             //    - Fetch user profile from Firestore
             //    - Load profile image from Firebase Storage
             //    - Update last active timestamp
             //    - Handle offline state
-            startActivity(Intent(this, ProfileView::class.java))
+            startActivity(Intent(this, ProfileActivity::class.java))
         }
     }
 
@@ -91,7 +88,7 @@ class DashboardView : AppCompatActivity() {
                     //    - Handle profile updates
                     //    - Manage user preferences
                     //    - Implement data synchronization
-                    startActivity(Intent(this, ProfileView::class.java))
+                    startActivity(Intent(this, ProfileActivity::class.java))
                     true
                 }
                 else -> false
@@ -108,13 +105,13 @@ class DashboardView : AppCompatActivity() {
             legend.textSize = 12f
             legend.textColor = android.graphics.Color.BLACK
             setDrawEntryLabels(true)
-            setDrawHoleEnabled(true)
+            isDrawHoleEnabled = true
             setHoleColor(android.graphics.Color.WHITE)
-            setTransparentCircleRadius(30f)
-            setHoleRadius(30f)
+            transparentCircleRadius = 30f
+            holeRadius = 30f
             setRotationAngle(0f)
-            setRotationEnabled(true)
-            setHighlightPerTapEnabled(true)
+            isRotationEnabled = true
+            isHighlightPerTapEnabled = true
         }
     }
 

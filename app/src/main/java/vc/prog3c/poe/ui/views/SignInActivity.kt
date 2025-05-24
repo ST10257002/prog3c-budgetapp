@@ -11,7 +11,7 @@ import vc.prog3c.poe.R
 import vc.prog3c.poe.databinding.ActivitySignInBinding
 import vc.prog3c.poe.ui.viewmodels.AuthViewModel
 
-class SignInActivity : AppCompatActivity(), View.OnClickListener {
+class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClickListener {
 
 
     private lateinit var vBinds: ActivitySignInBinding
@@ -107,8 +107,19 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener {
                     Intent(this, SignUpActivity::class.java)
                 )
             }
+        }
+    }
 
-            vBinds.bypassLogin.id -> {
+
+    override fun onLongClick(
+        view: View?
+    ): Boolean {
+        when (view?.id) {
+            vBinds.loginButton.id -> {
+                Toast.makeText(
+                    this, "Bypassing authentication", Toast.LENGTH_SHORT
+                ).show()
+                
                 vModel.bypassLogin()
                 startActivity(
                     Intent(this, DashboardView::class.java)
@@ -116,13 +127,15 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener {
                 finish()
             }
         }
+        
+        return true
     }
 
 
     private fun setupClickListeners() {
         vBinds.loginButton.setOnClickListener(this)
+        vBinds.loginButton.setOnLongClickListener(this)
         vBinds.registerTextView.setOnClickListener(this)
-        vBinds.bypassLogin.setOnClickListener(this)
     }
 
 

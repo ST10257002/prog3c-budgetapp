@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
@@ -77,32 +78,82 @@ class DashboardViewModel : ViewModel() {
     private val _monthlyStats = MutableLiveData<MonthlyStats>()
     val monthlyStats: LiveData<MonthlyStats> = _monthlyStats
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
     init {
-        // Initialize with test data
-        _savingsGoal.value = 1000.0
-        _currentSavings.value = 500.0
-        _monthlyStats.value = MonthlyStats(2000.0, 1500.0, 500.0)
-        
-        // Load test data
-        loadDashboardData()
+        loadInitialData()
     }
 
-    private fun loadDashboardData() {
-        // Test data
-        _cards.value = listOf(
-            Card("1", "Credit", 5000.0, "****1234", "12/25"),
-            Card("2", "Debit", 2500.0, "****5678", "12/25")
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Fetch dashboard data from Firestore
+                // - Handle offline state
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                loadTestData()
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = "Failed to load dashboard data: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun refreshDashboardData() {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Implement real-time refresh from Firestore
+                // - Handle offline state
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                loadTestData()
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = "Failed to refresh dashboard data: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private fun loadTestData() {
+        // Test data for income/expense
+        val totalIncome = 5000.0
+        val totalExpenses = 3000.0
+
+        val entries = listOf(
+            PieEntry(totalIncome.toFloat(), "Income"),
+            PieEntry(totalExpenses.toFloat(), "Expenses")
         )
-        
-        _currentBudget.value = Budget("1", "March 2024", 3000.0, 1500.0)
-        
-        _categories.value = listOf(
-            Category("1", "Food", 0, 500.0, 1000.0),
-            Category("2", "Transport", 0, 300.0, 500.0),
-            Category("3", "Entertainment", 0, 200.0, 300.0)
+
+        val dataSet = PieDataSet(entries, "Income vs Expenses")
+        dataSet.colors = listOf(
+            ColorTemplate.rgb("#4CAF50"),
+            ColorTemplate.rgb("#F44336")
         )
-        
-        updateIncomeExpenseData(2000.0, 1500.0)
+
+        val pieData = PieData(dataSet)
+        pieData.setValueTextSize(12f)
+        pieData.setValueTextColor(ColorTemplate.rgb("#FFFFFF"))
+
+        _incomeExpenseData.value = IncomeExpenseData(
+            totalIncome = totalIncome,
+            totalExpenses = totalExpenses,
+            pieData = pieData
+        )
+
+        // Test data for savings goal
+        _savingsGoal.value = 10000.0
     }
 
     fun getSavingsProgress(): Double {

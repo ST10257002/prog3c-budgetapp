@@ -3,6 +3,9 @@ package vc.prog3c.poe.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Date
 
 data class Expense(
@@ -27,11 +30,41 @@ class ExpenseViewModel : ViewModel() {
     private val _totalExpenses = MutableLiveData<Double>()
     val totalExpenses: LiveData<Double> = _totalExpenses
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    private val _saveSuccess = MutableLiveData<Boolean>()
+    val saveSuccess: LiveData<Boolean> = _saveSuccess
+
     private val _categories = MutableLiveData<List<String>>()
     val categories: LiveData<List<String>> = _categories
 
+    private var lastOperation: (() -> Unit)? = null
+
     init {
-        loadTestData()
+        loadInitialData()
+    }
+
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Fetch expenses from Firestore
+                // - Handle offline state
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                loadTestData()
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = "Failed to load expenses: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     private fun loadTestData() {
@@ -39,36 +72,31 @@ class ExpenseViewModel : ViewModel() {
         _expenses.value = listOf(
             Expense(
                 id = "1",
-                amount = 5000.0,
-                category = "Groceries",
-                date = Date(System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000),
-                description = "Monthly groceries"
+                amount = 100.0,
+                category = "Food",
+                date = Date(),
+                description = "Groceries"
             ),
             Expense(
                 id = "2",
-                amount = 2000.0,
+                amount = 50.0,
                 category = "Transport",
-                date = Date(System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000),
-                description = "Fuel and maintenance"
-            ),
-            Expense(
-                id = "3",
-                amount = 3000.0,
-                category = "Entertainment",
-                date = Date(System.currentTimeMillis() - 1 * 24 * 60 * 60 * 1000),
-                description = "Movie night"
+                date = Date(),
+                description = "Bus fare"
             )
         )
 
         // Test data for categories
         _categories.value = listOf(
-            "Groceries",
+            "Food",
             "Transport",
+            "Housing",
+            "Utilities",
             "Entertainment",
-            "Bills",
             "Shopping",
-            "Health",
+            "Healthcare",
             "Education",
+            "Travel",
             "Other"
         )
 
@@ -80,39 +108,97 @@ class ExpenseViewModel : ViewModel() {
     }
 
     fun addExpense(expense: Expense) {
-        // TODO: Implement Firestore expense addition
-        // - Add to Firestore collection
-        // - Handle offline persistence
-        // - Implement error handling
-        val currentList = _expenses.value?.toMutableList() ?: mutableListOf()
-        currentList.add(expense)
-        _expenses.value = currentList
-        updateTotalExpenses()
+        lastOperation = { addExpense(expense) }
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Add to Firestore collection
+                // - Handle offline persistence
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                val currentList = _expenses.value?.toMutableList() ?: mutableListOf()
+                currentList.add(expense)
+                _expenses.value = currentList
+                updateTotalExpenses()
+                _saveSuccess.value = true
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = when (e) {
+                    is IllegalArgumentException -> "Invalid expense data: ${e.message}"
+                    is IllegalStateException -> "Failed to save expense: ${e.message}"
+                    else -> "An unexpected error occurred: ${e.message}"
+                }
+                _saveSuccess.value = false
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun retryLastOperation() {
+        lastOperation?.invoke()
     }
 
     fun updateExpense(expense: Expense) {
-        // TODO: Implement Firestore expense update
-        // - Update Firestore document
-        // - Handle offline persistence
-        // - Implement error handling
-        val currentList = _expenses.value?.toMutableList() ?: return
-        val index = currentList.indexOfFirst { it.id == expense.id }
-        if (index != -1) {
-            currentList[index] = expense
-            _expenses.value = currentList
-            updateTotalExpenses()
+        lastOperation = { updateExpense(expense) }
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Update Firestore document
+                // - Handle offline persistence
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                val currentList = _expenses.value?.toMutableList() ?: return@launch
+                val index = currentList.indexOfFirst { it.id == expense.id }
+                if (index != -1) {
+                    currentList[index] = expense
+                    _expenses.value = currentList
+                    updateTotalExpenses()
+                    _saveSuccess.value = true
+                    _error.value = null
+                }
+            } catch (e: Exception) {
+                _error.value = when (e) {
+                    is IllegalArgumentException -> "Invalid expense data: ${e.message}"
+                    is IllegalStateException -> "Failed to update expense: ${e.message}"
+                    else -> "An unexpected error occurred: ${e.message}"
+                }
+                _saveSuccess.value = false
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
     fun deleteExpense(expenseId: String) {
-        // TODO: Implement Firestore expense deletion
-        // - Delete from Firestore collection
-        // - Handle offline persistence
-        // - Implement error handling
-        val currentList = _expenses.value?.toMutableList() ?: return
-        currentList.removeIf { it.id == expenseId }
-        _expenses.value = currentList
-        updateTotalExpenses()
+        lastOperation = { deleteExpense(expenseId) }
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Delete from Firestore collection
+                // - Handle offline persistence
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                val currentList = _expenses.value?.toMutableList() ?: return@launch
+                currentList.removeIf { it.id == expenseId }
+                _expenses.value = currentList
+                updateTotalExpenses()
+                _saveSuccess.value = true
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = when (e) {
+                    is IllegalArgumentException -> "Invalid expense ID: ${e.message}"
+                    is IllegalStateException -> "Failed to delete expense: ${e.message}"
+                    else -> "An unexpected error occurred: ${e.message}"
+                }
+                _saveSuccess.value = false
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     fun getExpensesForPeriod(startDate: Date, endDate: Date): List<Expense> {
@@ -121,5 +207,9 @@ class ExpenseViewModel : ViewModel() {
 
     fun getExpensesByCategory(category: String): List<Expense> {
         return _expenses.value?.filter { it.category == category } ?: emptyList()
+    }
+
+    fun getTotalExpensesByCategory(category: String): Double {
+        return getExpensesByCategory(category).sumOf { it.amount }
     }
 } 

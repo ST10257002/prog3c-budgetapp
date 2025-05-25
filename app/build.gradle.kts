@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "vc.prog3c.poe"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 2
         versionName = "post-2025w21a"
 
@@ -23,6 +23,8 @@ android {
 
     buildFeatures {
         viewBinding = true
+        dataBinding = true
+        buildConfig = true
     }
 
     buildTypes {
@@ -59,6 +61,12 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)
+    implementation(libs.androidx.swiperefreshlayout)
+    implementation("androidx.window:window:1.2.0")
+    implementation("androidx.window:window-java:1.2.0")
+    implementation(libs.androidx.databinding.runtime)
+    implementation(libs.androidx.databinding.adapters)
+    implementation(libs.androidx.databinding.common)
 
     // - Charts MPAndroidChart
 

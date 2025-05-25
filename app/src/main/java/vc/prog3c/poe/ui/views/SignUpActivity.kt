@@ -7,15 +7,15 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import vc.prog3c.poe.R
 import vc.prog3c.poe.databinding.ActivitySignUpBinding
-import vc.prog3c.poe.ui.viewmodels.AuthViewModel
+import vc.prog3c.poe.ui.viewmodels.SignUpUiState
+import vc.prog3c.poe.ui.viewmodels.SignUpViewModel
 
 class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private lateinit var vBinds: ActivitySignUpBinding
-    private lateinit var vModel: AuthViewModel
+    private lateinit var vModel: SignUpViewModel
 
 
     // --- Lifecycle
@@ -28,7 +28,7 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[AuthViewModel::class.java]
+        vModel = ViewModelProvider(this)[SignUpViewModel::class.java]
 
         observeViewModel()
     }
@@ -38,17 +38,23 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun observeViewModel() {
-        vModel.isLoggedIn.observe(this) { isLoggedIn ->
-            if (isLoggedIn) {
-                startMainActivity()
-            }
-        }
+        vModel.uiState.observe(this) { state ->
+            when (state) {
+                is SignUpUiState.Success -> {
+                    navigateToDashboard()
+                }
 
-        vModel.error.observe(this) { error ->
-            error?.let {
-                Toast.makeText(
-                    this, it, Toast.LENGTH_SHORT
-                ).show()
+                is SignUpUiState.Failure -> {
+                    Toast.makeText(
+                        this, state.message, Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                is SignUpUiState.Loading -> {}
+
+                else -> {
+                    // Default behaviour
+                }
             }
         }
     }
@@ -57,42 +63,21 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
     // --- Activity
 
 
-    private fun setupRegisterButton() {
-        val firstName = vBinds.firstNameEditText.text.toString()
-        val lastName = vBinds.lastNameEditText.text.toString()
-        val username = vBinds.etUsername.text.toString()
-        val email = vBinds.emailEditText.text.toString()
-        val password = vBinds.etPassword.text.toString()
-        val confirmPassword = vBinds.confirmPasswordEditText.text.toString()
+    private fun tryAuthenticateCredentials() {
+        val name = vBinds.firstNameEditText.text.toString().trim()
+        val surname = vBinds.lastNameEditText.text.toString().trim()
+        val username = vBinds.etUsername.text.toString().trim()
+        val usermail = vBinds.emailEditText.text.toString().trim()
+        val defaultPassword = vBinds.etPassword.text.toString().trim()
+        val confirmPassword = vBinds.confirmPasswordEditText.text.toString().trim()
 
-        if (arrayOf(firstName, lastName, username, email, password, confirmPassword).any {
-                it.isEmpty()
-            }) {
-            Toast.makeText(
-                this, "Inputs cannot be empty", Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
-
-        if (password != confirmPassword) {
-            Toast.makeText(
-                this, "The passwords don't match", Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
-
-        if (vModel.register("$firstName $lastName", email, password, confirmPassword)) {
-            Toast.makeText(
-                this, R.string.registration_successful, Toast.LENGTH_SHORT
-            ).show()
-            startMainActivity()
-        } else {
-            Toast.makeText(this, vModel.error.value, Toast.LENGTH_SHORT).show()
-        }
+        vModel.signUp(
+            username, defaultPassword, confirmPassword, usermail, name, surname
+        )
     }
 
 
-    private fun setupLoginButton() {
+    private fun navigateToSignIn() {
         startActivity(
             Intent(this, SignInActivity::class.java)
         )
@@ -100,7 +85,7 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
     }
 
 
-    private fun startMainActivity() {
+    private fun navigateToDashboard() {
         val intent = Intent(this, DashboardView::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
@@ -113,8 +98,8 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.registerButton.id -> setupRegisterButton()
-            vBinds.loginButton.id -> setupLoginButton()
+            vBinds.registerButton.id -> tryAuthenticateCredentials()
+            vBinds.loginButton.id -> navigateToSignIn()
         }
     }
 

@@ -1,5 +1,6 @@
 [versions]
 agp = "8.10.0"
+biometric = "1.2.0-alpha05"
 firebaseBom = "33.14.0"
 kotlin = "2.1.0"
 coreKtx = "1.16.0"
@@ -18,7 +19,9 @@ navigation = "2.9.0"
 robolectric = "4.11.1"
 
 [libraries]
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }

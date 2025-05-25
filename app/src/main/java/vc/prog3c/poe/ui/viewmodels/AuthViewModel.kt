@@ -3,12 +3,12 @@ package vc.prog3c.poe.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuth
 import vc.prog3c.poe.R
 import java.util.regex.Pattern
 
 class AuthViewModel : ViewModel() {
-
-
+    
     private val _isLoggedIn = MutableLiveData<Boolean>()
     val isLoggedIn: LiveData<Boolean> = _isLoggedIn
 
@@ -19,24 +19,30 @@ class AuthViewModel : ViewModel() {
 
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
-
-
-    fun login(
-        identifier: String, password: String
-    ): Boolean {
-        if (!isValidIdentifier(identifier)) {
-            _error.value = "Please enter a valid email or username"
-            return false
+    
+    
+    fun authenticate(
+        usermail: String, password: String
+    ) {
+        if (usermail.isBlank() && password.isBlank()) {
+            _error.value = "Login failed"
+            return
         }
-
-        if (!isValidPassword(password)) {
-            _error.value = getString(R.string.invalid_password)
-            return false
+        
+        var auth = FirebaseAuth.getInstance()
+        auth.signInWithEmailAndPassword(usermail, password).apply { 
+            addOnCompleteListener { task -> 
+                when (task.isSuccessful) {
+                    true -> {
+                        _isLoggedIn.value = true
+                        _isProfileComplete.value = false
+                    }
+                    else -> {
+                        _error.value = "Login failed"
+                    }
+                }
+            }
         }
-
-        _isLoggedIn.value = true
-        _isProfileComplete.value = false
-        return true
     }
 
 

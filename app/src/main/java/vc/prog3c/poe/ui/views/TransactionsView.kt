@@ -3,10 +3,12 @@ package vc.prog3c.poe.ui.views
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AnimationUtils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
+import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
 import vc.prog3c.poe.databinding.ActivityTransactionsBinding
 import vc.prog3c.poe.ui.adapters.TransactionAdapter
@@ -31,6 +33,7 @@ class TransactionsView : AppCompatActivity() {
         setupBottomNavigation()
         setupRecyclerView()
         setupFilterChips()
+        setupSwipeRefresh()
         observeViewModel()
     }
 
@@ -70,6 +73,10 @@ class TransactionsView : AppCompatActivity() {
         binding.transactionsRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@TransactionsView)
             adapter = this@TransactionsView.adapter
+            layoutAnimation = AnimationUtils.loadLayoutAnimation(
+                context,
+                R.anim.layout_animation_fall_down
+            )
         }
     }
 
@@ -84,9 +91,27 @@ class TransactionsView : AppCompatActivity() {
         }
     }
 
+    private fun setupSwipeRefresh() {
+        binding.swipeRefreshLayout.apply {
+            setColorSchemeResources(
+                R.color.primary,
+                R.color.green,
+                R.color.red
+            )
+            setOnRefreshListener {
+                refreshData()
+            }
+        }
+    }
+
+    private fun refreshData() {
+        viewModel.refreshTransactions()
+    }
+
     private fun observeViewModel() {
         viewModel.transactions.observe(this) { transactions ->
             adapter.submitList(transactions)
+            binding.transactionsRecyclerView.scheduleLayoutAnimation()
         }
 
         viewModel.totalIncome.observe(this) { income ->
@@ -96,6 +121,25 @@ class TransactionsView : AppCompatActivity() {
         viewModel.totalExpenses.observe(this) { expenses ->
             binding.totalExpensesText.text = formatCurrency(expenses)
         }
+
+        viewModel.isLoading.observe(this) { isLoading ->
+            binding.swipeRefreshLayout.isRefreshing = isLoading
+            binding.loadingProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        viewModel.error.observe(this) { error ->
+            error?.let {
+                showError(it)
+            }
+        }
+    }
+
+    private fun showError(message: String) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+            .setAction("Retry") {
+                refreshData()
+            }
+            .show()
     }
 
     private fun formatCurrency(amount: Double): String {

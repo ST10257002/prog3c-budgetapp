@@ -34,7 +34,7 @@ class GoalSettingView : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if (viewModel.setGoals(minGoal, maxGoal, monthlyBudget)) {
+            if (viewModel.setGoals(minGoal, maxGoal, monthlyBudget) != null) {
                 startActivity(Intent(this, DashboardView::class.java))
                 finish()
             } else {

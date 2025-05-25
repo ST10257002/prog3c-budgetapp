@@ -1,5 +1,6 @@
 package vc.prog3c.poe.ui.views
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -54,7 +55,10 @@ class CompleteProfileView : AppCompatActivity() {
             if (address.isNotEmpty() && phone.isNotEmpty() && cardNumber.isNotEmpty() && 
                 cardType.isNotEmpty() && cvc.isNotEmpty() && expiry.isNotEmpty()) {
                 // TODO: Save profile information
+                startActivity(Intent(this, GoalSettingView::class.java))
                 finish()
+            } else {
+                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
             }
         }
     }

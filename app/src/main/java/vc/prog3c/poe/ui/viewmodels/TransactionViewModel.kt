@@ -3,6 +3,9 @@ package vc.prog3c.poe.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Date
 
 data class Transaction(
@@ -34,8 +37,33 @@ class TransactionViewModel : ViewModel() {
     private val _totalExpenses = MutableLiveData<Double>()
     val totalExpenses: LiveData<Double> = _totalExpenses
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
     init {
-        loadTestData()
+        loadInitialData()
+    }
+
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Fetch transactions from Firestore
+                // - Handle offline state
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                loadTestData()
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = "Failed to load transactions: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     private fun loadTestData() {
@@ -84,15 +112,11 @@ class TransactionViewModel : ViewModel() {
     }
 
     private fun updateTotals() {
-        _transactions.value?.let { transactions ->
-            _totalIncome.value = transactions
-                .filter { it.type == TransactionType.INCOME }
-                .sumOf { it.amount }
+        val totalIncome = _transactions.value?.filter { it.type == TransactionType.INCOME }?.sumOf { it.amount } ?: 0.0
+        val totalExpenses = _transactions.value?.filter { it.type == TransactionType.EXPENSE }?.sumOf { it.amount } ?: 0.0
 
-            _totalExpenses.value = transactions
-                .filter { it.type == TransactionType.EXPENSE }
-                .sumOf { it.amount }
-        }
+        _totalIncome.value = totalIncome
+        _totalExpenses.value = totalExpenses
     }
 
     fun addTransaction(transaction: Transaction) {
@@ -159,17 +183,28 @@ class TransactionViewModel : ViewModel() {
     }
 
     fun getTransactionsByType(type: TransactionType) {
-        // TODO: Implement Firestore Transaction Queries
-        // 1. Query 'transactions' subcollection based on type:
-        //    - For ALL: Get all transactions
-        //    - For INCOME: Get transactions where type == INCOME
-        //    - For EXPENSE: Get transactions where type == EXPENSE
-        // 2. Implement pagination for large datasets
-        // 3. Add sorting by date (newest first)
-        // 4. Cache frequently accessed transactions
-        // 5. Implement real-time updates using Firestore listeners
-        // 6. Handle offline data persistence
-        // 7. Add error handling for network issues
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Implement filtering in Firestore query
+                // - Handle offline state
+                // - Implement error handling
+                delay(500) // Simulate network delay
+                val filteredTransactions = when (type) {
+                    TransactionType.ALL -> _transactions.value ?: emptyList()
+                    TransactionType.INCOME -> _transactions.value?.filter { it.type == TransactionType.INCOME } ?: emptyList()
+                    TransactionType.EXPENSE -> _transactions.value?.filter { it.type == TransactionType.EXPENSE } ?: emptyList()
+                }
+                _transactions.value = filteredTransactions
+                updateTotals()
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = "Failed to filter transactions: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     fun getTransactionsByDateRange(startDate: Date, endDate: Date) {
@@ -203,5 +238,25 @@ class TransactionViewModel : ViewModel() {
         // 3. Cache aggregation results
         // 4. Update totals in real-time
         // 5. Handle offline calculations
+        updateTotals()
+    }
+
+    fun refreshTransactions() {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Implement real-time refresh from Firestore
+                // - Handle offline state
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                loadTestData()
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = "Failed to refresh transactions: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 } 

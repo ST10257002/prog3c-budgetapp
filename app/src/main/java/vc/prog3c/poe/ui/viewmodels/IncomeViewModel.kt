@@ -3,6 +3,9 @@ package vc.prog3c.poe.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Date
 
 data class Income(
@@ -27,8 +30,38 @@ class IncomeViewModel : ViewModel() {
     private val _totalIncome = MutableLiveData<Double>()
     val totalIncome: LiveData<Double> = _totalIncome
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    private val _saveSuccess = MutableLiveData<Boolean>()
+    val saveSuccess: LiveData<Boolean> = _saveSuccess
+
+    private var lastOperation: (() -> Unit)? = null
+
     init {
-        loadTestData()
+        loadInitialData()
+    }
+
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Fetch incomes from Firestore
+                // - Handle offline state
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                loadTestData()
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = "Failed to load incomes: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     private fun loadTestData() {
@@ -65,39 +98,97 @@ class IncomeViewModel : ViewModel() {
     }
 
     fun addIncome(income: Income) {
-        // TODO: Implement Firestore income addition
-        // - Add to Firestore collection
-        // - Handle offline persistence
-        // - Implement error handling
-        val currentList = _incomes.value?.toMutableList() ?: mutableListOf()
-        currentList.add(income)
-        _incomes.value = currentList
-        updateTotalIncome()
+        lastOperation = { addIncome(income) }
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Add to Firestore collection
+                // - Handle offline persistence
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                val currentList = _incomes.value?.toMutableList() ?: mutableListOf()
+                currentList.add(income)
+                _incomes.value = currentList
+                updateTotalIncome()
+                _saveSuccess.value = true
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = when (e) {
+                    is IllegalArgumentException -> "Invalid income data: ${e.message}"
+                    is IllegalStateException -> "Failed to save income: ${e.message}"
+                    else -> "An unexpected error occurred: ${e.message}"
+                }
+                _saveSuccess.value = false
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun retryLastOperation() {
+        lastOperation?.invoke()
     }
 
     fun updateIncome(income: Income) {
-        // TODO: Implement Firestore income update
-        // - Update Firestore document
-        // - Handle offline persistence
-        // - Implement error handling
-        val currentList = _incomes.value?.toMutableList() ?: return
-        val index = currentList.indexOfFirst { it.id == income.id }
-        if (index != -1) {
-            currentList[index] = income
-            _incomes.value = currentList
-            updateTotalIncome()
+        lastOperation = { updateIncome(income) }
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Update Firestore document
+                // - Handle offline persistence
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                val currentList = _incomes.value?.toMutableList() ?: return@launch
+                val index = currentList.indexOfFirst { it.id == income.id }
+                if (index != -1) {
+                    currentList[index] = income
+                    _incomes.value = currentList
+                    updateTotalIncome()
+                    _saveSuccess.value = true
+                    _error.value = null
+                }
+            } catch (e: Exception) {
+                _error.value = when (e) {
+                    is IllegalArgumentException -> "Invalid income data: ${e.message}"
+                    is IllegalStateException -> "Failed to update income: ${e.message}"
+                    else -> "An unexpected error occurred: ${e.message}"
+                }
+                _saveSuccess.value = false
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
     fun deleteIncome(incomeId: String) {
-        // TODO: Implement Firestore income deletion
-        // - Delete from Firestore collection
-        // - Handle offline persistence
-        // - Implement error handling
-        val currentList = _incomes.value?.toMutableList() ?: return
-        currentList.removeIf { it.id == incomeId }
-        _incomes.value = currentList
-        updateTotalIncome()
+        lastOperation = { deleteIncome(incomeId) }
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // TODO: Backend Implementation Required
+                // - Delete from Firestore collection
+                // - Handle offline persistence
+                // - Implement error handling
+                delay(1000) // Simulate network delay
+                val currentList = _incomes.value?.toMutableList() ?: return@launch
+                currentList.removeIf { it.id == incomeId }
+                _incomes.value = currentList
+                updateTotalIncome()
+                _saveSuccess.value = true
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = when (e) {
+                    is IllegalArgumentException -> "Invalid income ID: ${e.message}"
+                    is IllegalStateException -> "Failed to delete income: ${e.message}"
+                    else -> "An unexpected error occurred: ${e.message}"
+                }
+                _saveSuccess.value = false
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     fun getIncomeForPeriod(startDate: Date, endDate: Date): List<Income> {

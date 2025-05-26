@@ -6,31 +6,39 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricPrompt
 import androidx.lifecycle.ViewModelProvider
-import vc.prog3c.poe.R
+import vc.prog3c.poe.core.models.BiometricUiHost
+import vc.prog3c.poe.core.usecases.BiometricTransactionUseCase
+import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.databinding.ActivitySignInBinding
-import vc.prog3c.poe.ui.viewmodels.AuthViewModel
+import vc.prog3c.poe.ui.viewmodels.SignInUiState
+import vc.prog3c.poe.ui.viewmodels.SignInViewModel
 
-class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClickListener {
+class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClickListener,
+    BiometricUiHost {
 
 
     private lateinit var vBinds: ActivitySignInBinding
-    private lateinit var vModel: AuthViewModel
+    private lateinit var vModel: SignInViewModel
 
 
     // --- Lifecycle
 
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
         setupBindings()
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[AuthViewModel::class.java]
+        vModel = ViewModelProvider(this)[SignInViewModel::class.java]
 
         observeViewModel()
+        tryAuthenticateUsingBiometrics()
     }
 
 
@@ -38,17 +46,23 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongCli
 
 
     private fun observeViewModel() {
-        vModel.isLoggedIn.observe(this) { isLoggedIn ->
-            if (isLoggedIn) {
-                navigateToNextScreen()
-            }
-        }
+        vModel.uiState.observe(this) { state ->
+            when (state) {
+                is SignInUiState.Success -> {
+                    navigateToNextScreen()
+                }
 
-        vModel.error.observe(this) { error ->
-            error?.let {
-                Toast.makeText(
-                    this, it, Toast.LENGTH_SHORT
-                ).show()
+                is SignInUiState.Failure -> {
+                    Toast.makeText(
+                        this, state.message, Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                is SignInUiState.Loading -> {}
+
+                else -> {
+                    // Default behaviour
+                }
             }
         }
     }
@@ -57,27 +71,21 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongCli
     // --- Activity
 
 
-    private fun tryAuthenticateCredentials() {
-        val username = vBinds.etUsername.text.toString()
-        val password = vBinds.etPassword.text.toString()
+    private fun tryAuthenticateWithCredentials() {
+        val identity = vBinds.etUsername.text.toString().trim()
+        val password = vBinds.etPassword.text.toString().trim()
 
-        if (username.isEmpty() && password.isEmpty()) {
-            Toast.makeText(
-                this, "Inputs cannot be empty", Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
+        vModel.signIn(
+            identity, password
+        )
+    }
 
-        if (vModel.login(username, password)) {
-            Toast.makeText(
-                this, R.string.login_successful, Toast.LENGTH_SHORT
-            ).show()
 
-            navigateToNextScreen()
-        } else {
-            Toast.makeText(
-                this, vModel.error.value, Toast.LENGTH_SHORT
-            ).show()
+    private fun tryAuthenticateUsingBiometrics() {
+        vModel.getCurrentUser()?.let {
+            BiometricTransactionUseCase(
+                caller = this, uiHost = this
+            ).execute()
         }
     }
 
@@ -95,7 +103,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongCli
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.loginButton.id -> tryAuthenticateCredentials()
+            vBinds.loginButton.id -> tryAuthenticateWithCredentials()
 
             vBinds.registerTextView.id -> {
                 startActivity(
@@ -114,15 +122,11 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongCli
                 Toast.makeText(
                     this, "Bypassing authentication", Toast.LENGTH_SHORT
                 ).show()
-                
+
                 vModel.bypassLogin()
-                startActivity(
-                    Intent(this, DashboardView::class.java)
-                )
-                finish()
             }
         }
-        
+
         return true
     }
 
@@ -131,6 +135,47 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongCli
         vBinds.loginButton.setOnClickListener(this)
         vBinds.loginButton.setOnLongClickListener(this)
         vBinds.registerTextView.setOnClickListener(this)
+    }
+
+
+    // --- Biometrics
+
+
+    override fun onShowBiometrics(
+        uiBuilder: BiometricPrompt.PromptInfo.Builder
+    ) {
+        uiBuilder.apply {
+            setTitle("Login with fingerprint")
+            setDescription(
+                "We have found a user already logged in. Use your fingerprint to autofill your account details and jump straight into the app."
+            )
+            setNegativeButtonText(
+                "Use another method"
+            )
+        }
+    }
+
+
+    override fun onBiometricsSucceeded() {
+        Toast.makeText(
+            this, "Biometrics Succeeded", Toast.LENGTH_SHORT
+        ).show()
+
+        vModel.bypassLogin()
+    }
+
+
+    override fun onBiometricsDismissed() {
+        Toast.makeText(
+            this, "Biometrics Dismissed", Toast.LENGTH_SHORT
+        ).show()
+    }
+
+
+    override fun onBiometricsException(
+        code: Int, message: String
+    ) {
+        Blogger.d(this::class.java.simpleName, message)
     }
 
 

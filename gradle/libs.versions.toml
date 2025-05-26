@@ -1,5 +1,6 @@
 [versions]
 agp = "8.10.0"
+biometric = "1.2.0-alpha05"
 databindingAdapters = "8.10.0"
 databindingCommon = "8.10.0"
 databindingRuntime = "8.10.0"
@@ -23,7 +24,9 @@ swiperefreshlayout = "1.1.0"
 window = "1.4.0"
 
 [libraries]
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+firebase-auth = { module = "com.google.firebase:firebase-auth" }
 androidx-databinding-adapters = { module = "androidx.databinding:databinding-adapters", version.ref = "databindingAdapters" }
 androidx-databinding-common = { module = "androidx.databinding:databinding-common", version.ref = "databindingCommon" }
 androidx-databinding-runtime = { module = "androidx.databinding:databinding-runtime", version.ref = "databindingRuntime" }

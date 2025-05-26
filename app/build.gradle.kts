@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "vc.prog3c.poe"
         minSdk = 29
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 2
         versionName = "post-2025w21a"
 
@@ -80,9 +80,11 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.perf)
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-storage-ktx")
-    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation(libs.firebase.auth)
+    
+    // - Biometrics
+
+    implementation(libs.androidx.biometric)
 
     // - Testing
 

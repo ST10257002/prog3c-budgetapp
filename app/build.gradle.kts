@@ -85,6 +85,7 @@ dependencies {
     // - Biometrics
 
     implementation(libs.androidx.biometric)
+    implementation(libs.firebase.firestore.ktx)
 
     // - Testing
 

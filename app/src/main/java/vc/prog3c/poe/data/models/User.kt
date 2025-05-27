@@ -2,6 +2,7 @@ package vc.prog3c.poe.data.models
 
 data class User(
     val id: String = "", // Firestore doc ID = Firebase UID
+    val uid: String = "",         // FirebaseAuth UID
     val name: String = "",
     val email: String = "",
     val phoneNumber: String = "",

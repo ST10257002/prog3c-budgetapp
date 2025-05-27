@@ -15,16 +15,21 @@ import vc.prog3c.poe.databinding.ActivityAddExpenseBinding
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
+import vc.prog3c.poe.ui.viewmodels.ExpenseViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import vc.prog3c.poe.data.models.Expense
 
 class AddExpenseView : AppCompatActivity() {
     private lateinit var binding: ActivityAddExpenseBinding
-    private lateinit var viewModel: TransactionViewModel
+   // private lateinit var viewModel: TransactionViewModel
+    private lateinit var viewModel: ExpenseViewModel
     private val calendar = Calendar.getInstance()
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     private val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -49,7 +54,7 @@ class AddExpenseView : AppCompatActivity() {
         binding = ActivityAddExpenseBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+        viewModel = ViewModelProvider(this)[ExpenseViewModel::class.java]
         accountId = intent.getStringExtra("account_id")
 
         setupToolbar()
@@ -196,24 +201,25 @@ class AddExpenseView : AppCompatActivity() {
     private fun saveTransaction() {
         val amount = binding.amountInput.text.toString().toDouble()
         val category = binding.categoryInput.text.toString()
-        val date = calendar.time
         val description = binding.descriptionInput.text.toString().takeIf { it.isNotBlank() }
+        val date = calendar.time
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val account = accountId ?: ""
 
-        val transaction = Transaction(
-            id = UUID.randomUUID().toString(),
-            userId = "user1", // TODO: Get from auth service
-            accountId = accountId,
-            type = TransactionType.EXPENSE,
-            amount = amount,
-            category = category,
-            date = date,
-            description = description
+        val expense = Expense(
+            id        = UUID.randomUUID().toString(),
+            userId    = FirebaseAuth.getInstance().uid!!,  // ← set it
+            amount    = amount,
+            categoryId= category,
+            accountId = account,
+            date      = Timestamp(calendar.time),
+            description = description.orEmpty()
         )
-
-        viewModel.addTransaction(transaction)
+        viewModel.addExpense(expense)
     }
 
-    private fun observeViewModel() {
+
+        private fun observeViewModel() {
         viewModel.isLoading.observe(this) { isLoading ->
             binding.loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
             binding.saveButton.isEnabled = !isLoading

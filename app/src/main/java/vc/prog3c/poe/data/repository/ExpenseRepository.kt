@@ -39,4 +39,29 @@ class ExpenseRepository {
                 onComplete(expenses)
             }
     }
+
+    fun updateExpense(expenseId: String, updatedExpense: Expense, onComplete: (Boolean) -> Unit) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return onComplete(false)
+
+        db.collection("users")
+            .document(userId)
+            .collection("expenses")
+            .document(expenseId)
+            .set(updatedExpense)
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
+
+    fun deleteExpense(expenseId: String, onComplete: (Boolean) -> Unit) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return onComplete(false)
+
+        db.collection("users")
+            .document(userId)
+            .collection("expenses")
+            .document(expenseId)
+            .delete()
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
+
 }

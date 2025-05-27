@@ -8,20 +8,25 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import vc.prog3c.poe.R
+import vc.prog3c.poe.data.models.Income
+import vc.prog3c.poe.data.repository.IncomeRepository
 import vc.prog3c.poe.databinding.ActivityAddIncomeBinding
-import vc.prog3c.poe.data.models.Transaction
-import vc.prog3c.poe.data.models.TransactionType
+import vc.prog3c.poe.ui.viewmodels.IncomeViewModel
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import com.google.firebase.Timestamp
+
 
 class AddIncomeView : AppCompatActivity() {
     private lateinit var binding: ActivityAddIncomeBinding
-    private lateinit var viewModel: TransactionViewModel
+    private lateinit var viewModel: IncomeViewModel
+
     private val calendar = Calendar.getInstance()
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     private var accountId: String? = null
@@ -31,7 +36,7 @@ class AddIncomeView : AppCompatActivity() {
         binding = ActivityAddIncomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+        viewModel = ViewModelProvider(this)[IncomeViewModel::class.java]
         accountId = intent.getStringExtra("account_id")
 
         setupToolbar()
@@ -69,7 +74,7 @@ class AddIncomeView : AppCompatActivity() {
     private fun setupSaveButton() {
         binding.saveButton.setOnClickListener {
             if (validateInputs()) {
-                saveTransaction()
+                saveIncome()
             }
         }
     }
@@ -117,24 +122,26 @@ class AddIncomeView : AppCompatActivity() {
         return isValid
     }
 
-    private fun saveTransaction() {
+    private fun saveIncome() {
         val amount = binding.amountInput.text.toString().toDouble()
-        val category = binding.sourceInput.text.toString()
+        val source = binding.sourceInput.text.toString()
         val date = calendar.time
         val description = binding.descriptionInput.text.toString().takeIf { it.isNotBlank() }
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val account = accountId ?: ""
 
-        val transaction = Transaction(
+        val income = Income(
             id = UUID.randomUUID().toString(),
-            userId = "user1", // TODO: Get from auth service
-            accountId = accountId,
-            type = TransactionType.INCOME,
             amount = amount,
-            category = category,
-            date = date,
-            description = description
+            source = source,
+            date = Timestamp(date),
+            description = description,
+            accountId = account,
+            userId = userId
         )
 
-        viewModel.addTransaction(transaction)
+
+        viewModel.addIncome(income)
     }
 
     private fun observeViewModel() {

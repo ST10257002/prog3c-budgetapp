@@ -17,7 +17,7 @@ object TestRead {
             amount = 12500.0,
             source = "Software Dev Contract",
             date = Timestamp.now(),
-            note = "Monthly income test"
+            description = "Monthly income test"
         )
 
         // Insert the test data

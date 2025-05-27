@@ -12,7 +12,20 @@
           "package_name": "vc.prog3c.poe"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "594873101790-6n7cgl4a86gvrrkv489doke2stipb7ak.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "vc.prog3c.poe",
+            "certificate_hash": "43901f348102d308a9d6ec31edd403f87bb0c7d0"
+          }
+        },
+        {
+          "client_id": "594873101790-afdjohgaqgl30ke7tq3bq2qrfjk2t1gk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDXeuCv-cixk2jER0vMd-9XcLRzdKn7tes"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "594873101790-afdjohgaqgl30ke7tq3bq2qrfjk2t1gk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

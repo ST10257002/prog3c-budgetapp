@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_marginBottom="8dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    android:layoutAnimation="@anim/layout_animation">
+    app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:padding="16dp"
+        android:gravity="center_vertical"
         android:background="?attr/selectableItemBackground">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
 
             <ImageView
                 android:id="@+id/categoryIcon"
@@ -35,37 +29,17 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="12dp"
-                android:textColor="#212121"
+            android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/categoryTotal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#2196F3"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <ProgressBar
-            android:id="@+id/categoryProgress"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:layout_marginTop="12dp"
-            android:progress="0"
-            android:max="100"
-            android:progressDrawable="@drawable/progress_bar_category" />
-
-        <TextView
-            android:id="@+id/progressText"
+            android:id="@+id/categoryAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="#757575"
-            android:textSize="12sp" />
+            android:textColor="@color/black"
+            android:textSize="16sp" />
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

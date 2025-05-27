@@ -5,18 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
-import com.github.mikephil.charting.utils.ColorTemplate
 import vc.prog3c.poe.data.services.FirestoreService
 import java.util.Date
-import vc.prog3c.poe.data.models.Card
-import vc.prog3c.poe.data.models.Budget
-import vc.prog3c.poe.data.models.SavingsGoal
-import vc.prog3c.poe.data.models.Category
-import vc.prog3c.poe.data.models.IncomeExpenseData
-import vc.prog3c.poe.data.models.MonthlyStats
+import vc.prog3c.poe.data.models.*
+import java.util.Calendar
 
 class DashboardViewModel : ViewModel() {
 
@@ -31,9 +23,6 @@ class DashboardViewModel : ViewModel() {
 
     private val _categories = MutableLiveData<List<Category>>()
     val categories: LiveData<List<Category>> = _categories
-
-    private val _incomeExpenseData = MutableLiveData<IncomeExpenseData>()
-    val incomeExpenseData: LiveData<IncomeExpenseData> = _incomeExpenseData
 
     private val _currentSavings = MutableLiveData<Double>()
     val currentSavings: LiveData<Double> = _currentSavings
@@ -55,8 +44,7 @@ class DashboardViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                loadSavingsGoals()
-                // TODO: Add Firestore calls for: cards, budgets, categories, etc.
+                loadMockData()
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = "Failed to load dashboard data: ${e.message}"
@@ -66,33 +54,49 @@ class DashboardViewModel : ViewModel() {
         }
     }
 
-    private fun loadSavingsGoals() {
-        FirestoreService.savingsGoal.fetchGoals { goals ->
-            if (goals != null) {
-                _savingsGoals.postValue(goals)
-            } else {
-                _error.postValue("Failed to load savings goals")
-            }
-        }
-    }
-
-    fun updateSavingsGoal(goalId: String, min: Double, max: Double, budget: Double) {
-        val updatedFields = mapOf(
-            "minMonthlyGoal" to min,
-            "maxMonthlyGoal" to max,
-            "monthlyBudget" to budget
+    private fun loadMockData() {
+        // Mock Savings Goals
+        val mockSavingsGoal = SavingsGoal(
+            id = "1",
+            name = "New Car",
+            targetAmount = 250000.0,
+            savedAmount = 75000.0,
+            targetDate = Calendar.getInstance().apply { add(Calendar.MONTH, 12) }.time,
+            minMonthlyGoal = 5000.0,
+            maxMonthlyGoal = 10000.0,
+            monthlyBudget = 7500.0
         )
-        FirestoreService.savingsGoal.updateGoal(goalId, updatedFields) { success ->
-            if (success) loadSavingsGoals()
-            else _error.postValue("Failed to update savings goal")
-        }
-    }
+        _savingsGoals.value = listOf(mockSavingsGoal)
 
-    fun addSavingsGoal(goal: SavingsGoal) {
-        FirestoreService.savingsGoal.saveGoal(goal) { success ->
-            if (success) loadSavingsGoals()
-            else _error.postValue("Failed to save savings goal")
-        }
+        // Mock Categories with correct TransactionType
+        val mockCategories = listOf(
+            Category("1", "Groceries", TransactionType.EXPENSE, "ic_food", "#FF5722"),
+            Category("2", "Transport", TransactionType.EXPENSE, "ic_car", "#2196F3"),
+            Category("3", "Entertainment", TransactionType.EXPENSE, "ic_movie", "#9C27B0"),
+            Category("4", "Salary", TransactionType.INCOME, "ic_money", "#4CAF50"),
+            Category("5", "Bills", TransactionType.EXPENSE, "ic_bill", "#F44336")
+        )
+        _categories.value = mockCategories
+
+        // Mock Monthly Stats
+        val mockMonthlyStats = MonthlyStats(
+            totalIncome = 25000.0,
+            totalExpenses = 15000.0,
+            savings = 10000.0
+        )
+        _monthlyStats.value = mockMonthlyStats
+
+        // Mock Current Budget
+        val mockBudget = Budget(
+            id = "1",
+            month = "March 2024",
+            amount = 20000.0,
+            spent = 15000.0
+        )
+        _currentBudget.value = mockBudget
+
+        // Mock Current Savings
+        _currentSavings.value = 75000.0
     }
 
     fun getSavingsProgress(goal: SavingsGoal): Double {
@@ -104,52 +108,40 @@ class DashboardViewModel : ViewModel() {
     }
 
     fun getMonthlyStats(): MonthlyStats {
-        // TODO: Implement Firestore Monthly Statistics
-        return MonthlyStats(0.0, 0.0, 0.0)
+        return _monthlyStats.value ?: MonthlyStats(0.0, 0.0, 0.0)
     }
 
     fun getCategoryBreakdown(): Map<String, Double> {
-        // TODO: Implement Firestore Category Breakdown
-        return emptyMap()
+        // Mock category breakdown data
+        return mapOf(
+            "Groceries" to 3000.0,
+            "Transport" to 2000.0,
+            "Entertainment" to 1500.0,
+            "Bills" to 8500.0
+        )
     }
 
     fun refreshData() {
         loadInitialData()
     }
 
-    fun addNewCard(card: Card) {
-        // TODO: Implement Firestore card addition
-    }
-
-    fun updateBudget(budget: Budget) {
-        // TODO: Implement Firestore budget update
-    }
-
-    fun updateIncomeExpenseData(totalIncome: Double, totalExpenses: Double) {
-        val entries = listOf(
-            PieEntry(totalIncome.toFloat(), "Income"),
-            PieEntry(totalExpenses.toFloat(), "Expenses")
-        )
-
-        val dataSet = PieDataSet(entries, "Income vs Expenses")
-        dataSet.colors = listOf(
-            ColorTemplate.rgb("#4CAF50"),
-            ColorTemplate.rgb("#F44336")
-        )
-
-        val pieData = PieData(dataSet)
-        pieData.setValueTextSize(12f)
-        pieData.setValueTextColor(ColorTemplate.rgb("#FFFFFF"))
-
-        _incomeExpenseData.value = IncomeExpenseData(
-            totalIncome = totalIncome,
-            totalExpenses = totalExpenses,
-            pieData = pieData
-        )
-    }
-
-    fun updateCurrentSavings(amount: Double) {
-        // TODO: Persist to Firestore
-        _currentSavings.value = amount
+    // Mock function to update savings goal parameters
+    fun updateSavingsGoal(goalId: String, minMonthlyGoal: Double, maxMonthlyGoal: Double, monthlyBudget: Double) {
+        // This is a mock implementation. In a real app, you would update your data source (e.g., Firestore).
+        // For now, we'll just log the update or update the local mock data structure if needed.
+        println("Mock updateSavingsGoal called for goalId: $goalId with min: $minMonthlyGoal, max: $maxMonthlyGoal, budget: $monthlyBudget")
+        
+        // Optional: Update local mock data to reflect the change in UI immediately
+        val currentGoals = _savingsGoals.value?.toMutableList() ?: mutableListOf()
+        val index = currentGoals.indexOfFirst { it.id == goalId }
+        if (index != -1) {
+            val updatedGoal = currentGoals[index].copy(
+                minMonthlyGoal = minMonthlyGoal,
+                maxMonthlyGoal = maxMonthlyGoal,
+                monthlyBudget = monthlyBudget
+            )
+            currentGoals[index] = updatedGoal
+            _savingsGoals.value = currentGoals
+        }
     }
 }

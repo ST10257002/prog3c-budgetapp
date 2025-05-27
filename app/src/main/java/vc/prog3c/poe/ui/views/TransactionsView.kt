@@ -78,8 +78,6 @@ class TransactionsView : AppCompatActivity() {
                 else -> false
             }
         }
-        // Removed nav_transactions as it's no longer in the menu
-        // binding.bottomNavigation.selectedItemId = R.id.nav_transactions
     }
 
     private fun setupRecyclerView() {
@@ -126,31 +124,12 @@ class TransactionsView : AppCompatActivity() {
 
     private fun setupAddTransactionButton() {
         binding.addTransactionButton.setOnClickListener {
-            showTransactionTypeDialog()
+            startAddTransaction()
         }
     }
 
-    private fun showTransactionTypeDialog() {
-        val options = arrayOf("Income", "Expense")
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Add Transaction")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> startAddIncome()
-                    1 -> startAddExpense()
-                }
-            }
-            .show()
-    }
-
-    private fun startAddIncome() {
-        val intent = Intent(this, AddIncomeView::class.java)
-        accountId?.let { intent.putExtra("account_id", it) }
-        startActivity(intent)
-    }
-
-    private fun startAddExpense() {
-        val intent = Intent(this, AddExpenseView::class.java)
+    private fun startAddTransaction() {
+        val intent = Intent(this, AddTransactionActivity::class.java)
         accountId?.let { intent.putExtra("account_id", it) }
         startActivity(intent)
     }

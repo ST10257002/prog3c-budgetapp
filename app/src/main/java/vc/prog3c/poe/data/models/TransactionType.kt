@@ -1,5 +1,5 @@
-package vc.prog3c.poe.ui.viewmodels
+package vc.prog3c.poe.data.models
 
 enum class TransactionType {
     INCOME, EXPENSE, ALL
-} 
+}

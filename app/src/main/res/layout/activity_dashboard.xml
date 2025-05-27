@@ -65,14 +65,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- Income vs Expenses Card -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        app:cardCornerRadius="24dp"
-                        app:cardElevation="4dp"/>
-
                     <!-- Savings Goal Card -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
@@ -247,17 +239,16 @@
                                     android:id="@+id/budgetMonthText"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="October"
+                                    android:text="March 2024"
                                     android:textColor="@color/white"
-                                    android:textSize="16sp"
-                                    android:alpha="0.8" />
+                                    android:textSize="16sp" />
                             </LinearLayout>
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
-                                android:layout_marginTop="24dp">
+                                android:layout_marginTop="16dp">
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -268,18 +259,18 @@
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="Total Budget"
+                                        android:text="Budget"
                                         android:textColor="@color/white"
                                         android:textSize="14sp"
                                         android:alpha="0.8" />
 
                                     <TextView
-                                        android:id="@+id/budgetValue"
+                                        android:id="@+id/budgetAmountText"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="R26 000"
+                                        android:text="R0"
                                         android:textColor="@color/white"
-                                        android:textSize="24sp"
+                                        android:textSize="18sp"
                                         android:textStyle="bold" />
                                 </LinearLayout>
 
@@ -293,18 +284,18 @@
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="Available"
+                                        android:text="Spent"
                                         android:textColor="@color/white"
                                         android:textSize="14sp"
                                         android:alpha="0.8" />
 
                                     <TextView
-                                        android:id="@+id/availableBudgetText"
+                                        android:id="@+id/budgetSpentText"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="R18 500"
+                                        android:text="R0"
                                         android:textColor="@color/white"
-                                        android:textSize="24sp"
+                                        android:textSize="18sp"
                                         android:textStyle="bold" />
                                 </LinearLayout>
                             </LinearLayout>
@@ -313,26 +304,25 @@
                                 android:id="@+id/budgetProgressBar"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="16dp"
+                                android:layout_marginTop="24dp"
                                 app:trackCornerRadius="12dp"
                                 app:trackThickness="16dp"
                                 app:indicatorColor="@color/white"
                                 app:trackColor="#33FFFFFF" />
 
                             <TextView
-                                android:id="@+id/budgetSpentText"
+                                android:id="@+id/budgetProgressText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_gravity="end"
                                 android:layout_marginTop="8dp"
-                                android:text="R7 500 spent this month"
+                                android:text="0%"
                                 android:textColor="@color/white"
-                                android:textSize="14sp"
-                                android:alpha="0.8" />
-
+                                android:textSize="14sp" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Categories Section -->
+                    <!-- Categories Card -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -347,138 +337,31 @@
                             android:padding="24dp"
                             android:background="@drawable/categories_gradient_background">
 
-                            <LinearLayout
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Categories"
+                                android:textColor="@color/white"
+                                android:textSize="20sp"
+                                android:textStyle="bold" />
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/categoriesRecyclerView"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical">
+                                android:layout_marginTop="16dp"
+                                android:nestedScrollingEnabled="false" />
 
-                                <ImageView
-                                    android:layout_width="32dp"
-                                    android:layout_height="32dp"
-                                    android:src="@drawable/ic_categories"
-                                    app:tint="@color/white"
-                                    android:layout_marginEnd="12dp"/>
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Categories"
-                                    android:textColor="@color/white"
-                                    android:textSize="20sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-
-                            <LinearLayout
+                            <TextView
+                                android:id="@+id/noCategoriesText"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:layout_marginTop="16dp">
-
-                                <!-- Food Category -->
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:gravity="center_vertical"
-                                    android:padding="12dp"
-                                    android:background="@drawable/category_item_background"
-                                    android:layout_marginBottom="8dp">
-
-                                    <ImageView
-                                        android:layout_width="24dp"
-                                        android:layout_height="24dp"
-                                        android:src="@drawable/ic_food"
-                                        app:tint="@color/white"
-                                        android:layout_marginEnd="12dp"/>
-
-                                    <TextView
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_weight="1"
-                                        android:text="Food"
-                                        android:textColor="@color/white"
-                                        android:textSize="16sp" />
-
-                                    <TextView
-                                        android:id="@+id/foodAmountText"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="R2 500"
-                                        android:textColor="@color/white"
-                                        android:textSize="16sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-
-                                <!-- Utilities Category -->
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:gravity="center_vertical"
-                                    android:padding="12dp"
-                                    android:background="@drawable/category_item_background"
-                                    android:layout_marginBottom="8dp">
-
-                                    <ImageView
-                                        android:layout_width="24dp"
-                                        android:layout_height="24dp"
-                                        android:src="@drawable/ic_utilities"
-                                        app:tint="@color/white"
-                                        android:layout_marginEnd="12dp"/>
-
-                                    <TextView
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_weight="1"
-                                        android:text="Utilities"
-                                        android:textColor="@color/white"
-                                        android:textSize="16sp" />
-
-                                    <TextView
-                                        android:id="@+id/utilitiesAmountText"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="R1 800"
-                                        android:textColor="@color/white"
-                                        android:textSize="16sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-
-                                <!-- Investing Category -->
-                                <LinearLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:gravity="center_vertical"
-                                    android:padding="12dp"
-                                    android:background="@drawable/category_item_background">
-
-                                    <ImageView
-                                        android:layout_width="24dp"
-                                        android:layout_height="24dp"
-                                        android:src="@drawable/ic_investing"
-                                        app:tint="@color/white"
-                                        android:layout_marginEnd="12dp"/>
-
-                                    <TextView
-                                        android:layout_width="0dp"
-                                        android:layout_height="wrap_content"
-                                        android:layout_weight="1"
-                                        android:text="Investing"
-                                        android:textColor="@color/white"
-                                        android:textSize="16sp" />
-
-                                    <TextView
-                                        android:id="@+id/investingAmountText"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="R3 200"
-                                        android:textColor="@color/white"
-                                        android:textSize="16sp"
-                                        android:textStyle="bold" />
-                                </LinearLayout>
-                            </LinearLayout>
+                                android:layout_marginTop="16dp"
+                                android:gravity="center"
+                                android:text="No categories yet. Add expenses to see your categories."
+                                android:textColor="@color/white"
+                                android:alpha="0.8"
+                                android:visibility="gone" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
@@ -503,9 +386,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="#FFFFFF"
-        app:itemIconTint="@color/bottom_nav_icon_color"
-        app:itemTextColor="@color/bottom_nav_text_color"
+        android:background="@color/white"
         app:menu="@menu/bottom_navigation_menu"
         app:labelVisibilityMode="labeled" />
 

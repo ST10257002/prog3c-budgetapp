@@ -53,4 +53,4 @@ class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.Transacti
             return oldItem == newItem
         }
     }
-}
+} 

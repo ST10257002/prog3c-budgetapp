@@ -10,11 +10,8 @@ data class Transaction(
     val amount: Double,
     val category: String,
     val date: Date,
-    val description: String? = null
+    val description: String? = null,
+    val startTime: Date? = null,
+    val endTime: Date? = null,
+    val photoUrls: List<String> = emptyList()
 )
-
-enum class TransactionType {
-    ALL,
-    INCOME,
-    EXPENSE
-} 

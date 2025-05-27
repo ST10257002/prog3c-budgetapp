@@ -112,6 +112,11 @@
                 android:name=".ui.views.AccountDetailsView"
                 android:exported="false" />
 
+        <activity
+                android:name=".ui.views.AddTransactionActivity"
+                android:exported="false"
+                android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+
     </application>
 
 </manifest>

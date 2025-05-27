@@ -124,6 +124,10 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongCli
                 ).show()
 
                 vModel.bypassLogin()
+
+                // here add in testing for testData function
+                //vc.prog3c.poe.utils.TestData.runFirestoreTest()
+                vc.prog3c.poe.utils.TestRead.runIncomeTest()
             }
         }
 

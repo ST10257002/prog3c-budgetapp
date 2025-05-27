@@ -81,8 +81,9 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.perf)
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore.ktx)
     
-    // - Biometrics
+    // - Auth & Credentials
 
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.credentials)

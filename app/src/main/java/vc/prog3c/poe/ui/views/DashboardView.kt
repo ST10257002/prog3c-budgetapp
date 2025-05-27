@@ -27,7 +27,6 @@ class DashboardView : AppCompatActivity() {
         setupToolbar()
         setupBottomNavigation()
         setupSwipeRefresh()
-        setupIncomeExpenseGraph()
         observeViewModel()
     }
 
@@ -53,16 +52,16 @@ class DashboardView : AppCompatActivity() {
                 R.id.nav_dashboard -> {
                     true
                 }
-                R.id.nav_transactions -> {
-                    startActivity(Intent(this, TransactionsView::class.java))
+                R.id.nav_accounts -> {
+                    startActivity(Intent(this, AccountsView::class.java))
                     true
                 }
-                R.id.nav_add_income -> {
-                    startActivity(Intent(this, AddIncomeView::class.java))
+                R.id.nav_graph -> {
+                    startActivity(Intent(this, GraphView::class.java))
                     true
                 }
-                R.id.nav_add_expense -> {
-                    startActivity(Intent(this, AddExpenseView::class.java))
+                R.id.nav_profile -> {
+                    startActivity(Intent(this, ProfileActivity::class.java))
                     true
                 }
                 else -> false
@@ -94,43 +93,8 @@ class DashboardView : AppCompatActivity() {
         viewModel.refreshDashboardData()
     }
 
-    private fun setupIncomeExpenseGraph() {
-        binding.pieChart.apply {
-            description.isEnabled = false
-            setUsePercentValues(true)
-            setEntryLabelTextSize(12f)
-            setEntryLabelColor(android.graphics.Color.BLACK)
-            legend.textSize = 12f
-            legend.textColor = android.graphics.Color.BLACK
-            setDrawEntryLabels(true)
-            isDrawHoleEnabled = true
-            setHoleColor(android.graphics.Color.WHITE)
-            transparentCircleRadius = 30f
-            holeRadius = 30f
-            setRotationAngle(0f)
-            isRotationEnabled = true
-            isHighlightPerTapEnabled = true
-            animateY(1000)
-        }
-    }
-
     private fun observeViewModel() {
-        viewModel.incomeExpenseData.observe(this) { data ->
-            // TODO: Backend Implementation Required
-            // 1. Financial Data:
-            //    - Fetch income/expense data from Firestore
-            //    - Calculate totals and percentages
-            //    - Update charts in real-time
-            //    - Cache financial data locally
-            binding.pieChart.data = data.pieData
-            binding.pieChart.invalidate()
-            binding.pieChart.animateY(1000)
 
-            val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
-            binding.totalIncomeText.text = currencyFormat.format(data.totalIncome)
-            binding.totalExpensesText.text = currencyFormat.format(data.totalExpenses)
-            binding.balanceText.text = currencyFormat.format(data.totalIncome - data.totalExpenses)
-        }
 
         viewModel.savingsGoal.observe(this) { goal ->
             // TODO: Backend Implementation Required

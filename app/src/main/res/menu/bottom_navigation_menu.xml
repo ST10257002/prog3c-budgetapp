@@ -6,17 +6,17 @@
         android:title="Dashboard" />
 
     <item
-        android:id="@+id/nav_transactions"
-        android:icon="@drawable/ic_money"
-        android:title="Transactions" />
+        android:id="@+id/nav_accounts"
+        android:icon="@drawable/ic_accounts"
+        android:title="Accounts" />
 
     <item
-        android:id="@+id/nav_add_income"
-        android:icon="@drawable/ic_income"
-        android:title="Add Income" />
+        android:id="@+id/nav_graph"
+        android:icon="@drawable/ic_graph"
+        android:title="Graph" />
 
     <item
-        android:id="@+id/nav_add_expense"
-        android:icon="@drawable/ic_expense"
-        android:title="Add Expense" />
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_profile"
+        android:title="Profile" />
 </menu> 

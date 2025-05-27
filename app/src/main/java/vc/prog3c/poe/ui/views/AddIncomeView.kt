@@ -10,8 +10,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
 import vc.prog3c.poe.databinding.ActivityAddIncomeBinding
-import vc.prog3c.poe.ui.viewmodels.Income
-import vc.prog3c.poe.ui.viewmodels.IncomeViewModel
+import vc.prog3c.poe.data.models.Transaction
+import vc.prog3c.poe.data.models.TransactionType
+import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -20,16 +21,18 @@ import java.util.UUID
 
 class AddIncomeView : AppCompatActivity() {
     private lateinit var binding: ActivityAddIncomeBinding
-    private lateinit var viewModel: IncomeViewModel
+    private lateinit var viewModel: TransactionViewModel
     private val calendar = Calendar.getInstance()
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    private var accountId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddIncomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[IncomeViewModel::class.java]
+        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+        accountId = intent.getStringExtra("account_id")
 
         setupToolbar()
         setupDatePicker()
@@ -66,7 +69,7 @@ class AddIncomeView : AppCompatActivity() {
     private fun setupSaveButton() {
         binding.saveButton.setOnClickListener {
             if (validateInputs()) {
-                saveIncome()
+                saveTransaction()
             }
         }
     }
@@ -114,21 +117,24 @@ class AddIncomeView : AppCompatActivity() {
         return isValid
     }
 
-    private fun saveIncome() {
+    private fun saveTransaction() {
         val amount = binding.amountInput.text.toString().toDouble()
-        val source = binding.sourceInput.text.toString()
+        val category = binding.sourceInput.text.toString()
         val date = calendar.time
         val description = binding.descriptionInput.text.toString().takeIf { it.isNotBlank() }
 
-        val income = Income(
+        val transaction = Transaction(
             id = UUID.randomUUID().toString(),
+            userId = "user1", // TODO: Get from auth service
+            accountId = accountId,
+            type = TransactionType.INCOME,
             amount = amount,
-            source = source,
+            category = category,
             date = date,
             description = description
         )
 
-        viewModel.addIncome(income)
+        viewModel.addTransaction(transaction)
     }
 
     private fun observeViewModel() {
@@ -140,15 +146,7 @@ class AddIncomeView : AppCompatActivity() {
         viewModel.error.observe(this) { error ->
             error?.let {
                 Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
-                    .setAction("Retry") { viewModel.retryLastOperation() }
                     .show()
-            }
-        }
-
-        viewModel.saveSuccess.observe(this) { success ->
-            if (success) {
-                Toast.makeText(this, "Income saved successfully", Toast.LENGTH_SHORT).show()
-                finish()
             }
         }
     }

@@ -14,11 +14,6 @@ interface BudgetService {
     suspend fun updateUser(user: User): Result<User>
     suspend fun updateProfileImage(userId: String, imageUri: String): Result<String>
 
-    // Card Operations
-    suspend fun addCard(userId: String, card: CardDetails): Result<CardDetails>
-    suspend fun getCards(userId: String): Result<List<CardDetails>>
-    suspend fun deleteCard(userId: String, cardId: String): Result<Unit>
-
     // Transaction Operations
     suspend fun addTransaction(userId: String, transaction: Transaction): Result<Transaction>
     suspend fun getTransactions(userId: String): Result<List<Transaction>>
@@ -35,5 +30,5 @@ interface BudgetService {
     fun observeUser(userId: String): Flow<User>
     fun observeTransactions(userId: String): Flow<List<Transaction>>
     fun observeGoals(userId: String): Flow<List<SavingsGoal>>
-    fun observeCards(userId: String): Flow<List<CardDetails>>
+
 } 

@@ -1,9 +1,12 @@
 package vc.prog3c.poe.data.models
 
+import java.util.Date
+
 data class SavingsGoal(
+    val id: String = "",
     val userId: String = "",
-    val minMonthlyGoal: Double = 0.0,
-    val maxMonthlyGoal: Double = 0.0,
-    val monthlyBudget: Double = 0.0,
-    val createdAt: Long = System.currentTimeMillis()
+    val name: String = "",
+    val targetAmount: Double = 0.0,
+    val savedAmount: Double = 0.0,
+    val targetDate: Date? = null
 ) 

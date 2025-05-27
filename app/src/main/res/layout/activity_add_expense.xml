@@ -11,9 +11,9 @@
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:title="Add Expense" />
@@ -49,10 +49,10 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/descriptionInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter expense description"
-                android:inputType="text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter expense description"
+                    android:inputType="text"
                     android:minLines="2" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -71,13 +71,13 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:hint="Enter amount (R)"
                 android:layout_marginBottom="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/amountInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter amount (R)"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:inputType="numberDecimal" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -109,7 +109,7 @@
                         android:id="@+id/startTimeInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                    android:hint="Start Time"
+                        android:hint="Start Time"
                         android:focusable="false"
                         android:inputType="none" />
 
@@ -127,7 +127,7 @@
                         android:id="@+id/endTimeInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                    android:hint="End Time"
+                        android:hint="End Time"
                         android:focusable="false"
                         android:inputType="none" />
 
@@ -258,14 +258,15 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-    <ProgressBar
+            <ProgressBar
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:indeterminateTint="@color/white" />
 
             <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+                android:id="@+id/loadingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Saving Expense..."
                 android:textColor="@color/white"

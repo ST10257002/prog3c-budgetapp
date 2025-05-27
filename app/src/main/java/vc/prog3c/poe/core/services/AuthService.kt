@@ -45,5 +45,13 @@ class AuthService(
     }
     
     
+    fun isUserSignedIn() : Boolean = (auth.currentUser != null)
+    
+    
     fun getCurrentUser() : FirebaseUser? = auth.currentUser
+    
+    
+    fun logout() {
+        auth.signOut()
+    }
 }

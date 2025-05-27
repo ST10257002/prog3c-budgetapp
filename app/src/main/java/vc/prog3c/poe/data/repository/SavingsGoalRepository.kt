@@ -4,36 +4,68 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.data.models.SavingsGoal
 
-class SavingsGoalRepository {
-
+object SavingsGoalRepository {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    // Save a new savings goal
     fun saveGoal(goal: SavingsGoal, onComplete: (Boolean) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return onComplete(false)
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            onComplete(false)
+            return
+        }
+        val userId = currentUser.uid
+        val goalWithUserId = goal.copy(userId = userId)
 
-        // Firestore path: users/{userId}/goals/savings_goal
+        // Use an auto-generated ID for each new savings goal
         db.collection("users")
             .document(userId)
-            .collection("goals")
-            .document("savings_goal") // singular goal per user
-            .set(goal.copy(userId = userId)) // ensure correct UID is saved
+            .collection("savingsGoals")
+            .add(goalWithUserId) // Adds a new document with an auto-generated ID
+            .addOnSuccessListener { documentRef ->
+                // Optionally update the goal with its ID
+                documentRef.update("id", documentRef.id)
+                onComplete(true)
+            }
+            .addOnFailureListener { onComplete(false) }
+    }
+
+    // Update an existing savings goal
+    fun updateGoal(goalId: String, updatedFields: Map<String, Any>, onComplete: (Boolean) -> Unit) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            onComplete(false)
+            return
+        }
+        val userId = currentUser.uid
+
+        db.collection("users")
+            .document(userId)
+            .collection("savingsGoals")
+            .document(goalId)
+            .update(updatedFields)
             .addOnSuccessListener { onComplete(true) }
             .addOnFailureListener { onComplete(false) }
     }
 
-    fun fetchGoal(onComplete: (SavingsGoal?) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return onComplete(null)
+    // Fetch all savings goals for the current user
+    fun fetchGoals(onComplete: (List<SavingsGoal>) -> Unit) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            onComplete(emptyList())
+            return
+        }
+        val userId = currentUser.uid
 
         db.collection("users")
             .document(userId)
-            .collection("goals")
-            .document("savings_goal")
+            .collection("savingsGoals")
             .get()
             .addOnSuccessListener { snapshot ->
-                val goal = snapshot.toObject(SavingsGoal::class.java)
-                onComplete(goal)
+                val goals = snapshot.documents.mapNotNull { it.toObject(SavingsGoal::class.java) }
+                onComplete(goals)
             }
-            .addOnFailureListener { onComplete(null) }
+            .addOnFailureListener { onComplete(emptyList()) }
     }
 }

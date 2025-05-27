@@ -7,6 +7,7 @@ object FirestoreService {
     val incomes = IncomeRepository()
     val categories = CategoryRepository()
     val users = UserRepository()
+    val savingsGoal = SavingsGoalRepository
 }
 
 //Example on how we could use this

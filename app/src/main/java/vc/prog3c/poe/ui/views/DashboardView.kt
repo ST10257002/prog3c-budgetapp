@@ -94,17 +94,16 @@ class DashboardView : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-
-
-        viewModel.savingsGoal.observe(this) { goal ->
-            // TODO: Backend Implementation Required
-            // 1. Savings Goals:
-            //    - Fetch savings goal from Firestore
-            //    - Calculate progress
-            //    - Update goal status
-            //    - Handle goal completion
-            val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
-            binding.savingsGoalText.text = currencyFormat.format(goal)
+        viewModel.savingsGoals.observe(this) { goals ->
+            // Display the first goal's saved amount or a default message if no goals exist
+            if (goals.isNotEmpty()) {
+                val goal = goals[0]
+                val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
+                binding.savingsGoalText.text = currencyFormat.format(goal.savedAmount)
+                // Alternatively, use goal.targetAmount or other field if desired
+            } else {
+                binding.savingsGoalText.text = "No savings goals set"
+            }
         }
 
         viewModel.isLoading.observe(this) { isLoading ->

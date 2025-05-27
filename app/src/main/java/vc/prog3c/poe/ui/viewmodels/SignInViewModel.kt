@@ -51,11 +51,40 @@ class SignInViewModel : ViewModel() {
 
     fun getCurrentUser(): FirebaseUser? = authService.getCurrentUser()
 
-
+/*
     fun bypassLogin() {
         _uiState.value = SignInUiState.Success
     }
+*/
 
+    // testing random user creation
+    fun bypassLogin() {
+        // Create a random user and sign in with it
+        val randomSuffix = (10000..99999).random()
+        val randomEmail = "test$randomSuffix@example.com"
+        val randomPassword = "TestPass123!"
+
+        authService.signUp(
+            randomEmail, randomPassword,
+            {
+                authService.signIn(
+                    randomEmail, randomPassword,
+                    {
+                        Blogger.i(getTag(), "Bypassed login with random user: $randomEmail")
+                        _uiState.value = SignInUiState.Success
+                    },
+                    { message ->
+                        Blogger.e(getTag(), "Sign-in failed after signup: $message")
+                        _uiState.value = SignInUiState.Failure(message)
+                    }
+                )
+            },
+            { message ->
+                Blogger.e(getTag(), "Signup failed: $message")
+                _uiState.value = SignInUiState.Failure(message)
+            }
+        )
+    }
 
     // --- Internals
 

@@ -1,5 +1,6 @@
 package vc.prog3c.poe.data.repository
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.data.models.User
@@ -10,9 +11,9 @@ class UserRepository {
     private val auth = FirebaseAuth.getInstance()
 
     fun addUser(user: User, onComplete: (Boolean) -> Unit) {
-        val userId = "testUser1234" // fake user ID for development
-        // val userId = auth.currentUser?.uid
+        val userId = auth.currentUser?.uid
         if (userId == null) {
+            Log.e("FIRESTORE", "No user signed in")
             onComplete(false)
             return
         }
@@ -20,14 +21,20 @@ class UserRepository {
         db.collection("users")
             .document(userId)
             .set(user)
-            .addOnSuccessListener { onComplete(true) }
-            .addOnFailureListener { onComplete(false) }
+            .addOnSuccessListener {
+                Log.d("FIRESTORE_WRITE", "User added successfully with ID: $userId")
+                onComplete(true)
+            }
+            .addOnFailureListener { e ->
+                Log.e("FIRESTORE_WRITE", "Failed to add user: ${e.message}")
+                onComplete(false)
+            }
     }
 
     fun getUser(onComplete: (User?) -> Unit) {
-        val userId = "testUser1234" // fake user ID for development
-        // val userId = auth.currentUser?.uid
+        val userId = auth.currentUser?.uid
         if (userId == null) {
+            Log.e("FIRESTORE", "No user signed in")
             onComplete(null)
             return
         }
@@ -37,8 +44,12 @@ class UserRepository {
             .get()
             .addOnSuccessListener { document ->
                 val user = document.toObject(User::class.java)
+                Log.d("FIRESTORE_READ", "Fetched user: $user")
                 onComplete(user)
             }
-            .addOnFailureListener { onComplete(null) }
+            .addOnFailureListener { e ->
+                Log.e("FIRESTORE_READ", "Failed to fetch user: ${e.message}")
+                onComplete(null)
+            }
     }
 }

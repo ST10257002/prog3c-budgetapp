@@ -16,7 +16,45 @@ class ManageGoalsView @JvmOverloads constructor(
 
     private val binding = ViewManageGoalsBinding.inflate(LayoutInflater.from(context), this, true)
     private var viewModel: DashboardViewModel? = null
+    private var currentGoalId: String? = null
 
+    fun initialize(viewModel: DashboardViewModel, lifecycleOwner: LifecycleOwner) {
+        this.viewModel = viewModel
+
+        // Set up button listener to save new goal
+        binding.updateGoalButton.setOnClickListener {
+            val min = binding.minGoalInput.text.toString().toDoubleOrNull()
+            val max = binding.maxGoalInput.text.toString().toDoubleOrNull()
+            val budget = binding.budgetInput.text.toString().toDoubleOrNull()
+
+            if (min != null && max != null && budget != null && currentGoalId != null) {
+                viewModel.updateSavingsGoal(currentGoalId!!, min, max, budget)
+            } else {
+                // Optionally, add error handling (e.g., show a toast)
+                //Toast.
+            }
+        }
+
+        // Observe and populate fields when savings goals update
+        viewModel.savingsGoals.observe(lifecycleOwner) { goals ->
+            if (goals.isNotEmpty()) {
+                val goal = goals[0]
+                currentGoalId = goal.id
+                binding.minGoalInput.setText(goal.minMonthlyGoal.toString())
+                binding.maxGoalInput.setText(goal.maxMonthlyGoal.toString())
+                binding.budgetInput.setText(goal.monthlyBudget.toString())
+            } else {
+                binding.minGoalInput.setText("")
+                binding.maxGoalInput.setText("")
+                binding.budgetInput.setText("")
+                currentGoalId = null
+            }
+        }
+    }
+}
+
+
+/*
     fun initialize(viewModel: DashboardViewModel, lifecycleOwner: LifecycleOwner) {
         this.viewModel = viewModel
         
@@ -46,4 +84,5 @@ class ManageGoalsView @JvmOverloads constructor(
             binding.savingsGoalInput.setText(goal.toString())
         }
     }
-} 
+
+ */

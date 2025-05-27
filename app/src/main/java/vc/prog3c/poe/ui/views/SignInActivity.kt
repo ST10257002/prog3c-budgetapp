@@ -14,6 +14,7 @@ import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.databinding.ActivitySignInBinding
 import vc.prog3c.poe.ui.viewmodels.SignInUiState
 import vc.prog3c.poe.ui.viewmodels.SignInViewModel
+import vc.prog3c.poe.utils.TestData
 
 class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongClickListener,
     BiometricUiHost {
@@ -127,7 +128,11 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, View.OnLongCli
 
                 // here add in testing for testData function
                 //vc.prog3c.poe.utils.TestData.runFirestoreTest()
-                vc.prog3c.poe.utils.TestRead.runIncomeTest()
+
+                //vc.prog3c.poe.utils.TestRead.runIncomeTest()
+
+                // Create a new random user for testing
+                TestData.createAndInsertRandomUser()
             }
         }
 

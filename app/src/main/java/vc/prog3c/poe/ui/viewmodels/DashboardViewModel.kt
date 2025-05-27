@@ -10,44 +10,16 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.utils.ColorTemplate
+import vc.prog3c.poe.data.services.FirestoreService
+import vc.prog3c.poe.data.repository.SavingsGoalRepository
 import java.util.Date
-
-data class Card(
-    val id: String,
-    val type: String,
-    val balance: Double,
-    val cardNumber: String,
-    val expiryDate: String
-)
-
-data class Budget(
-    val id: String,
-    val month: String,
-    val amount: Double,
-    val spent: Double
-)
-
-data class SavingsGoal(
-    val id: String,
-    val currentAmount: Double,
-    val targetAmount: Double,
-    val deadline: Date,
-    val progress: Double
-)
-
-data class Category(
-    val id: String,
-    val name: String,
-    val icon: Int,
-    val totalSpent: Double,
-    val budget: Double
-)
-
-data class IncomeExpenseData(
-    val totalIncome: Double,
-    val totalExpenses: Double,
-    val pieData: PieData
-)
+import vc.prog3c.poe.data.models.Card
+import vc.prog3c.poe.data.models.Budget
+import vc.prog3c.poe.data.models.SavingsGoal
+import vc.prog3c.poe.data.models.Category
+import vc.prog3c.poe.data.models.IncomeExpenseData
+import vc.prog3c.poe.data.models.MonthlyStats
+import vc.prog3c.poe.utils.TestData
 
 class DashboardViewModel : ViewModel() {
     // TODO: Replace with Firestore implementation
@@ -63,8 +35,8 @@ class DashboardViewModel : ViewModel() {
     private val _currentBudget = MutableLiveData<Budget>()
     val currentBudget: LiveData<Budget> = _currentBudget
 
-    private val _savingsGoal = MutableLiveData<Double>()
-    val savingsGoal: LiveData<Double> = _savingsGoal
+    private val _savingsGoals = MutableLiveData<List<SavingsGoal>>()
+    val savingsGoals: LiveData<List<SavingsGoal>> = _savingsGoals
 
     private val _categories = MutableLiveData<List<Category>>()
     val categories: LiveData<List<Category>> = _categories
@@ -86,6 +58,38 @@ class DashboardViewModel : ViewModel() {
 
     init {
         loadInitialData()
+        loadSavingsGoals()
+    }
+
+    private fun loadSavingsGoals() {
+        SavingsGoalRepository.fetchGoals { goals ->
+            _savingsGoals.postValue(goals)
+        }
+    }
+
+    fun updateSavingsGoal(goalId: String, min: Double, max: Double, budget: Double) {
+        val updatedFields = mapOf(
+            "minMonthlyGoal" to min,
+            "maxMonthlyGoal" to max,
+            "monthlyBudget" to budget
+        )
+        SavingsGoalRepository.updateGoal(goalId, updatedFields) { success ->
+            if (success) loadSavingsGoals() // Refresh the list
+        }
+    }
+
+    fun addSavingsGoal(goal: SavingsGoal) {
+        SavingsGoalRepository.saveGoal(goal) { success ->
+            if (success) loadSavingsGoals() // Refresh the list
+        }
+    }
+
+    fun getSavingsProgress(goal: SavingsGoal): Double {
+        return if (goal.targetAmount > 0.0) {
+            (goal.savedAmount / goal.targetAmount).coerceIn(0.0, 1.0) * 100
+        } else {
+            0.0
+        }
     }
 
     private fun loadInitialData() {
@@ -127,33 +131,9 @@ class DashboardViewModel : ViewModel() {
     }
 
     private fun loadTestData() {
-        // Test data for income/expense
-        val totalIncome = 5000.0
-        val totalExpenses = 3000.0
-
-        val entries = listOf(
-            PieEntry(totalIncome.toFloat(), "Income"),
-            PieEntry(totalExpenses.toFloat(), "Expenses")
-        )
-
-        val dataSet = PieDataSet(entries, "Income vs Expenses")
-        dataSet.colors = listOf(
-            ColorTemplate.rgb("#4CAF50"),
-            ColorTemplate.rgb("#F44336")
-        )
-
-        val pieData = PieData(dataSet)
-        pieData.setValueTextSize(12f)
-        pieData.setValueTextColor(ColorTemplate.rgb("#FFFFFF"))
-
-        _incomeExpenseData.value = IncomeExpenseData(
-            totalIncome = totalIncome,
-            totalExpenses = totalExpenses,
-            pieData = pieData
-        )
-
-        // Test data for savings goal
-        _savingsGoal.value = 10000.0
+        _incomeExpenseData.value = TestData.getTestIncomeExpenseData()
+        _savingsGoals.value = TestData.getTestSavingsGoals()
+        _currentBudget.value = TestData.getTestBudget()
     }
 
     fun getSavingsProgress(): Double {
@@ -170,10 +150,29 @@ class DashboardViewModel : ViewModel() {
         return 0.0
     }
 
-    fun updateSavingsGoal(amount: Double) {
-        _savingsGoal.value = amount
-        // TODO: Save to Firestore
+    /* deprecated
+    fun loadGoal() {
+        FirestoreService.savingsGoal.fetchGoal { goal ->
+            if (goal != null) {
+                _savingsGoal.postValue(goal)
+            }
+        }
     }
+
+    fun updateSavingsGoal(min: Double, max: Double, budget: Double) {
+        val goal = vc.prog3c.poe.data.models.SavingsGoal(
+            minMonthlyGoal = min,
+            maxMonthlyGoal = max,
+            monthlyBudget = budget
+        )
+
+        FirestoreService.savingsGoal.saveGoal(goal) { success ->
+            if (success) {
+                _savingsGoal.postValue(goal)
+            }
+        }
+    }
+    */
 
     fun getMonthlyStats(): MonthlyStats {
         // TODO: Implement Firestore Monthly Statistics
@@ -258,10 +257,4 @@ class DashboardViewModel : ViewModel() {
         // - Implement error handling
         _currentSavings.value = amount
     }
-
-    data class MonthlyStats(
-        val totalIncome: Double,
-        val totalExpenses: Double,
-        val savings: Double
-    )
 }

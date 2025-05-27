@@ -21,6 +21,11 @@
     <string name="income_added_successfully">Income added successfully</string>
     <string name="no_savings_goals">No savings goals set</string>
 
+    <string-array name="transaction_types">
+        <item>INCOME</item>
+        <item>EXPENSE</item>
+    </string-array>
+
 
     <!-- Login and Registration -->
     <string name="login">Login</string>

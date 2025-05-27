@@ -4,29 +4,26 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.github.mikephil.charting.components.Legend // Correct import
+import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.PercentFormatter
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
 import vc.prog3c.poe.R
-import vc.prog3c.poe.data.models.Account // Correct import
+import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.databinding.ActivityAccountsBinding
 import vc.prog3c.poe.ui.adapters.AccountAdapter
-import vc.prog3c.poe.ui.viewmodels.AccountsViewModel // Correct import
+import vc.prog3c.poe.ui.viewmodels.AccountsViewModel
 import java.text.NumberFormat
 import java.util.Locale
 import java.util.UUID
@@ -51,7 +48,8 @@ class AccountsView : AppCompatActivity() {
         setupNetWorthPieChart()
         observeViewModel()
 
-        viewModel.loadAccounts()
+        // ▶️ FETCH REAL ACCOUNTS
+        viewModel.fetchAccounts()
     }
 
     private fun setupToolbar() {
@@ -68,9 +66,7 @@ class AccountsView : AppCompatActivity() {
                     finish()
                     true
                 }
-                R.id.nav_accounts -> {
-                    true
-                }
+                R.id.nav_accounts -> true // already here
                 R.id.nav_graph -> {
                     startActivity(Intent(this, GraphView::class.java))
                     true
@@ -87,19 +83,9 @@ class AccountsView : AppCompatActivity() {
 
     private fun setupSwipeRefresh() {
         binding.swipeRefreshLayout.apply {
-            setColorSchemeResources(
-                R.color.primary,
-                R.color.green,
-                R.color.red
-            )
-            setOnRefreshListener {
-                refreshData()
-            }
+            setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
+            setOnRefreshListener { viewModel.fetchAccounts() }
         }
-    }
-
-    private fun refreshData() {
-        viewModel.loadAccounts()
     }
 
     private fun setupAccountsRecyclerView() {
@@ -116,53 +102,45 @@ class AccountsView : AppCompatActivity() {
     }
 
     private fun setupAddAccountButton() {
-        binding.addAccountButton.setOnClickListener {
-            showAddAccountDialog()
-        }
+        binding.addAccountButton.setOnClickListener { showAddAccountDialog() }
     }
 
     private fun showAddAccountDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_account, null)
-        val accountNameEditText = dialogView.findViewById<TextInputEditText>(R.id.accountNameEditText)
-        val accountTypeAutoCompleteTextView = dialogView.findViewById<AutoCompleteTextView>(R.id.accountTypeAutoCompleteTextView)
-        val saveButton = dialogView.findViewById<Button>(R.id.saveAccountButton)
+        val nameField = dialogView.findViewById<TextInputEditText>(R.id.accountNameEditText)
+        val typeField = dialogView.findViewById<AutoCompleteTextView>(R.id.accountTypeAutoCompleteTextView)
+        val saveBtn  = dialogView.findViewById<Button>(R.id.saveAccountButton)
 
-        val accountTypes = listOf("Credit", "Debit", "Savings")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, accountTypes)
-        accountTypeAutoCompleteTextView.setAdapter(adapter)
+        val types = listOf("Credit", "Debit", "Savings")
+        typeField.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, types))
 
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
 
-        saveButton.setOnClickListener {
-            val accountName = accountNameEditText.text.toString().trim()
-            val accountType = accountTypeAutoCompleteTextView.text.toString().trim()
-
-            if (accountName.isEmpty()) {
-                accountNameEditText.error = "Account name cannot be empty"
-                return@setOnClickListener
+        saveBtn.setOnClickListener {
+            val name = nameField.text.toString().trim()
+            val type = typeField.text.toString().trim()
+            if (name.isEmpty()) {
+                nameField.error = "Required"; return@setOnClickListener
+            }
+            if (type.isEmpty() || type !in types) {
+                typeField.error = "Invalid"; return@setOnClickListener
             }
 
-            if (accountType.isEmpty()) {
-                accountTypeAutoCompleteTextView.error = "Account type cannot be empty"
-                return@setOnClickListener
-            }
+            // ⚡️ REAL USER ID
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+                ?: return@setOnClickListener run {
+                    Snackbar.make(binding.root, "Not signed in", Snackbar.LENGTH_SHORT).show()
+                }
 
-            // Optional: Validate if the entered account type is one of the predefined types
-            if (!accountTypes.contains(accountType)) {
-                accountTypeAutoCompleteTextView.error = "Invalid account type"
-                return@setOnClickListener
-            }
-
-            // TODO: Get actual user ID
             val newAccount = Account(
-                id = UUID.randomUUID().toString(), // Temporary ID
-                userId = "user1", // Replace with actual user ID
-                name = accountName,
-                type = accountType,
-                balance = 0.0, // New accounts start with 0 balance
-                transactionsCount = 0 // Initialize with 0 transactions
+                id = UUID.randomUUID().toString(),
+                userId = uid,
+                name = name,
+                type = type,
+                balance = 0.0,
+                transactionsCount = 0
             )
             viewModel.addAccount(newAccount)
             dialog.dismiss()
@@ -178,87 +156,62 @@ class AccountsView : AppCompatActivity() {
             centerText = "Net Worth"
             setHoleColor(Color.TRANSPARENT)
             setTransparentCircleAlpha(0)
-            legend.isEnabled = true // Enable legend to show account names
-            legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM)
-            legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.LEFT)
-            legend.setOrientation(Legend.LegendOrientation.HORIZONTAL)
-            legend.setDrawInside(false)
-            legend.setXEntrySpace(7f)
-            legend.setYEntrySpace(0f)
-            legend.setYOffset(0f)
-
+            legend.apply {
+                isEnabled = true
+                verticalAlignment   = Legend.LegendVerticalAlignment.BOTTOM
+                horizontalAlignment = Legend.LegendHorizontalAlignment.LEFT
+                orientation         = Legend.LegendOrientation.HORIZONTAL
+                setDrawInside(false)
+                xEntrySpace = 7f
+                yEntrySpace = 0f
+                yOffset     = 0f
+            }
             setEntryLabelColor(Color.BLACK)
             setEntryLabelTextSize(12f)
-
             animateY(1000)
         }
     }
 
     private fun observeViewModel() {
-        viewModel.accounts.observe(this) { accounts ->
-            accountAdapter.submitList(accounts)
-            updateNetWorthPieChart(accounts)
+        viewModel.accounts.observe(this) { list ->
+            accountAdapter.submitList(list)
+            updateNetWorthPieChart(list)
         }
-
-        viewModel.netWorth.observe(this) { netWorth ->
-            binding.netWorthAmount.text = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(netWorth)
+        viewModel.netWorth.observe(this) { total ->
+            binding.netWorthAmount.text =
+                NumberFormat.getCurrencyInstance(Locale.getDefault()).format(total)
         }
-
-        viewModel.isLoading.observe(this) { isLoading ->
-            binding.swipeRefreshLayout.isRefreshing = isLoading
-            // TODO: Show/hide loading indicator for the list if not using SwipeRefreshLayout
+        viewModel.isLoading.observe(this) { loading ->
+            binding.swipeRefreshLayout.isRefreshing = loading
         }
-
-        viewModel.error.observe(this) { error ->
-            error?.let {
-                showError(it)
-            }
+        viewModel.error.observe(this) { msg ->
+            msg?.let { Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show() }
         }
     }
 
     private fun updateNetWorthPieChart(accounts: List<Account>) {
-        val entries = accounts.map { account ->
-            // Use absolute value for pie chart as it represents a portion of total assets
-            // Filter out accounts with zero balance if they shouldn't be in the chart
-            PieEntry(account.balance.toFloat(), account.name)
-        }.filter { it.value.isFinite() && it.value > 0f } // Filter out non-finite and zero values
-
+        val entries = accounts
+            .map { PieEntry(it.balance.toFloat(), it.name) }
+            .filter { it.value > 0f }
         if (entries.isEmpty()) {
             binding.netWorthPieChart.data = null
             binding.netWorthPieChart.invalidate()
             return
         }
-
-        val dataSet = PieDataSet(entries, "Account Distribution")
-        dataSet.colors = mutableListOf(
-            resources.getColor(R.color.primary, null),
-            resources.getColor(R.color.green, null),
-            resources.getColor(R.color.red, null),
-            Color.parseColor("#FF9800"), // Orange
-            Color.parseColor("#9C27B0")  // Purple
-            // Add more colors if you expect more accounts
-        )
-        dataSet.valueTextColor = Color.BLACK
-        dataSet.valueTextSize = 12f
-        dataSet.valueFormatter = PercentFormatter(binding.netWorthPieChart)
-        dataSet.setDrawValues(true) // Draw percentage values on slices
-
-        val pieData = PieData(dataSet)
-        binding.netWorthPieChart.data = pieData
+        val ds = PieDataSet(entries, "Account Distribution").apply {
+            valueTextColor = Color.BLACK
+            valueTextSize  = 12f
+            valueFormatter = PercentFormatter(binding.netWorthPieChart)
+            colors = listOf(
+                resources.getColor(R.color.primary, null),
+                resources.getColor(R.color.green,   null),
+                resources.getColor(R.color.red,     null),
+                Color.parseColor("#FF9800"),
+                Color.parseColor("#9C27B0")
+            )
+        }
+        binding.netWorthPieChart.data = PieData(ds)
         binding.netWorthPieChart.invalidate()
         binding.netWorthPieChart.animateY(1000)
-    }
-
-    private fun showError(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-            .setAction("Retry") {
-                refreshData()
-            }
-            .show()
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
     }
 }

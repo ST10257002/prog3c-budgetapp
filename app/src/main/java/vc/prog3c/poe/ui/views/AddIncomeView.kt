@@ -10,23 +10,19 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import vc.prog3c.poe.R
-import vc.prog3c.poe.data.models.Income
-import vc.prog3c.poe.data.repository.IncomeRepository
+import vc.prog3c.poe.data.models.Transaction
+import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.databinding.ActivityAddIncomeBinding
-import vc.prog3c.poe.ui.viewmodels.IncomeViewModel
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 import java.util.UUID
 import com.google.firebase.Timestamp
 
-
 class AddIncomeView : AppCompatActivity() {
     private lateinit var binding: ActivityAddIncomeBinding
-    private lateinit var viewModel: IncomeViewModel
-
+    private lateinit var viewModel: TransactionViewModel
     private val calendar = Calendar.getInstance()
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     private var accountId: String? = null
@@ -36,7 +32,8 @@ class AddIncomeView : AppCompatActivity() {
         binding = ActivityAddIncomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[IncomeViewModel::class.java]
+        // Use TransactionViewModel
+        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
         accountId = intent.getStringExtra("account_id")
 
         setupToolbar()
@@ -81,8 +78,6 @@ class AddIncomeView : AppCompatActivity() {
 
     private fun validateInputs(): Boolean {
         var isValid = true
-
-        // Validate amount
         val amountText = binding.amountInput.text.toString()
         if (amountText.isBlank()) {
             binding.amountLayout.error = "Amount is required"
@@ -102,7 +97,6 @@ class AddIncomeView : AppCompatActivity() {
             }
         }
 
-        // Validate source
         val source = binding.sourceInput.text.toString()
         if (source.isBlank()) {
             binding.sourceLayout.error = "Source is required"
@@ -111,7 +105,6 @@ class AddIncomeView : AppCompatActivity() {
             binding.sourceLayout.error = null
         }
 
-        // Validate date
         if (binding.dateInput.text.isNullOrBlank()) {
             binding.dateLayout.error = "Date is required"
             isValid = false
@@ -128,20 +121,20 @@ class AddIncomeView : AppCompatActivity() {
         val date = calendar.time
         val description = binding.descriptionInput.text.toString().takeIf { it.isNotBlank() }
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        val account = accountId ?: ""
+        val account = accountId ?: return
 
-        val income = Income(
+        val transaction = Transaction(
             id = UUID.randomUUID().toString(),
-            amount = amount,
-            source = source,
-            date = Timestamp(date),
-            description = description,
+            userId = userId,
             accountId = account,
-            userId = userId
+            type = TransactionType.INCOME,
+            amount = amount,
+            category = source,
+            date = Timestamp(date),
+            description = description
         )
 
-
-        viewModel.addIncome(income)
+        viewModel.addTransaction(transaction)
     }
 
     private fun observeViewModel() {
@@ -149,11 +142,9 @@ class AddIncomeView : AppCompatActivity() {
             binding.loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
             binding.saveButton.isEnabled = !isLoading
         }
-
         viewModel.error.observe(this) { error ->
             error?.let {
-                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
-                    .show()
+                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
             }
         }
     }
@@ -165,4 +156,4 @@ class AddIncomeView : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-} 
+}

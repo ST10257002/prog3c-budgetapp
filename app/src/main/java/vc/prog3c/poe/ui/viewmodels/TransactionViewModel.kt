@@ -3,13 +3,14 @@ package vc.prog3c.poe.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.data.repository.TransactionRepository
-import java.util.Date
 
+/**
+ * Unified ViewModel for both income and expense transactions.
+ * All CRUD and filtering operations go through this single VM.
+ */
 class TransactionViewModel : ViewModel() {
 
     private val repo = TransactionRepository()
@@ -17,8 +18,8 @@ class TransactionViewModel : ViewModel() {
     private val _transactions = MutableLiveData<List<Transaction>>()
     val transactions: LiveData<List<Transaction>> = _transactions
 
+    // full list loaded from Firestore
     private var _allTransactions = listOf<Transaction>()
-    //private var _allTransactions = MutableLiveData<List<Transaction>>() // full list
 
     private val _totalIncome = MutableLiveData<Double>()
     val totalIncome: LiveData<Double> = _totalIncome
@@ -32,79 +33,97 @@ class TransactionViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    /*
+    /**
+     * Load all transactions for an account (null = no-op or all accounts behavior).
+     */
     fun loadTransactions(accountId: String?) {
         _isLoading.value = true
+        _error.value = null
 
-        repo.getAllTransactions(accountId) { result ->
-            _allTransactions.postValue(result)
-            _transactions.postValue(result) // initial unfiltered list
-            _totalIncome.postValue(result.filter { it.type == TransactionType.INCOME }.sumOf { it.amount })
-            _totalExpenses.postValue(result.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount })
+        if (accountId == null) {
+            // No account specified: clear lists
+            _allTransactions = emptyList()
+            _transactions.postValue(_allTransactions)
+            updateTotals(_allTransactions)
+            _isLoading.postValue(false)
+            return
+        }
+
+        repo.getTransactions(accountId, null) { list ->
+            _allTransactions = list
+            _transactions.postValue(list)
+            updateTotals(list)
             _isLoading.postValue(false)
         }
     }
-    */
 
-    fun loadTransactions(accountId: String? = null) {
+    /** Refresh the current account's transactions. */
+    fun refreshTransactions(accountId: String?) = loadTransactions(accountId)
+
+    /**
+     * Filter the loaded transactions by type (INCOME or EXPENSE).
+     */
+    fun filterTransactionsByType(type: TransactionType) {
+        val filtered = _allTransactions.filter { it.type == type }
+        _transactions.postValue(filtered)
+        updateTotals(filtered)
+    }
+
+    /**
+     * Add a new transaction (income or expense).
+     */
+    fun addTransaction(transaction: Transaction) {
         _isLoading.value = true
-
-        // Bypass account filtering by passing null
-        repo.getAllTransactions(null) { all ->
-            _allTransactions = all
-
-            _transactions.postValue(all)
-            _totalIncome.postValue(all.filter { it.type == TransactionType.INCOME }.sumOf { it.amount })
-            _totalExpenses.postValue(all.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount })
+        repo.addTransaction(transaction) { success ->
+            if (success) {
+                refreshTransactions(transaction.accountId)
+            } else {
+                _error.postValue("Failed to add transaction.")
+            }
             _isLoading.postValue(false)
         }
     }
 
-
-    fun refreshTransactions(accountId: String? = null) {
-        loadTransactions(accountId)
-    }
-
-    private fun updateTotals(transactions: List<Transaction>) {
-        val incomeTotal = transactions.filter { it.type == TransactionType.INCOME }
-            .sumOf { it.amount }
-        val expenseTotal = transactions.filter { it.type == TransactionType.EXPENSE }
-            .sumOf { it.amount }
-
-        _totalIncome.value = incomeTotal
-        _totalExpenses.value = expenseTotal
-    }
-
-/*
-    fun filterTransactionsByType(type: TransactionType, accountId: String?) {
-        val filtered = _allTransactions.value?.filter {
-            (type == TransactionType.ALL || it.type == type) &&
-                    (accountId == null || it.accountId == accountId)
-        } ?: emptyList()
-
-        _transactions.postValue(filtered)
-    }
-*/
-
-    fun filterTransactionsByType(type: TransactionType, accountId: String?) {
-        val filtered = _allTransactions.filter {
-            (type == TransactionType.ALL || it.type == type) &&
-                    (accountId == null || it.accountId == accountId)
+    /**
+     * Update an existing transaction.
+     */
+    fun updateTransaction(transaction: Transaction) {
+        _isLoading.value = true
+        repo.updateTransaction(transaction) { success ->
+            if (success) {
+                refreshTransactions(transaction.accountId)
+            } else {
+                _error.postValue("Failed to update transaction.")
+            }
+            _isLoading.postValue(false)
         }
-
-        _transactions.postValue(filtered)
     }
 
-
-    fun getTransactionsByDateRange(startDate: Date, endDate: Date): List<Transaction> {
-        return _transactions.value?.filter { it.date in startDate..endDate } ?: emptyList()
+    /**
+     * Delete a transaction by ID.
+     */
+    fun deleteTransaction(transactionId: String, accountId: String) {
+        _isLoading.value = true
+        repo.deleteTransaction(transactionId, accountId) { success ->
+            if (success) {
+                refreshTransactions(accountId)
+            } else {
+                _error.postValue("Failed to delete transaction.")
+            }
+            _isLoading.postValue(false)
+        }
     }
 
-    fun getTransactionsByCategory(category: String): List<Transaction> {
-        return _transactions.value?.filter { it.category == category } ?: emptyList()
-    }
+    /**
+     * Recalculate total income and expense from a given list.
+     */
+    private fun updateTotals(list: List<Transaction>) {
+        _totalIncome.value = list
+            .filter { it.type == TransactionType.INCOME }
+            .sumOf { it.amount }
 
-    fun getTotalForCategory(category: String): Double {
-        return getTransactionsByCategory(category).sumOf { it.amount }
+        _totalExpenses.value = list
+            .filter { it.type == TransactionType.EXPENSE }
+            .sumOf { it.amount }
     }
 }

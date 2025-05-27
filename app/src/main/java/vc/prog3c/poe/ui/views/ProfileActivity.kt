@@ -5,19 +5,22 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.databinding.ActivityProfileBinding
 import vc.prog3c.poe.ui.viewmodels.AuthViewModel
 
 class ProfileActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityProfileBinding
-    private lateinit var viewModel: AuthViewModel
+    private lateinit var vBinds: ActivityProfileBinding
+    private lateinit var vModel: AuthViewModel
+    
+    private var auth = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityProfileBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        vBinds = ActivityProfileBinding.inflate(layoutInflater)
+        setContentView(vBinds.root)
 
-        viewModel = ViewModelProvider(this)[AuthViewModel::class.java]
+        vModel = ViewModelProvider(this)[AuthViewModel::class.java]
 
         setupToolbar()
         setupProfileInfo()
@@ -26,7 +29,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(vBinds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Profile"
     }
@@ -40,16 +43,19 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setupButtons() {
-        binding.manageGoalsButton.setOnClickListener {
+        vBinds.manageGoalsButton.setOnClickListener {
             startActivity(Intent(this, ManageGoalsView::class.java))
         }
 
-        binding.logoutButton.setOnClickListener {
+        vBinds.logoutButton.setOnClickListener {
             // TODO: Backend Implementation Required
             // 1. Sign out user from Firebase Auth
             // 2. Clear local user data
             // 3. Update lastLogin timestamp in Firestore
             // 4. Handle offline state during logout
+            
+            auth.logout()
+            
             startActivity(Intent(this, SignInActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             })
@@ -58,7 +64,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.error.observe(this) { error ->
+        vModel.error.observe(this) { error ->
             error?.let {
                 Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             }

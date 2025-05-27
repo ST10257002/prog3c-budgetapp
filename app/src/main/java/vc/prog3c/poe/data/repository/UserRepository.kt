@@ -52,4 +52,15 @@ class UserRepository {
                 onComplete(null)
             }
     }
+
+    fun updateUser(user: User, onComplete: (Boolean) -> Unit) {
+        val userId = auth.currentUser?.uid ?: return onComplete(false)
+
+        db.collection("users")
+            .document(userId)
+            .set(user)
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
+
 }

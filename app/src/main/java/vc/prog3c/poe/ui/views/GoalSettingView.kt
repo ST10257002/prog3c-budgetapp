@@ -6,19 +6,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import vc.prog3c.poe.databinding.ActivityGoalSettingBinding
-import vc.prog3c.poe.ui.viewmodels.AuthViewModel
+import vc.prog3c.poe.ui.viewmodels.GoalViewModel
 
 class GoalSettingView : AppCompatActivity() {
     private lateinit var binding: ActivityGoalSettingBinding
-    private lateinit var viewModel: AuthViewModel
+    private lateinit var viewModel: GoalViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGoalSettingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[AuthViewModel::class.java]
-
+        viewModel = ViewModelProvider(this)[GoalViewModel::class.java]
         setupSaveButton()
         observeViewModel()
     }
@@ -34,20 +33,28 @@ class GoalSettingView : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if (viewModel.setGoals(minGoal, maxGoal, monthlyBudget) != null) {
-                startActivity(Intent(this, DashboardView::class.java))
-                finish()
+            if (viewModel.validateGoal(minGoal, maxGoal, monthlyBudget)) {
+                viewModel.saveValidatedGoalToFirestore(minGoal, maxGoal, monthlyBudget) { success ->
+                    if (success) {
+                        Toast.makeText(this, "Goal saved!", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this, DashboardView::class.java))
+                        finish()
+                    } else {
+                        Toast.makeText(this, "Failed to save goal", Toast.LENGTH_SHORT).show()
+                    }
+                }
             } else {
-                Toast.makeText(this, viewModel.error.value, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, viewModel.error.value ?: "Invalid goal", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
 
-    private fun observeViewModel() {
+        private fun observeViewModel() {
         viewModel.error.observe(this) { error ->
             error?.let {
                 Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             }
         }
     }
-} 
+}

@@ -3,104 +3,63 @@ package vc.prog3c.poe.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import vc.prog3c.poe.core.services.AuthService
-import vc.prog3c.poe.core.utils.AuthValidator
-import vc.prog3c.poe.core.utils.Blogger
+import com.google.firebase.auth.FirebaseAuth
+import vc.prog3c.poe.data.models.User
+import vc.prog3c.poe.data.services.FirestoreService
+import java.util.regex.Pattern
 
 class SignUpViewModel : ViewModel() {
 
-    
-    private var authService = AuthService()
-
-
-    // --- Fields
-
-
+    private val auth = FirebaseAuth.getInstance()
     private val _uiState = MutableLiveData<SignUpUiState>()
     val uiState: LiveData<SignUpUiState> = _uiState
 
-
-    // --- Functions
-
-
-    fun signUp(
-        username: String,
-        defaultPassword: String,
-        confirmPassword: String,
-        usermail: String,
-        name: String,
-        surname: String
-    ) {
-        val credentialArray = arrayOf(
-            username, defaultPassword, confirmPassword, usermail, name, surname
-        )
-        
-        if (credentialArray.any { it.isBlank() }) {
-            _uiState.value = SignUpUiState.Failure(
-                "Inputs cannot be empty"
-            )
+    fun signUp(name: String, email: String, password: String, confirmPassword: String) {
+        if (name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+            _uiState.value = SignUpUiState.Failure("All fields must be filled")
             return
         }
 
-        if (!(AuthValidator.isValidPassword(defaultPassword))) {
-            _uiState.value = SignUpUiState.Failure(
-                "Passwords don't meet the complexity rules"
-            )
+        if (!isValidEmail(email)) {
+            _uiState.value = SignUpUiState.Failure("Invalid email address")
             return
         }
 
-        if (defaultPassword != confirmPassword) {
-            _uiState.value = SignUpUiState.Failure(
-                "The provided passwords don't match"
-            )
+        if (password != confirmPassword) {
+            _uiState.value = SignUpUiState.Failure("Passwords do not match")
             return
         }
 
-        if (!(AuthValidator.isValidEAddress(usermail))) {
-            _uiState.value = SignUpUiState.Failure(
-                "Invalid email address"
-            )
+        if (!isValidPassword(password)) {
+            _uiState.value = SignUpUiState.Failure("Password must be at least 6 characters")
             return
         }
 
-        authenticate(
-            usermail, defaultPassword
-        )
+        _uiState.value = SignUpUiState.Loading
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
+                    val user = User(id = userId, name = name, email = email)
+                    FirestoreService.users.addUser(user) { success ->
+                        _uiState.value = if (success)
+                            SignUpUiState.Success
+                        else
+                            SignUpUiState.Failure("Firestore user creation failed")
+                    }
+                } else {
+                    _uiState.value = SignUpUiState.Failure("Sign-up failed: ${task.exception?.message}")
+                }
+            }
     }
 
-
-    // --- Internals
-
-
-    private fun authenticate(
-        email: String, password: String
-    ) {
-        authService.signUp(
-            email, password, ::onSignUpSuccess, ::onSignUpFailure
+    private fun isValidEmail(email: String): Boolean {
+        val emailPattern = Pattern.compile(
+            "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
+            Pattern.CASE_INSENSITIVE
         )
+        return emailPattern.matcher(email).matches()
     }
 
-
-    private fun onSignUpSuccess() {
-        Blogger.i(
-            getTag(), "Successfully registered new account"
-        )
-
-        _uiState.value = SignUpUiState.Success
-    }
-
-
-    private fun onSignUpFailure(message: String) {
-        Blogger.d(
-            getTag(), "Sign-up failed: $message"
-        )
-
-        _uiState.value = SignUpUiState.Failure(message)
-    }
-
-
-    // --- Helpers
-
-
-    private fun getTag() = this::class.java.simpleName.toString()
+    private fun isValidPassword(password: String): Boolean = password.length >= 6
 }

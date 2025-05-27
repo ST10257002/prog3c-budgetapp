@@ -4,17 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import java.util.Date
-
-data class Goal(
-    val id: String,
-    val name: String,
-    val targetAmount: Double,
-    val currentAmount: Double,
-    val deadline: Date,
-    val category: String,
-    val description: String? = null,
-    val isCompleted: Boolean = false
-)
+import vc.prog3c.poe.data.models.Goal
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class GoalViewModel : ViewModel() {
     // TODO: Replace with Firestore implementation
@@ -32,6 +24,9 @@ class GoalViewModel : ViewModel() {
 
     private val _completedGoals = MutableLiveData<List<Goal>>()
     val completedGoals: LiveData<List<Goal>> = _completedGoals
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
 
     init {
         loadTestData()
@@ -137,5 +132,42 @@ class GoalViewModel : ViewModel() {
             _goals.value = currentList
             updateGoalLists()
         }
+    }
+
+    fun validateGoal(minGoal: Double, maxGoal: Double, monthlyBudget: Double): Boolean {
+        return when {
+            minGoal <= 0 || maxGoal <= 0 || monthlyBudget <= 0 -> {
+                _error.value = "Values must be greater than 0"
+                false
+            }
+            minGoal > maxGoal -> {
+                _error.value = "Min goal cannot be greater than max goal"
+                false
+            }
+            else -> {
+                _error.value = null
+                true
+            }
+        }
+    }
+
+    fun saveValidatedGoalToFirestore(min: Double, max: Double, budget: Double, onResult: (Boolean) -> Unit) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return onResult(false)
+
+        val goalData = mapOf(
+            "minMonthlyGoal" to min,
+            "maxMonthlyGoal" to max,
+            "monthlyBudget" to budget,
+            "createdAt" to System.currentTimeMillis()
+        )
+
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(uid)
+            .collection("goals")
+            .document("primary_savings_goal")
+            .set(goalData)
+            .addOnSuccessListener { onResult(true) }
+            .addOnFailureListener { onResult(false) }
     }
 } 

@@ -3,121 +3,41 @@ package vc.prog3c.poe.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseUser
-import vc.prog3c.poe.core.services.AuthService
-import vc.prog3c.poe.core.utils.AuthValidator
-import vc.prog3c.poe.core.utils.Blogger
-import vc.prog3c.poe.ui.views.SignInActivity
+import com.google.firebase.auth.FirebaseAuth
+import java.util.regex.Pattern
 
-/**
- * Viewmodel for [SignInActivity]
- */
 class SignInViewModel : ViewModel() {
 
-
-    private var authService = AuthService()
-
-
-    // --- Fields
-
-
+    private val auth = FirebaseAuth.getInstance()
     private val _uiState = MutableLiveData<SignInUiState>()
     val uiState: LiveData<SignInUiState> = _uiState
 
-
-    // --- Functions
-
-
-    fun signIn(
-        identity: String, password: String
-    ) {
-        if (identity.isBlank() && password.isBlank()) {
-            _uiState.value = SignInUiState.Failure("Login failed")
+    fun signIn(email: String, password: String) {
+        if (email.isBlank() || password.isBlank()) {
+            _uiState.value = SignInUiState.Failure("Email and password are required")
             return
         }
 
-        // TODO: Add username compatibility
-
-        if (!(AuthValidator.isValidEAddress(identity))) {
-            _uiState.value = SignInUiState.Failure("Invalid email address")
+        if (!isValidEmail(email)) {
+            _uiState.value = SignInUiState.Failure("Invalid email format")
             return
         }
 
-        authenticate(
-            identity, password
-        )
-    }
-
-
-    fun getCurrentUser(): FirebaseUser? = authService.getCurrentUser()
-
-/*
-    fun bypassLogin() {
-        _uiState.value = SignInUiState.Success
-    }
-*/
-
-    // testing random user creation
-    fun bypassLogin() {
-        // Create a random user and sign in with it
-        val randomSuffix = (10000..99999).random()
-        val randomEmail = "test$randomSuffix@example.com"
-        val randomPassword = "TestPass123!"
-
-        authService.signUp(
-            randomEmail, randomPassword,
-            {
-                authService.signIn(
-                    randomEmail, randomPassword,
-                    {
-                        Blogger.i(getTag(), "Bypassed login with random user: $randomEmail")
-                        _uiState.value = SignInUiState.Success
-                    },
-                    { message ->
-                        Blogger.e(getTag(), "Sign-in failed after signup: $message")
-                        _uiState.value = SignInUiState.Failure(message)
-                    }
-                )
-            },
-            { message ->
-                Blogger.e(getTag(), "Signup failed: $message")
-                _uiState.value = SignInUiState.Failure(message)
+        _uiState.value = SignInUiState.Loading
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                _uiState.value = if (task.isSuccessful)
+                    SignInUiState.Success
+                else
+                    SignInUiState.Failure("Authentication failed: ${task.exception?.message}")
             }
-        )
     }
 
-    // --- Internals
-
-
-    private fun authenticate(
-        email: String, password: String
-    ) {
-        authService.signIn(
-            email, password, ::onSignInSuccess, ::onSignInFailure
+    private fun isValidEmail(email: String): Boolean {
+        val emailPattern = Pattern.compile(
+            "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
+            Pattern.CASE_INSENSITIVE
         )
+        return emailPattern.matcher(email).matches()
     }
-
-
-    private fun onSignInSuccess() {
-        Blogger.i(
-            getTag(), "Successfully logged in"
-        )
-
-        _uiState.value = SignInUiState.Success
-    }
-
-
-    private fun onSignInFailure(message: String) {
-        Blogger.d(
-            getTag(), "Sign-in failed: $message"
-        )
-
-        _uiState.value = SignInUiState.Failure(message)
-    }
-
-
-    // --- Helpers
-
-
-    private fun getTag() = this::class.java.simpleName.toString()
 }

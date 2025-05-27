@@ -28,6 +28,8 @@ class DashboardView : AppCompatActivity() {
         setupBottomNavigation()
         setupSwipeRefresh()
         observeViewModel()
+
+        viewModel.refreshData() // trigger initial Firestore load
     }
 
     private fun setupToolbar() {
@@ -36,12 +38,6 @@ class DashboardView : AppCompatActivity() {
         supportActionBar?.title = "Dashboard"
 
         binding.profileImage.setOnClickListener {
-            // TODO: Backend Implementation Required
-            // 1. User Profile Data:
-            //    - Fetch user profile from Firestore
-            //    - Load profile image from Firebase Storage
-            //    - Update last active timestamp
-            //    - Handle offline state
             startActivity(Intent(this, ProfileActivity::class.java))
         }
     }
@@ -49,9 +45,7 @@ class DashboardView : AppCompatActivity() {
     private fun setupBottomNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_dashboard -> {
-                    true
-                }
+                R.id.nav_dashboard -> true
                 R.id.nav_accounts -> {
                     startActivity(Intent(this, AccountsView::class.java))
                     true
@@ -72,37 +66,23 @@ class DashboardView : AppCompatActivity() {
 
     private fun setupSwipeRefresh() {
         binding.swipeRefreshLayout.apply {
-            setColorSchemeResources(
-                R.color.primary,
-                R.color.green,
-                R.color.red
-            )
-            setOnRefreshListener {
-                refreshData()
-            }
+            setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
+            setOnRefreshListener { refreshData() }
         }
     }
 
     private fun refreshData() {
-        // TODO: Backend Implementation Required
-        // 1. Dashboard Data Refresh:
-        //    - Implement real-time updates
-        //    - Add pull-to-refresh functionality
-        //    - Cache dashboard data locally
-        //    - Handle data synchronization
-        viewModel.refreshDashboardData()
+        viewModel.refreshData()
     }
 
     private fun observeViewModel() {
         viewModel.savingsGoals.observe(this) { goals ->
-            // Display the first goal's saved amount or a default message if no goals exist
             if (goals.isNotEmpty()) {
                 val goal = goals[0]
                 val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
                 binding.savingsGoalText.text = currencyFormat.format(goal.savedAmount)
-                // Alternatively, use goal.targetAmount or other field if desired
             } else {
-                binding.savingsGoalText.text = "No savings goals set"
+                binding.savingsGoalText.text = getString(R.string.no_savings_goals)
             }
         }
 
@@ -112,17 +92,13 @@ class DashboardView : AppCompatActivity() {
         }
 
         viewModel.error.observe(this) { error ->
-            error?.let {
-                showError(it)
-            }
+            error?.let { showError(it) }
         }
     }
 
     private fun showError(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-            .setAction("Retry") {
-                refreshData()
-            }
+            .setAction("Retry") { refreshData() }
             .show()
     }
 
@@ -130,4 +106,4 @@ class DashboardView : AppCompatActivity() {
         onBackPressed()
         return true
     }
-} 
+}

@@ -5,15 +5,13 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.databinding.ActivityProfileBinding
 import vc.prog3c.poe.ui.viewmodels.AuthViewModel
 
 class ProfileActivity : AppCompatActivity() {
+
     private lateinit var vBinds: ActivityProfileBinding
     private lateinit var vModel: AuthViewModel
-    
-    private var auth = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,9 +21,10 @@ class ProfileActivity : AppCompatActivity() {
         vModel = ViewModelProvider(this)[AuthViewModel::class.java]
 
         setupToolbar()
-        setupProfileInfo()
         setupButtons()
         observeViewModel()
+
+        vModel.loadUserProfile() // Load user info from Firestore
     }
 
     private fun setupToolbar() {
@@ -34,28 +33,13 @@ class ProfileActivity : AppCompatActivity() {
         supportActionBar?.title = "Profile"
     }
 
-    private fun setupProfileInfo() {
-        // TODO: Backend Implementation Required
-        // 1. Load user profile data from Firestore
-        // 2. Display user's name, email, and profile picture
-        // 3. Show account creation date
-        // 4. Display last login time
-    }
-
     private fun setupButtons() {
         vBinds.manageGoalsButton.setOnClickListener {
             startActivity(Intent(this, ManageGoalsView::class.java))
         }
 
         vBinds.logoutButton.setOnClickListener {
-            // TODO: Backend Implementation Required
-            // 1. Sign out user from Firebase Auth
-            // 2. Clear local user data
-            // 3. Update lastLogin timestamp in Firestore
-            // 4. Handle offline state during logout
-            
-            auth.logout()
-            
+            vModel.signOut()
             startActivity(Intent(this, SignInActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             })
@@ -64,6 +48,17 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
+        vModel.currentUser.observe(this) { user ->
+            user?.let {
+                vBinds.nameText.text = it.name
+                vBinds.emailText.text = it.email
+                vBinds.addressText.text = it.address
+
+                // Optionally load profile picture if using Coil/Glide
+                // Glide.with(this).load(it.profilePictureUrl).into(vBinds.profileImage)
+            }
+        }
+
         vModel.error.observe(this) { error ->
             error?.let {
                 Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
@@ -75,4 +70,4 @@ class ProfileActivity : AppCompatActivity() {
         onBackPressed()
         return true
     }
-} 
+}

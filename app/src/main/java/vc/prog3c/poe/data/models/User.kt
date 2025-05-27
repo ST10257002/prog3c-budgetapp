@@ -1,9 +1,15 @@
 package vc.prog3c.poe.data.models
 
 data class User(
-    val id: String = "",
+    val id: String = "", // Firestore doc ID = Firebase UID
     val name: String = "",
     val email: String = "",
+    val phoneNumber: String = "",
+    val address: String = "",
     val totalBalance: Double = 0.0,
-    val profilePictureUrl: String
-) 
+    val profilePictureUrl: String = "",
+    val cardNumber: String = "",
+    val cardType: String = "",  // e.g., Visa, Mastercard
+    val cvc: String = "",
+    val expiryDate: String = "" // e.g., 12/28
+)

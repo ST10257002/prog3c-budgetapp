@@ -13,13 +13,8 @@ import vc.prog3c.poe.ui.viewmodels.SignUpViewModel
 
 class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
-
     private lateinit var vBinds: ActivitySignUpBinding
     private lateinit var vModel: SignUpViewModel
-
-
-    // --- Lifecycle
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,57 +28,41 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
         observeViewModel()
     }
 
-
-    // --- ViewModel
-
-
     private fun observeViewModel() {
         vModel.uiState.observe(this) { state ->
             when (state) {
-                is SignUpUiState.Success -> {
-                    navigateToDashboard()
-                }
-
+                is SignUpUiState.Success -> navigateToDashboard()
                 is SignUpUiState.Failure -> {
-                    Toast.makeText(
-                        this, state.message, Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
                 }
-
-                is SignUpUiState.Loading -> {}
-
-                else -> {
-                    // Default behaviour
+                is SignUpUiState.Loading -> {
+                    // Optional: show loading spinner
                 }
+                else -> {}
             }
         }
     }
 
-
-    // --- Activity
-
-
     private fun tryAuthenticateCredentials() {
-        val name = vBinds.firstNameEditText.text.toString().trim()
-        val surname = vBinds.lastNameEditText.text.toString().trim()
-        val username = vBinds.etUsername.text.toString().trim()
-        val usermail = vBinds.emailEditText.text.toString().trim()
-        val defaultPassword = vBinds.etPassword.text.toString().trim()
+        val firstName = vBinds.firstNameEditText.text.toString().trim()
+        val lastName = vBinds.lastNameEditText.text.toString().trim()
+        val fullName = "$firstName $lastName"
+        val email = vBinds.emailEditText.text.toString().trim()
+        val password = vBinds.etPassword.text.toString().trim()
         val confirmPassword = vBinds.confirmPasswordEditText.text.toString().trim()
 
         vModel.signUp(
-            username, defaultPassword, confirmPassword, usermail, name, surname
+            name = fullName,
+            email = email,
+            password = password,
+            confirmPassword = confirmPassword
         )
     }
-
 
     private fun navigateToSignIn() {
-        startActivity(
-            Intent(this, SignInActivity::class.java)
-        )
+        startActivity(Intent(this, SignInActivity::class.java))
         finish()
     }
-
 
     private fun navigateToDashboard() {
         val intent = Intent(this, DashboardView::class.java)
@@ -92,10 +71,6 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
         finish()
     }
 
-
-    // --- Event Handlers
-
-
     override fun onClick(view: View?) {
         when (view?.id) {
             vBinds.registerButton.id -> tryAuthenticateCredentials()
@@ -103,23 +78,17 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
-
     private fun setupClickListeners() {
         vBinds.registerButton.setOnClickListener(this)
         vBinds.loginButton.setOnClickListener(this)
     }
 
-
-    // --- UI
-
-
     private fun setupBindings() {
         vBinds = ActivitySignUpBinding.inflate(layoutInflater)
     }
-
 
     private fun setupLayoutUi() {
         setContentView(vBinds.root)
         enableEdgeToEdge()
     }
-} 
+}

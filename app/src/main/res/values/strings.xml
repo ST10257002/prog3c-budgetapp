@@ -19,7 +19,9 @@
     <string name="please_enter_valid_amount">Please enter a valid amount</string>
     <string name="expense_added_successfully">Expense added successfully</string>
     <string name="income_added_successfully">Income added successfully</string>
-    
+    <string name="no_savings_goals">No savings goals set</string>
+
+
     <!-- Login and Registration -->
     <string name="login">Login</string>
     <string name="register">Register</string>

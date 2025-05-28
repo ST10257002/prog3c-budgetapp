@@ -20,6 +20,7 @@
     <string name="expense_added_successfully">Expense added successfully</string>
     <string name="income_added_successfully">Income added successfully</string>
     <string name="no_savings_goals">No savings goals set</string>
+    <string name="edit_goal">Edit Goal</string>
 
     <string-array name="transaction_types">
         <item>INCOME</item>

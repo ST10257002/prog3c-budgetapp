@@ -5,8 +5,10 @@ import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import com.google.firebase.Timestamp
+import vc.prog3c.poe.data.models.SavingsGoal
 import java.util.UUID
 import java.util.Calendar
+import vc.prog3c.poe.data.models.Budget
 
 object SeedData {
 
@@ -122,6 +124,53 @@ object SeedData {
                 description = "Dinner with friends"
             )
         )
+
+        // --- SEED SAVINGS GOAL ---
+        val goalId = UUID.randomUUID().toString()
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.MONTH, 3) // Target date 3 months from now
+
+        val savingsGoal = SavingsGoal(
+            id = goalId,
+            userId = userId,
+            name = "Holiday Trip",
+            targetAmount = 5000.0,
+            savedAmount = 1250.0,
+            targetDate = calendar.time,
+            minMonthlyGoal = 1000.0,
+            maxMonthlyGoal = 2000.0,
+            monthlyBudget = 1500.0
+        )
+
+        //db = FirebaseFirestore.getInstance()
+        db.collection("users")
+            .document(userId)
+            .collection("savingsGoals")
+            .document(goalId)
+            .set(savingsGoal)
+
+        // --- SEED MONTHLY BUDGET (ALLOWANCE) ---
+        val cal = Calendar.getInstance()
+        val year = cal.get(Calendar.YEAR)
+        val month = cal.get(Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
+
+        val budgetId = String.format("%04d%02d", year, month) // e.g., "202406"
+        val monthlyBudget = Budget(
+            id = budgetId,
+            userId = userId,
+            min = 1500.0,      // Example minimum
+            max = 3000.0,      // Example maximum (allowance for the month)
+            target = 2500.0,   // Optional, could be same as max or your target
+            month = month,
+            year = year
+        )
+
+        db.collection("users")
+            .document(userId)
+            .collection("budgets")
+            .document(budgetId)
+            .set(monthlyBudget)
+
 
         // Helper function to calculate balance from transaction list
         fun calcBalance(transactions: List<Transaction>): Double {

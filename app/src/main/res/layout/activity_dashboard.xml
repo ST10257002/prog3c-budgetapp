@@ -122,6 +122,17 @@
                                     android:textColor="@color/white"
                                     android:textSize="24sp"
                                     android:textStyle="bold" />
+
+                                <ImageButton
+                                    android:id="@+id/editGoalButton"
+                                    android:layout_width="32dp"
+                                    android:layout_height="32dp"
+                                    android:src="@drawable/ic_edit"
+                                    android:background="@android:color/transparent"
+                                    android:contentDescription="@string/edit_goal"
+                                    android:tint="@color/white"
+                                    android:layout_marginStart="8dp"/>
+
                             </LinearLayout>
 
                             <TextView
@@ -133,6 +144,18 @@
                                 android:textColor="@color/white"
                                 android:textSize="16sp"
                                 android:alpha="0.8" />
+
+                            <!-- Added: Target Date Display -->
+                            <TextView
+                                android:id="@+id/savingsGoalDate"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:textSize="13sp"
+                                android:textColor="@color/white"
+                                android:alpha="0.7"
+                                android:layout_marginBottom="4dp"
+                                android:layout_marginTop="2dp"/>
 
                             <com.google.android.material.progressindicator.LinearProgressIndicator
                                 android:id="@+id/savingsProgressBar"
@@ -197,10 +220,20 @@
                                         android:textColor="@color/white"
                                         android:textSize="18sp"
                                         android:textStyle="bold" />
+
+
+
                                 </LinearLayout>
                             </LinearLayout>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
+
+                    <!-- ManageGoalView -->
+                    <vc.prog3c.poe.ui.views.ManageGoalsView
+                        android:id="@+id/manageGoalsView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"/>
 
                     <!-- Budget Card -->
                     <com.google.android.material.card.MaterialCardView

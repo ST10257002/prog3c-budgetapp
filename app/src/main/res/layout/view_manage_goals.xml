@@ -1,63 +1,102 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="20dp"
+    android:background="@drawable/goal_card_edit_bg"
+    android:elevation="8dp"
+    android:clipToPadding="false">
 
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Set Monthly Savings Goal"
-        android:textSize="20sp"
+        android:text="Edit Savings Goal"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:textSize="18sp"
+        android:layout_marginBottom="12dp"
+        android:textColor="@color/primary" />
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/goalNameLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Min Monthly Goal">
+        android:hint="Goal Name"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/goalNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/minGoalLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="Minimum Monthly Goal (ZAR)"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/minGoalInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"/>
+            android:inputType="numberDecimal" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/maxGoalLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Max Monthly Goal"
-        android:layout_marginTop="12dp">
+        android:layout_marginTop="12dp"
+        android:hint="Maximum Monthly Goal (ZAR)"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/maxGoalInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"/>
+            android:inputType="numberDecimal" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/budgetLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Monthly Budget"
-        android:layout_marginTop="12dp">
+        android:layout_marginTop="12dp"
+        android:hint="Monthly Budget (ZAR)"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/budgetInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"/>
+            android:inputType="numberDecimal" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
-        android:id="@+id/updateGoalButton"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Update Goal"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#58bc82"
-        android:padding="12dp"
-        android:layout_marginTop="24dp"/>
+        android:orientation="horizontal"
+        android:layout_marginTop="18dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/saveButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Save"/>
+
+        <View
+            android:layout_width="12dp"
+            android:layout_height="0dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cancelButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel"/>
+    </LinearLayout>
 </LinearLayout>

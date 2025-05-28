@@ -3,6 +3,7 @@ package vc.prog3c.poe.ui.views
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.LinearLayout
 import androidx.lifecycle.LifecycleOwner
 import vc.prog3c.poe.databinding.ViewManageGoalsBinding
@@ -21,29 +22,43 @@ class ManageGoalsView @JvmOverloads constructor(
     fun initialize(viewModel: DashboardViewModel, lifecycleOwner: LifecycleOwner) {
         this.viewModel = viewModel
 
-        // Set up button listener to save new goal
-        binding.updateGoalButton.setOnClickListener {
-            val min = binding.minGoalInput.text.toString().toDoubleOrNull()
-            val max = binding.maxGoalInput.text.toString().toDoubleOrNull()
-            val budget = binding.budgetInput.text.toString().toDoubleOrNull()
+        // Save
+        binding.saveButton.setOnClickListener {
+            val name = binding.goalNameInput.text?.toString()?.trim()
+            val min = binding.minGoalInput.text?.toString()?.toDoubleOrNull()
+            val max = binding.maxGoalInput.text?.toString()?.toDoubleOrNull()
+            val budget = binding.budgetInput.text?.toString()?.toDoubleOrNull()
 
-            if (min != null && max != null && budget != null && currentGoalId != null) {
-                viewModel.updateSavingsGoal(currentGoalId!!, min, max, budget)
+            if (currentGoalId != null && !name.isNullOrBlank() && min != null && max != null && budget != null) {
+                // Update all fields
+                viewModel.updateSavingsGoal(
+                    goalId = currentGoalId!!,
+                    min = min,
+                    max = max,
+                    budget = budget,
+                    name = name // New parameter
+                )
             } else {
-                // Optionally, add error handling (e.g., show a toast)
-                //Toast.
+                // Optionally, show error
             }
         }
 
-        // Observe and populate fields when savings goals update
+        // Cancel
+        binding.cancelButton.setOnClickListener {
+            this.visibility = View.GONE
+        }
+
+        // Observe and populate fields
         viewModel.savingsGoals.observe(lifecycleOwner) { goals ->
             if (goals.isNotEmpty()) {
                 val goal = goals[0]
                 currentGoalId = goal.id
+                binding.goalNameInput.setText(goal.name)
                 binding.minGoalInput.setText(goal.minMonthlyGoal.toString())
                 binding.maxGoalInput.setText(goal.maxMonthlyGoal.toString())
                 binding.budgetInput.setText(goal.monthlyBudget.toString())
             } else {
+                binding.goalNameInput.setText("")
                 binding.minGoalInput.setText("")
                 binding.maxGoalInput.setText("")
                 binding.budgetInput.setText("")
@@ -52,37 +67,3 @@ class ManageGoalsView @JvmOverloads constructor(
         }
     }
 }
-
-
-/*
-    fun initialize(viewModel: DashboardViewModel, lifecycleOwner: LifecycleOwner) {
-        this.viewModel = viewModel
-        
-        // Set up initial values
-        binding.savingsGoalInput.setText(viewModel.savingsGoal.value.toString())
-        
-        // Set up listeners
-        binding.updateGoalButton.setOnClickListener {
-            val newGoal = binding.savingsGoalInput.text.toString().toDoubleOrNull()
-            if (newGoal != null) {
-                // TODO: Backend Implementation Required
-                // 1. Create Firestore collection 'savings_goals' with structure:
-                //    - userId: string
-                //    - targetAmount: number
-                //    - currentAmount: number
-                //    - lastUpdated: timestamp
-                // 2. Implement real-time updates using Firestore listeners
-                // 3. Add offline persistence support
-                // 4. Implement data synchronization
-                // 5. Add error handling for network issues
-                viewModel.updateSavingsGoal(newGoal)
-            }
-        }
-        
-        // Observe changes
-        viewModel.savingsGoal.observe(lifecycleOwner) { goal ->
-            binding.savingsGoalInput.setText(goal.toString())
-        }
-    }
-
- */

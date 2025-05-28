@@ -23,8 +23,8 @@ class DashboardViewModel : ViewModel() {
     private val _cards = MutableLiveData<List<Card>>()
     val cards: LiveData<List<Card>> = _cards
 
-    private val _currentBudget = MutableLiveData<Budget>()
-    val currentBudget: LiveData<Budget> = _currentBudget
+//    private val _currentBudget = MutableLiveData<Budget>()
+//    val currentBudget: LiveData<Budget> = _currentBudget
 
     private val _savingsGoals = MutableLiveData<List<SavingsGoal>>()
     val savingsGoals: LiveData<List<SavingsGoal>> = _savingsGoals
@@ -38,14 +38,17 @@ class DashboardViewModel : ViewModel() {
     private val _currentSavings = MutableLiveData<Double>()
     val currentSavings: LiveData<Double> = _currentSavings
 
-    private val _monthlyStats = MutableLiveData<MonthlyStats>()
-    val monthlyStats: LiveData<MonthlyStats> = _monthlyStats
-
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
+
+    private val _budget = MutableLiveData<Budget?>()
+    val budget: LiveData<Budget?> = _budget
+
+    private val _monthlyStats = MutableLiveData<MonthlyStats?>()
+    val monthlyStats: LiveData<MonthlyStats?> = _monthlyStats
 
     init {
         loadInitialData()
@@ -56,7 +59,14 @@ class DashboardViewModel : ViewModel() {
             try {
                 _isLoading.value = true
                 loadSavingsGoals()
-                // TODO: Add Firestore calls for: cards, budgets, categories, etc.
+
+                val cal = java.util.Calendar.getInstance()
+                val year = cal.get(java.util.Calendar.YEAR)
+                val month = cal.get(java.util.Calendar.MONTH) + 1
+
+                loadCurrentBudget(year, month)
+                loadMonthlyStats(year, month)
+
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = "Failed to load dashboard data: ${e.message}"
@@ -65,6 +75,8 @@ class DashboardViewModel : ViewModel() {
             }
         }
     }
+
+
 
     private fun loadSavingsGoals() {
         FirestoreService.savingsGoal.fetchGoals { goals ->
@@ -76,17 +88,31 @@ class DashboardViewModel : ViewModel() {
         }
     }
 
-    fun updateSavingsGoal(goalId: String, min: Double, max: Double, budget: Double) {
+    private fun loadCurrentBudget(year: Int, month: Int) {
+        FirestoreService.budget.getBudgetForMonth(year, month) { bud ->
+            _budget.postValue(bud)
+        }
+    }
+
+    private fun loadMonthlyStats(year: Int, month: Int) {
+        FirestoreService.transaction.getMonthlyStats(year, month) { stats ->
+            _monthlyStats.postValue(stats)
+        }
+    }
+
+    fun updateSavingsGoal(goalId: String, min: Double, max: Double, budget: Double, name: String) {
         val updatedFields = mapOf(
             "minMonthlyGoal" to min,
             "maxMonthlyGoal" to max,
-            "monthlyBudget" to budget
+            "monthlyBudget" to budget,
+            "name" to name
         )
         FirestoreService.savingsGoal.updateGoal(goalId, updatedFields) { success ->
             if (success) loadSavingsGoals()
             else _error.postValue("Failed to update savings goal")
         }
     }
+
 
     fun addSavingsGoal(goal: SavingsGoal) {
         FirestoreService.savingsGoal.saveGoal(goal) { success ->

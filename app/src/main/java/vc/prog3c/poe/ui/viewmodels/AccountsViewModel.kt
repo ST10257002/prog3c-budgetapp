@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import vc.prog3c.poe.data.models.Account
+import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.data.repository.AccountRepository
 
 class AccountsViewModel : ViewModel() {
@@ -29,12 +30,44 @@ class AccountsViewModel : ViewModel() {
 
     fun fetchAccounts() {
         _isLoading.value = true
-        repo.getAllAccounts { list ->
-            _accounts.postValue(list)
-            _netWorth.postValue(list.sumOf { it.balance })
-            _isLoading.postValue(false)
+        repo.getAllAccounts { accountList ->
+            if (accountList.isEmpty()) {
+                _accounts.postValue(emptyList())
+                _netWorth.postValue(0.0)
+                _isLoading.postValue(false)
+                return@getAllAccounts
+            }
+
+            // For each account, fetch transactions and update balance/count
+            val updatedAccounts = mutableListOf<Account>()
+            var completed = 0
+
+            accountList.forEach { account ->
+                repo.getTransactionsForAccount(account.id) { txs ->
+                    // Compute balance and count
+                    val balance = txs.fold(0.0) { acc, tx ->
+                        when (tx.type) {
+                            TransactionType.INCOME  -> acc + tx.amount
+                            TransactionType.EXPENSE -> acc - tx.amount
+                        }
+                    }
+                    account.balance = balance
+                    account.transactionsCount = txs.size
+
+                    updatedAccounts.add(account)
+                    completed++
+
+                    // When all accounts have been processed, post the results
+                    if (completed == accountList.size) {
+                        _accounts.postValue(updatedAccounts)
+                        _netWorth.postValue(updatedAccounts.sumOf { it.balance })
+                        _isLoading.postValue(false)
+                    }
+                }
+            }
         }
     }
+
 
     fun addAccount(account: Account) {
         _isLoading.value = true

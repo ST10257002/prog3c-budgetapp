@@ -133,9 +133,11 @@ class AccountDetailsView : AppCompatActivity() {
                 binding.accountNameTextView.text = it.name
                 binding.accountTypeTextView.text = it.type
 
-                // Format SA currency
-                val za = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
-                binding.accountBalanceAmount.text = za.format(it.balance)
+                viewModel.calculatedBalance.observe(this) { balance ->
+                    val za = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
+                    binding.accountBalanceAmount.text = za.format(balance)
+                }
+
 
                 val icon = when (it.type.lowercase(Locale.getDefault())) {
                     "credit" -> R.drawable.ic_credit_card

@@ -3,12 +3,13 @@ package vc.prog3c.poe.data.services
 import vc.prog3c.poe.data.repository.*
 
 object FirestoreService {
-    val incomes = IncomeRepository()
-    val expenses = ExpenseRepository()
+    //val incomes = IncomeRepository()
+   // val expenses = ExpenseRepository()
     val savingsGoal = SavingsGoalRepository()
     val users = UserRepository()
     val categories = CategoryRepository()
-    val transaction = TransactionRepository()
+    val transaction = TransactionRepository() // expenses and income
+    val account = AccountRepository()
 }
 
 

@@ -1,78 +1,114 @@
 package vc.prog3c.poe.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
+import java.util.Date
 
+/**
+ * Unified repository for both income and expense entries.
+ * All transactions live under /users/{uid}/accounts/{accountId}/transactions/{transactionId}
+ */
 class TransactionRepository {
 
     private val db = FirebaseFirestore.getInstance()
-    private val userId = FirebaseAuth.getInstance().currentUser?.uid
+    private val userId: String?
+        get() = FirebaseAuth.getInstance().currentUser?.uid
 
-    fun getAllTransactions(accountId: String?, onComplete: (List<Transaction>) -> Unit) {
-        if (userId == null) {
-            onComplete(emptyList())
-            return
+    /**
+     * Create a new transaction (income or expense).
+     */
+    fun addTransaction(
+        transaction: Transaction,
+        onComplete: (Boolean) -> Unit
+    ) {
+        val uid = userId ?: return onComplete(false)
+        val accountId = transaction.accountId ?: return onComplete(false)
+
+        db.collection("users")
+            .document(uid)
+            .collection("accounts")
+            .document(accountId)
+            .collection("transactions")
+            .document(transaction.id)
+            .set(transaction)
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
+
+    /**
+     * Fetch all transactions for an account, optionally filtering by type (INCOME/EXPENSE).
+     */
+    fun getTransactions(
+        accountId: String,
+        type: TransactionType? = null,
+        onComplete: (List<Transaction>) -> Unit
+    ) {
+        val uid = userId ?: return onComplete(emptyList())
+
+        var query = db.collection("users")
+            .document(uid)
+            .collection("accounts")
+            .document(accountId)
+            .collection("transactions")
+            .orderBy("date", Query.Direction.DESCENDING)
+
+        type?.let {
+            query = query.whereEqualTo("type", it.name)
         }
 
-        val expensesRef = db.collection("users").document(userId).collection("expenses")
-        val incomesRef = db.collection("users").document(userId).collection("incomes")
-
-        val expensesQuery = if (accountId != null)
-            expensesRef.whereEqualTo("accountId", accountId)
-        else
-            expensesRef
-
-        val incomesQuery = if (accountId != null)
-            incomesRef.whereEqualTo("accountId", accountId)
-        else
-            incomesRef
-
-        val allTransactions = mutableListOf<Transaction>()
-
-        expensesQuery.get().addOnSuccessListener { expenseSnap ->
-            val expenses = expenseSnap.mapNotNull { it.toTransaction(TransactionType.EXPENSE) }
-            allTransactions.addAll(expenses)
-
-            incomesQuery.get().addOnSuccessListener { incomeSnap ->
-                val incomes = incomeSnap.mapNotNull { it.toTransaction(TransactionType.INCOME) }
-                allTransactions.addAll(incomes)
-
-                val sorted = allTransactions.sortedByDescending { it.date }
-                onComplete(sorted)
-            }.addOnFailureListener { onComplete(emptyList()) }
-        }.addOnFailureListener { onComplete(emptyList()) }
+        query.get()
+            .addOnSuccessListener { snap ->
+                val list = snap.documents
+                    .mapNotNull { it.toObject(Transaction::class.java) }
+                onComplete(list)
+            }
+            .addOnFailureListener {
+                onComplete(emptyList())
+            }
     }
 
-    private fun DocumentSnapshot.toTransaction(type: TransactionType): Transaction? {
-        // don’t require a stored field; use the Firestore path
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
-            ?: return null
+    /**
+     * Update an existing transaction.
+     */
+    fun updateTransaction(
+        transaction: Transaction,
+        onComplete: (Boolean) -> Unit
+    ) {
+        val uid = userId ?: return onComplete(false)
+        val accountId = transaction.accountId ?: return onComplete(false)
 
-        val docAccountId = getString("accountId") ?: return null
-        val amount       = getDouble("amount")       ?: return null
-        val timestamp    = getTimestamp("date")?.toDate() ?: return null
-
-        // grab the right field for category/source:
-        val categoryOrSource = when(type) {
-            TransactionType.INCOME  -> getString("source")
-            TransactionType.EXPENSE -> getString("categoryId")
-            else                    -> null
-        } ?: return null
-
-        return Transaction(
-            id        = id,           // snapshot ID
-            userId    = uid,          // path-based
-            accountId = docAccountId,
-            type      = type,
-            amount    = amount,
-            category  = categoryOrSource,
-            description = getString("description"),
-            date      = timestamp
-        )
+        db.collection("users")
+            .document(uid)
+            .collection("accounts")
+            .document(accountId)
+            .collection("transactions")
+            .document(transaction.id)
+            .set(transaction)
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
     }
 
+    /**
+     * Delete a transaction.
+     */
+    fun deleteTransaction(
+        transactionId: String,
+        accountId: String,
+        onComplete: (Boolean) -> Unit
+    ) {
+        val uid = userId ?: return onComplete(false)
+
+        db.collection("users")
+            .document(uid)
+            .collection("accounts")
+            .document(accountId)
+            .collection("transactions")
+            .document(transactionId)
+            .delete()
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
 }

@@ -6,7 +6,16 @@ import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import com.google.firebase.Timestamp
 import java.util.UUID
+import java.util.Calendar
+
 object SeedData {
+
+    fun daysAgo(days: Int): Timestamp {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_YEAR, -days)
+        return Timestamp(cal.time)
+    }
+
     fun seedTestData(userId: String) {
         val db = FirebaseFirestore.getInstance()
 
@@ -14,7 +23,7 @@ object SeedData {
         val savingsId  = UUID.randomUUID().toString()
         val ccId       = UUID.randomUUID().toString()
 
-        // Define transactions for each account
+        // Define transactions for each account with spread-out dates
         val checkingTxs = listOf(
             Transaction(
                 id = UUID.randomUUID().toString(),
@@ -23,7 +32,7 @@ object SeedData {
                 type = TransactionType.INCOME,
                 amount = 2500.0,
                 category = "Salary deposit",
-                date = Timestamp.now(),
+                date = daysAgo(28), // 4 weeks ago
                 description = "Payday!"
             ),
             Transaction(
@@ -33,7 +42,7 @@ object SeedData {
                 type = TransactionType.EXPENSE,
                 amount = 120.0,
                 category = "Electric bill",
-                date = Timestamp.now(),
+                date = daysAgo(16), // just over 2 weeks ago
                 description = "Monthly bill"
             ),
             Transaction(
@@ -43,10 +52,11 @@ object SeedData {
                 type = TransactionType.EXPENSE,
                 amount = 15.0,
                 category = "Coffee shop",
-                date = Timestamp.now(),
+                date = daysAgo(2), // 2 days ago
                 description = "Morning coffee"
             )
         )
+
         val savingsTxs = listOf(
             Transaction(
                 id = UUID.randomUUID().toString(),
@@ -55,7 +65,7 @@ object SeedData {
                 type = TransactionType.INCOME,
                 amount = 1000.0,
                 category = "Transfer from checking",
-                date = Timestamp.now(),
+                date = daysAgo(60), // ~2 months ago
                 description = "Saving up"
             ),
             Transaction(
@@ -65,10 +75,21 @@ object SeedData {
                 type = TransactionType.INCOME,
                 amount = 50.0,
                 category = "Monthly interest",
-                date = Timestamp.now(),
+                date = daysAgo(29), // 1 month ago
                 description = "Interest payment"
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                userId = userId,
+                accountId = savingsId,
+                type = TransactionType.INCOME,
+                amount = 2000.0,
+                category = "Gran’s gift",
+                date = daysAgo(4), // recent
+                description = "Gift from gran"
             )
         )
+
         val ccTxs = listOf(
             Transaction(
                 id = UUID.randomUUID().toString(),
@@ -77,7 +98,7 @@ object SeedData {
                 type = TransactionType.EXPENSE,
                 amount = 75.0,
                 category = "Online purchase",
-                date = Timestamp.now(),
+                date = daysAgo(90), // 3 months ago
                 description = "Bought some stuff"
             ),
             Transaction(
@@ -87,7 +108,7 @@ object SeedData {
                 type = TransactionType.EXPENSE,
                 amount = 30.0,
                 category = "Streaming subscription",
-                date = Timestamp.now(),
+                date = daysAgo(35), // just over a month ago
                 description = "Netflix"
             ),
             Transaction(
@@ -97,7 +118,7 @@ object SeedData {
                 type = TransactionType.EXPENSE,
                 amount = 45.0,
                 category = "Restaurant dinner",
-                date = Timestamp.now(),
+                date = daysAgo(6), // almost a week ago
                 description = "Dinner with friends"
             )
         )
@@ -142,4 +163,3 @@ object SeedData {
         }
     }
 }
-

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF">
@@ -65,7 +66,8 @@
                             android:layout_gravity="bottom|end"
                             android:layout_margin="4dp"
                             android:src="@drawable/ic_edit"
-                            app:fabSize="mini" />
+                            app:fabSize="mini"
+                            tools:ignore="SpeakableTextPresentCheck" />
 
                     </FrameLayout>
 
@@ -124,8 +126,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="Edit Address"
                             android:src="@drawable/ic_edit"
-                            android:contentDescription="Edit Address" />
+                            tools:ignore="TouchTargetSizeCheck" />
 
                     </LinearLayout>
 
@@ -216,5 +219,16 @@
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/white"
+        app:itemIconTint="@color/bottom_nav_icon_color"
+        app:itemTextColor="@color/bottom_nav_text_color"
+        app:menu="@menu/bottom_navigation_menu"
+        app:labelVisibilityMode="labeled" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout> 

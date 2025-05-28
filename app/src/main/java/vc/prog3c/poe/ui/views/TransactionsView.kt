@@ -109,12 +109,9 @@ class TransactionsView : AppCompatActivity() {
                 Toast.makeText(this, "Account ID missing", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val intent = if (currentType == TransactionType.INCOME) {
-                Intent(this, AddIncomeView::class.java)
-            } else {
-                Intent(this, AddExpenseView::class.java)
+            val intent = Intent(this, AddTransactionActivity::class.java).apply {
+                putExtra("account_id", accountId)
             }
-            intent.putExtra("account_id", accountId)
             addTransactionLauncher.launch(intent)
         }
     }

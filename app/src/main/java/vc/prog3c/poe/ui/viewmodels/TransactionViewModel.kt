@@ -3,9 +3,12 @@ package vc.prog3c.poe.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
-import vc.prog3c.poe.data.repository.TransactionRepository
 
 /**
  * Unified ViewModel for both income and expense transactions.
@@ -13,7 +16,8 @@ import vc.prog3c.poe.data.repository.TransactionRepository
  */
 class TransactionViewModel : ViewModel() {
 
-    private val repo = TransactionRepository()
+    private val firestore = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
 
     private val _transactions = MutableLiveData<List<Transaction>>()
     val transactions: LiveData<List<Transaction>> = _transactions
@@ -27,33 +31,41 @@ class TransactionViewModel : ViewModel() {
     private val _totalExpenses = MutableLiveData<Double>()
     val totalExpenses: LiveData<Double> = _totalExpenses
 
+    private val _transactionState = MutableLiveData<TransactionState>()
+    val transactionState: LiveData<TransactionState> = _transactionState
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
+    fun getCurrentUserId(): String = auth.currentUser?.uid ?: ""
+
     /**
      * Load all transactions for an account (null = no-op or all accounts behavior).
      */
     fun loadTransactions(accountId: String?) {
-        _isLoading.value = true
-        _error.value = null
-
-        if (accountId == null) {
-            // No account specified: clear lists
-            _allTransactions = emptyList()
-            _transactions.postValue(_allTransactions)
-            updateTotals(_allTransactions)
-            _isLoading.postValue(false)
-            return
-        }
-
-        repo.getTransactions(accountId, null) { list ->
-            _allTransactions = list
-            _transactions.postValue(list)
-            updateTotals(list)
-            _isLoading.postValue(false)
+        if (accountId == null) return
+        _transactionState.value = TransactionState.Loading
+        
+        viewModelScope.launch {
+            try {
+                firestore.collection("transactions")
+                    .whereEqualTo("accountId", accountId)
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        val transactionList = documents.mapNotNull { it.toObject(Transaction::class.java) }
+                        _transactions.value = transactionList
+                        calculateTotals(transactionList)
+                        _transactionState.value = TransactionState.Success()
+                    }
+                    .addOnFailureListener { e ->
+                        _transactionState.value = TransactionState.Error(e.message ?: "Failed to load transactions")
+                    }
+            } catch (e: Exception) {
+                _transactionState.value = TransactionState.Error(e.message ?: "An error occurred")
+            }
         }
     }
 
@@ -64,9 +76,9 @@ class TransactionViewModel : ViewModel() {
      * Filter the loaded transactions by type (INCOME or EXPENSE).
      */
     fun filterTransactionsByType(type: TransactionType) {
-        val filtered = _allTransactions.filter { it.type == type }
-        _transactions.postValue(filtered)
-        updateTotals(filtered)
+        val currentList = _transactions.value ?: return
+        _transactions.value = currentList.filter { it.type == type }
+        calculateTotals(currentList.filter { it.type == type })
     }
 
     /**
@@ -74,13 +86,25 @@ class TransactionViewModel : ViewModel() {
      */
     fun addTransaction(transaction: Transaction) {
         _isLoading.value = true
-        repo.addTransaction(transaction) { success ->
-            if (success) {
-                refreshTransactions(transaction.accountId)
-            } else {
-                _error.postValue("Failed to add transaction.")
+        _error.value = null
+
+        _transactionState.value = TransactionState.Loading
+        
+        viewModelScope.launch {
+            try {
+                firestore.collection("transactions")
+                    .document(transaction.id)
+                    .set(transaction)
+                    .addOnSuccessListener {
+                        _transactionState.value = TransactionState.Success()
+                        loadTransactions(transaction.accountId)
+                    }
+                    .addOnFailureListener { e ->
+                        _transactionState.value = TransactionState.Error(e.message ?: "Failed to add transaction")
+                    }
+            } catch (e: Exception) {
+                _transactionState.value = TransactionState.Error(e.message ?: "An error occurred")
             }
-            _isLoading.postValue(false)
         }
     }
 
@@ -89,13 +113,25 @@ class TransactionViewModel : ViewModel() {
      */
     fun updateTransaction(transaction: Transaction) {
         _isLoading.value = true
-        repo.updateTransaction(transaction) { success ->
-            if (success) {
-                refreshTransactions(transaction.accountId)
-            } else {
-                _error.postValue("Failed to update transaction.")
+        _error.value = null
+
+        _transactionState.value = TransactionState.Loading
+        
+        viewModelScope.launch {
+            try {
+                firestore.collection("transactions")
+                    .document(transaction.id)
+                    .set(transaction)
+                    .addOnSuccessListener {
+                        _transactionState.value = TransactionState.Success()
+                        loadTransactions(transaction.accountId)
+                    }
+                    .addOnFailureListener { e ->
+                        _transactionState.value = TransactionState.Error(e.message ?: "Failed to update transaction")
+                    }
+            } catch (e: Exception) {
+                _transactionState.value = TransactionState.Error(e.message ?: "An error occurred")
             }
-            _isLoading.postValue(false)
         }
     }
 
@@ -104,25 +140,34 @@ class TransactionViewModel : ViewModel() {
      */
     fun deleteTransaction(transactionId: String, accountId: String) {
         _isLoading.value = true
-        repo.deleteTransaction(transactionId, accountId) { success ->
-            if (success) {
-                refreshTransactions(accountId)
-            } else {
-                _error.postValue("Failed to delete transaction.")
+        _error.value = null
+
+        _transactionState.value = TransactionState.Loading
+        
+        viewModelScope.launch {
+            try {
+                firestore.collection("transactions")
+                    .document(transactionId)
+                    .delete()
+                    .addOnSuccessListener {
+                        _transactionState.value = TransactionState.Success()
+                        loadTransactions(accountId)
+                    }
+                    .addOnFailureListener { e ->
+                        _transactionState.value = TransactionState.Error(e.message ?: "Failed to delete transaction")
+                    }
+            } catch (e: Exception) {
+                _transactionState.value = TransactionState.Error(e.message ?: "An error occurred")
             }
-            _isLoading.postValue(false)
         }
     }
 
-    /**
-     * Recalculate total income and expense from a given list.
-     */
-    private fun updateTotals(list: List<Transaction>) {
-        _totalIncome.value = list
+    private fun calculateTotals(transactions: List<Transaction>) {
+        _totalIncome.value = transactions
             .filter { it.type == TransactionType.INCOME }
             .sumOf { it.amount }
-
-        _totalExpenses.value = list
+        
+        _totalExpenses.value = transactions
             .filter { it.type == TransactionType.EXPENSE }
             .sumOf { it.amount }
     }

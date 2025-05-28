@@ -11,11 +11,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.Timestamp
 import vc.prog3c.poe.R
 import vc.prog3c.poe.databinding.ActivityAddTransactionBinding
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
+import vc.prog3c.poe.ui.viewmodels.TransactionState
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -298,85 +300,47 @@ class AddTransactionActivity : AppCompatActivity() {
 
     private fun saveIncomeTransaction() {
         val incomeForm = binding.incomeForm
-        try {
-            val amount = incomeForm.amountInput.text.toString().toDouble()
-            val category = incomeForm.sourceInput.text.toString()
-            val date = calendar.time
-            val description = incomeForm.descriptionInput.text.toString().takeIf { it.isNotBlank() }
-
-            val transaction = Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = "user1", // TODO: Get from auth service
-                accountId = accountId,
-                type = TransactionType.INCOME,
-                amount = amount,
-                category = category,
-                date = date,
-                description = description
-            )
-
-            viewModel.addTransaction(transaction)
-        } catch (e: NumberFormatException) {
-            Snackbar.make(binding.root, "Please enter a valid amount", Snackbar.LENGTH_SHORT).show()
-        }
+        val transaction = Transaction(
+            id = UUID.randomUUID().toString(),
+            userId = viewModel.getCurrentUserId(),
+            accountId = accountId ?: "",
+            type = TransactionType.INCOME,
+            amount = incomeForm.amountInput.text.toString().toDouble(),
+            category = incomeForm.sourceInput.text.toString(),
+            date = Timestamp(calendar.timeInMillis / 1000, 0),
+            description = incomeForm.descriptionInput.text.toString()
+        )
+        viewModel.addTransaction(transaction)
     }
 
     private fun saveExpenseTransaction() {
         val expenseForm = binding.expenseForm
-        try {
-            val amount = expenseForm.amountInput.text.toString().toDouble()
-            val category = expenseForm.categoryInput.text.toString()
-            val date = calendar.time
-            val description = expenseForm.descriptionInput.text.toString().takeIf { it.isNotBlank() }
-            
-            // Parse start and end times
-            val startTimeStr = expenseForm.startTimeInput.text.toString()
-            val endTimeStr = expenseForm.endTimeInput.text.toString()
-            val startTime = timeFormatter.parse(startTimeStr) ?: throw IllegalArgumentException("Invalid start time")
-            val endTime = timeFormatter.parse(endTimeStr) ?: throw IllegalArgumentException("Invalid end time")
-
-            val transaction = Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = "user1", // TODO: Get from auth service
-                accountId = accountId,
-                type = TransactionType.EXPENSE,
-                amount = amount,
-                category = category,
-                date = date,
-                description = description,
-                startTime = startTime,
-                endTime = endTime,
-                photoUrls = selectedPhotos
-            )
-
-            viewModel.addTransaction(transaction)
-        } catch (e: NumberFormatException) {
-            Snackbar.make(binding.root, "Please enter a valid amount", Snackbar.LENGTH_SHORT).show()
-        } catch (e: IllegalArgumentException) {
-            Snackbar.make(binding.root, e.message ?: "Invalid input", Snackbar.LENGTH_SHORT).show()
-        }
+        val transaction = Transaction(
+            id = UUID.randomUUID().toString(),
+            userId = viewModel.getCurrentUserId(),
+            accountId = accountId ?: "",
+            type = TransactionType.EXPENSE,
+            amount = expenseForm.amountInput.text.toString().toDouble(),
+            category = expenseForm.categoryInput.text.toString(),
+            date = Timestamp(calendar.timeInMillis / 1000, 0),
+            description = expenseForm.descriptionInput.text.toString()
+        )
+        viewModel.addTransaction(transaction)
     }
 
     private fun observeViewModel() {
-        viewModel.isLoading.observe(this) { isLoading ->
-            binding.loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
-            binding.saveButton.isEnabled = !isLoading
-        }
-
-        viewModel.error.observe(this) { error ->
-            error?.let {
-                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
-                    .setAction("Retry") {
-                        viewModel.retryLastOperation()
-                    }
-                    .show()
-            }
-        }
-
-        viewModel.saveSuccess.observe(this) { success: Boolean ->
-            if (success == true) {
-                Toast.makeText(this, "Transaction added successfully", Toast.LENGTH_SHORT).show()
-                finish()
+        viewModel.transactionState.observe(this) { state ->
+            when (state) {
+                is TransactionState.Success -> {
+                    Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                is TransactionState.Error -> {
+                    Snackbar.make(binding.root, state.message, Snackbar.LENGTH_LONG).show()
+                }
+                TransactionState.Loading -> {
+                    // Show loading indicator if needed
+                }
             }
         }
     }

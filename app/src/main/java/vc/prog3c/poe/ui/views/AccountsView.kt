@@ -11,7 +11,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
@@ -25,10 +24,10 @@ import vc.prog3c.poe.databinding.ActivityAccountsBinding
 import vc.prog3c.poe.ui.adapters.AccountAdapter
 import vc.prog3c.poe.ui.viewmodels.AccountsViewModel
 import java.text.NumberFormat
-import java.util.Locale
-import java.util.UUID
+import java.util.*
 
 class AccountsView : AppCompatActivity() {
+
     private lateinit var binding: ActivityAccountsBinding
     private lateinit var viewModel: AccountsViewModel
     private lateinit var accountAdapter: AccountAdapter
@@ -41,39 +40,35 @@ class AccountsView : AppCompatActivity() {
         viewModel = ViewModelProvider(this)[AccountsViewModel::class.java]
 
         setupToolbar()
-        setupBottomNavigation()
+        setupBottomNav()
+        setupRecyclerView()
         setupSwipeRefresh()
-        setupAccountsRecyclerView()
-        setupAddAccountButton()
-        setupNetWorthPieChart()
+        setupAddAccountDialog()
+        setupPieChart()
         observeViewModel()
 
-        // ▶️ FETCH REAL ACCOUNTS
         viewModel.fetchAccounts()
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Accounts"
     }
 
-    private fun setupBottomNavigation() {
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
+    private fun setupBottomNav() {
+        binding.bottomNavigation.setOnItemSelectedListener {
+            when (it.itemId) {
                 R.id.nav_dashboard -> {
                     startActivity(Intent(this, DashboardView::class.java))
-                    finish()
-                    true
+                    finish(); true
                 }
-                R.id.nav_accounts -> true // already here
                 R.id.nav_graph -> {
                     startActivity(Intent(this, GraphView::class.java))
-                    true
+                    finish(); true
                 }
                 R.id.nav_profile -> {
                     startActivity(Intent(this, ProfileActivity::class.java))
-                    true
+                    finish(); true
                 }
                 else -> false
             }
@@ -81,19 +76,11 @@ class AccountsView : AppCompatActivity() {
         binding.bottomNavigation.selectedItemId = R.id.nav_accounts
     }
 
-    private fun setupSwipeRefresh() {
-        binding.swipeRefreshLayout.apply {
-            setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
-            setOnRefreshListener { viewModel.fetchAccounts() }
-        }
-    }
-
-    private fun setupAccountsRecyclerView() {
+    private fun setupRecyclerView() {
         accountAdapter = AccountAdapter()
-        binding.accountsRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@AccountsView)
-            adapter = accountAdapter
-        }
+        binding.accountsRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.accountsRecyclerView.adapter = accountAdapter
+
         accountAdapter.setOnItemClickListener { account ->
             val intent = Intent(this, AccountDetailsView::class.java)
             intent.putExtra("account_id", account.id)
@@ -101,71 +88,68 @@ class AccountsView : AppCompatActivity() {
         }
     }
 
-    private fun setupAddAccountButton() {
-        binding.addAccountButton.setOnClickListener { showAddAccountDialog() }
+    private fun setupSwipeRefresh() {
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            viewModel.fetchAccounts()
+        }
     }
 
-    private fun showAddAccountDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_account, null)
-        val nameField = dialogView.findViewById<TextInputEditText>(R.id.accountNameEditText)
-        val typeField = dialogView.findViewById<AutoCompleteTextView>(R.id.accountTypeAutoCompleteTextView)
-        val saveBtn  = dialogView.findViewById<Button>(R.id.saveAccountButton)
+    private fun setupAddAccountDialog() {
+        binding.addAccountButton.setOnClickListener {
+            val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_account, null)
+            val nameInput = dialogView.findViewById<TextInputEditText>(R.id.accountNameEditText)
+            val typeInput = dialogView.findViewById<AutoCompleteTextView>(R.id.accountTypeAutoCompleteTextView)
+            val saveButton = dialogView.findViewById<Button>(R.id.saveAccountButton)
 
-        val types = listOf("Credit", "Debit", "Savings")
-        typeField.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, types))
+            val types = listOf("Credit", "Debit", "Savings")
+            typeInput.setAdapter(ArrayAdapter(this, android.R.layout.simple_list_item_1, types))
 
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .create()
+            val dialog = AlertDialog.Builder(this).setView(dialogView).create()
 
-        saveBtn.setOnClickListener {
-            val name = nameField.text.toString().trim()
-            val type = typeField.text.toString().trim()
-            if (name.isEmpty()) {
-                nameField.error = "Required"; return@setOnClickListener
-            }
-            if (type.isEmpty() || type !in types) {
-                typeField.error = "Invalid"; return@setOnClickListener
-            }
+            saveButton.setOnClickListener {
+                val name = nameInput.text.toString().trim()
+                val type = typeInput.text.toString().trim()
 
-            // ⚡️ REAL USER ID
-            val uid = FirebaseAuth.getInstance().currentUser?.uid
-                ?: return@setOnClickListener run {
-                    Snackbar.make(binding.root, "Not signed in", Snackbar.LENGTH_SHORT).show()
+                if (name.isEmpty()) {
+                    nameInput.error = "Required"
+                    return@setOnClickListener
                 }
 
-            val newAccount = Account(
-                id = UUID.randomUUID().toString(),
-                userId = uid,
-                name = name,
-                type = type,
-                balance = 0.0,
-                transactionsCount = 0
-            )
-            viewModel.addAccount(newAccount)
-            dialog.dismiss()
-        }
+                if (type.isEmpty() || type !in types) {
+                    typeInput.error = "Invalid"
+                    return@setOnClickListener
+                }
 
-        dialog.show()
+                val uid = FirebaseAuth.getInstance().currentUser?.uid
+                if (uid == null) {
+                    Snackbar.make(binding.root, "Not signed in", Snackbar.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val account = Account(
+                    id = UUID.randomUUID().toString(),
+                    userId = uid,
+                    name = name,
+                    type = type,
+                    balance = 0.0,
+                    transactionsCount = 0
+                )
+
+                viewModel.addAccount(account)
+                dialog.dismiss()
+            }
+
+            dialog.show()
+        }
     }
 
-    private fun setupNetWorthPieChart() {
+    private fun setupPieChart() {
         binding.netWorthPieChart.apply {
             description.isEnabled = false
             isRotationEnabled = false
             centerText = "Net Worth"
             setHoleColor(Color.TRANSPARENT)
             setTransparentCircleAlpha(0)
-            legend.apply {
-                isEnabled = true
-                verticalAlignment   = Legend.LegendVerticalAlignment.BOTTOM
-                horizontalAlignment = Legend.LegendHorizontalAlignment.LEFT
-                orientation         = Legend.LegendOrientation.HORIZONTAL
-                setDrawInside(false)
-                xEntrySpace = 7f
-                yEntrySpace = 0f
-                yOffset     = 0f
-            }
             setEntryLabelColor(Color.BLACK)
             setEntryLabelTextSize(12f)
             animateY(1000)
@@ -173,45 +157,51 @@ class AccountsView : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.accounts.observe(this) { list ->
-            accountAdapter.submitList(list)
-            updateNetWorthPieChart(list)
+        viewModel.accounts.observe(this) { accounts ->
+            accountAdapter.submitList(accounts)
+            updatePieChart(accounts)
         }
+
         viewModel.netWorth.observe(this) { total ->
             binding.netWorthAmount.text =
                 NumberFormat.getCurrencyInstance(Locale.getDefault()).format(total)
         }
-        viewModel.isLoading.observe(this) { loading ->
-            binding.swipeRefreshLayout.isRefreshing = loading
+
+        viewModel.isLoading.observe(this) {
+            binding.swipeRefreshLayout.isRefreshing = it
         }
-        viewModel.error.observe(this) { msg ->
-            msg?.let { Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show() }
+
+        viewModel.error.observe(this) {
+            it?.let { msg ->
+                Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 
-    private fun updateNetWorthPieChart(accounts: List<Account>) {
-        val entries = accounts
-            .map { PieEntry(it.balance.toFloat(), it.name) }
-            .filter { it.value > 0f }
+    private fun updatePieChart(accounts: List<Account>) {
+        val entries = accounts.filter { it.balance > 0 }.map {
+            PieEntry(it.balance.toFloat(), it.name)
+        }
+
         if (entries.isEmpty()) {
-            binding.netWorthPieChart.data = null
-            binding.netWorthPieChart.invalidate()
+            binding.netWorthPieChart.clear()
             return
         }
-        val ds = PieDataSet(entries, "Account Distribution").apply {
+
+        val ds = PieDataSet(entries, "Distribution").apply {
+            valueTextSize = 12f
             valueTextColor = Color.BLACK
-            valueTextSize  = 12f
             valueFormatter = PercentFormatter(binding.netWorthPieChart)
             colors = listOf(
-                resources.getColor(R.color.primary, null),
-                resources.getColor(R.color.green,   null),
-                resources.getColor(R.color.red,     null),
+                getColor(R.color.primary),
+                getColor(R.color.green),
+                getColor(R.color.red),
                 Color.parseColor("#FF9800"),
                 Color.parseColor("#9C27B0")
             )
         }
+
         binding.netWorthPieChart.data = PieData(ds)
         binding.netWorthPieChart.invalidate()
-        binding.netWorthPieChart.animateY(1000)
     }
 }

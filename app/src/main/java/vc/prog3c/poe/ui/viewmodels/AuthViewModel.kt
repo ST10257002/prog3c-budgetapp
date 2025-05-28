@@ -1,41 +1,51 @@
 package vc.prog3c.poe.ui.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.*
+import kotlinx.coroutines.launch
 import vc.prog3c.poe.data.models.User
-import vc.prog3c.poe.data.services.FirestoreService
+import vc.prog3c.poe.data.repository.UserRepository
+import com.google.firebase.auth.FirebaseAuth
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(
+    private val userRepository: UserRepository = UserRepository()
+) : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    private val _isLoggedIn = MutableLiveData<Boolean>()
+    private val _isLoggedIn = MutableLiveData<Boolean>().apply {
+        value = auth.currentUser != null
+    }
     val isLoggedIn: LiveData<Boolean> = _isLoggedIn
 
     private val _currentUser = MutableLiveData<User?>()
     val currentUser: LiveData<User?> = _currentUser
 
-    private val _error = MutableLiveData<String>()
-    val error: LiveData<String> = _error
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
 
-    fun loadUserProfile() {
-        FirestoreService.users.getUser { user ->
-            _currentUser.postValue(user)
-        }
+    /**
+     * Load current user profile from Firestore using coroutine
+     */
+    fun loadUserProfile() = viewModelScope.launch {
+        val result = userRepository.getUser()
+        result
+            .onSuccess { _currentUser.postValue(it) }
+            .onFailure { _error.postValue("Failed to fetch user: ${it.localizedMessage}") }
     }
 
-    fun completeUserProfile(update: User) {
-        FirestoreService.users.updateUser(update) { success ->
-            if (success) {
-                _currentUser.postValue(update)
-            } else {
-                _error.postValue("Failed to update user profile")
-            }
-        }
+    /**
+     * Update Firestore user document with new data
+     */
+    fun completeUserProfile(updatedUser: User) = viewModelScope.launch {
+        val result = userRepository.updateUser(updatedUser)
+        result
+            .onSuccess { _currentUser.postValue(updatedUser) }
+            .onFailure { _error.postValue("Failed to update user profile: ${it.localizedMessage}") }
     }
 
+    /**
+     * Firebase logout + state clear
+     */
     fun signOut() {
         auth.signOut()
         _isLoggedIn.value = false

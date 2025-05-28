@@ -1,16 +1,13 @@
 package vc.prog3c.poe.ui.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.launch
 import vc.prog3c.poe.data.models.Account
-import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.data.repository.AccountRepository
 
-class AccountsViewModel : ViewModel() {
-    private val repo = AccountRepository()
+class AccountsViewModel(
+    private val repo: AccountRepository = AccountRepository()
+) : ViewModel() {
 
     private val _accounts = MutableLiveData<List<Account>>()
     val accounts: LiveData<List<Account>> = _accounts
@@ -18,7 +15,7 @@ class AccountsViewModel : ViewModel() {
     private val _netWorth = MutableLiveData<Double>()
     val netWorth: LiveData<Double> = _netWorth
 
-    private val _isLoading = MutableLiveData<Boolean>()
+    private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
     private val _error = MutableLiveData<String?>()
@@ -28,71 +25,66 @@ class AccountsViewModel : ViewModel() {
         fetchAccounts()
     }
 
-    fun fetchAccounts() {
+    fun fetchAccounts() = viewModelScope.launch {
         _isLoading.value = true
-        repo.getAllAccounts { accountList ->
-            if (accountList.isEmpty()) {
-                _accounts.postValue(emptyList())
-                _netWorth.postValue(0.0)
-                _isLoading.postValue(false)
-                return@getAllAccounts
+        _error.value = null
+
+        val result = repo.getAllAccounts()
+
+        result
+            .onSuccess { accountList ->
+                _accounts.value = accountList
+                _netWorth.value = accountList.sumOf { it.balance }
+            }
+            .onFailure { e ->
+                _error.value = e.message ?: "Failed to fetch accounts"
             }
 
-            // For each account, fetch transactions and update balance/count
-            val updatedAccounts = mutableListOf<Account>()
-            var completed = 0
+        _isLoading.value = false
+    }
 
-            accountList.forEach { account ->
-                repo.getTransactionsForAccount(account.id) { txs ->
-                    // Compute balance and count
-                    val balance = txs.fold(0.0) { acc, tx ->
-                        when (tx.type) {
-                            TransactionType.INCOME  -> acc + tx.amount
-                            TransactionType.EXPENSE -> acc - tx.amount
-                        }
-                    }
-                    account.balance = balance
-                    account.transactionsCount = txs.size
+    fun addAccount(account: Account) = viewModelScope.launch {
+        _isLoading.value = true
+        _error.value = null
 
-                    updatedAccounts.add(account)
-                    completed++
+        val result = repo.addAccount(account)
 
-                    // When all accounts have been processed, post the results
-                    if (completed == accountList.size) {
-                        _accounts.postValue(updatedAccounts)
-                        _netWorth.postValue(updatedAccounts.sumOf { it.balance })
-                        _isLoading.postValue(false)
-                    }
-                }
+        result
+            .onSuccess { fetchAccounts() }
+            .onFailure { e ->
+                _error.value = e.message ?: "Failed to add account"
             }
-        }
+
+        _isLoading.value = false
     }
 
-
-    fun addAccount(account: Account) {
+    fun addOrUpdateAccount(account: Account) = viewModelScope.launch {
         _isLoading.value = true
-        repo.addAccount(account) { success ->
-            if (success) fetchAccounts()
-            else _error.postValue("Failed to add account.")
-            _isLoading.postValue(false)
-        }
+        _error.value = null
+
+        val result = repo.addOrUpdateAccount(account)
+
+        result
+            .onSuccess { fetchAccounts() }
+            .onFailure { e ->
+                _error.value = e.message ?: "Failed to save account"
+            }
+
+        _isLoading.value = false
     }
 
-    fun updateAccount(account: Account) {
+    fun deleteAccount(accountId: String) = viewModelScope.launch {
         _isLoading.value = true
-        repo.updateAccount(account) { success ->
-            if (success) fetchAccounts()
-            else _error.postValue("Failed to update account.")
-            _isLoading.postValue(false)
-        }
-    }
+        _error.value = null
 
-    fun deleteAccount(accountId: String) {
-        _isLoading.value = true
-        repo.deleteAccount(accountId) { success ->
-            if (success) fetchAccounts()
-            else _error.postValue("Failed to delete account.")
-            _isLoading.postValue(false)
-        }
+        val result = repo.deleteAccount(accountId)
+
+        result
+            .onSuccess { fetchAccounts() }
+            .onFailure { e ->
+                _error.value = e.message ?: "Failed to delete account"
+            }
+
+        _isLoading.value = false
     }
 }

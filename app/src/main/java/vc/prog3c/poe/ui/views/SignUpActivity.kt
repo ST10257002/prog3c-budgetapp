@@ -13,50 +13,64 @@ import vc.prog3c.poe.ui.viewmodels.SignUpViewModel
 
 class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
-    private lateinit var vBinds: ActivitySignUpBinding
-    private lateinit var vModel: SignUpViewModel
+    private lateinit var binding: ActivitySignUpBinding
+    private lateinit var viewModel: SignUpViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
-        setupBindings()
-        setupLayoutUi()
-        setupClickListeners()
+        binding = ActivitySignUpBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        vModel = ViewModelProvider(this)[SignUpViewModel::class.java]
+        viewModel = ViewModelProvider(this)[SignUpViewModel::class.java]
 
-        observeViewModel()
+        setupListeners()
+        observeUiState()
     }
 
-    private fun observeViewModel() {
-        vModel.uiState.observe(this) { state ->
+    private fun observeUiState() {
+        viewModel.uiState.observe(this) { state ->
             when (state) {
                 is SignUpUiState.Success -> navigateToDashboard()
-                is SignUpUiState.Failure -> {
-                    Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
-                }
+                is SignUpUiState.Failure -> showToast(state.message)
                 is SignUpUiState.Loading -> {
-                    // Optional: show loading spinner
+                    // Optionally show a loading indicator
                 }
-                else -> {}
+                else -> Unit
             }
         }
     }
 
-    private fun tryAuthenticateCredentials() {
-        val firstName = vBinds.firstNameEditText.text.toString().trim()
-        val lastName = vBinds.lastNameEditText.text.toString().trim()
+    private fun attemptSignUp() {
+        val firstName = binding.firstNameEditText.text.toString().trim()
+        val lastName = binding.lastNameEditText.text.toString().trim()
         val fullName = "$firstName $lastName"
-        val email = vBinds.emailEditText.text.toString().trim()
-        val password = vBinds.etPassword.text.toString().trim()
-        val confirmPassword = vBinds.confirmPasswordEditText.text.toString().trim()
+        val email = binding.emailEditText.text.toString().trim()
+        val password = binding.etPassword.text.toString().trim()
+        val confirmPassword = binding.confirmPasswordEditText.text.toString().trim()
 
-        vModel.signUp(
-            name = fullName,
-            email = email,
-            password = password,
-            confirmPassword = confirmPassword
-        )
+        viewModel.signUp(fullName, email, password, confirmPassword)
+    }
+
+    private fun setupListeners() {
+        binding.registerButton.setOnClickListener(this)
+        binding.loginButton.setOnClickListener(this)
+    }
+
+    override fun onClick(view: View?) {
+        when (view?.id) {
+            binding.registerButton.id -> attemptSignUp()
+            binding.loginButton.id -> navigateToSignIn()
+        }
+    }
+
+    private fun navigateToDashboard() {
+        Intent(this, DashboardView::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(this)
+        }
+        finish()
     }
 
     private fun navigateToSignIn() {
@@ -64,31 +78,7 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
         finish()
     }
 
-    private fun navigateToDashboard() {
-        val intent = Intent(this, DashboardView::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
-    }
-
-    override fun onClick(view: View?) {
-        when (view?.id) {
-            vBinds.registerButton.id -> tryAuthenticateCredentials()
-            vBinds.loginButton.id -> navigateToSignIn()
-        }
-    }
-
-    private fun setupClickListeners() {
-        vBinds.registerButton.setOnClickListener(this)
-        vBinds.loginButton.setOnClickListener(this)
-    }
-
-    private fun setupBindings() {
-        vBinds = ActivitySignUpBinding.inflate(layoutInflater)
-    }
-
-    private fun setupLayoutUi() {
-        setContentView(vBinds.root)
-        enableEdgeToEdge()
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

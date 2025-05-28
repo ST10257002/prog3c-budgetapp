@@ -1,83 +1,75 @@
 package vc.prog3c.poe.ui.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import androidx.lifecycle.*
 import kotlinx.coroutines.launch
 import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.data.models.Transaction
-import vc.prog3c.poe.data.repository.AccountRepository
 import vc.prog3c.poe.data.models.TransactionType
-import java.util.Date
-import java.util.UUID
+import vc.prog3c.poe.data.repository.AccountRepository
 
 class AccountDetailsViewModel(
     private val repo: AccountRepository = AccountRepository()
 ) : ViewModel() {
 
-    private val _account      = MutableLiveData<Account?>()
+    private val _account = MutableLiveData<Account?>()
     val account: LiveData<Account?> = _account
 
     private val _transactions = MutableLiveData<List<Transaction>>()
     val transactions: LiveData<List<Transaction>> = _transactions
 
-    private val _isLoading    = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
-
-    private val _error        = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
-
     private val _calculatedBalance = MutableLiveData<Double>()
     val calculatedBalance: LiveData<Double> = _calculatedBalance
 
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
 
     private var allTxs: List<Transaction> = emptyList()
 
-    /** ← now needs userId too */
-    fun loadAccountDetails(userId: String, accountId: String) {
+    fun loadAccountDetails(accountId: String) = viewModelScope.launch {
         _isLoading.value = true
         _error.value = null
 
-        // 1) load the account document (with its stored aggregates)
-        repo.getAccount(accountId) { acct ->
-            _account.postValue(acct)
+        val accountResult = repo.getAccount(accountId)
+        val txResult = repo.getTransactionsForAccount(accountId)
 
-            // 2) load all txs (we’ll filter later)
-            repo.getTransactionsForAccount(accountId) { txs ->
+        accountResult
+            .onSuccess { _account.value = it }
+            .onFailure { _error.value = it.localizedMessage }
+
+        txResult
+            .onSuccess { txs ->
                 allTxs = txs
-                _transactions.postValue(txs)
-                _isLoading.postValue(false)
-                _calculatedBalance.postValue(
-                    txs.fold(0.0) { acc, tx ->
-                        when (tx.type) {
-                            TransactionType.INCOME  -> acc + tx.amount
-                            TransactionType.EXPENSE -> acc - tx.amount
-                        }
+                _transactions.value = txs
+                _calculatedBalance.value = txs.fold(0.0) { acc, tx ->
+                    when (tx.type) {
+                        TransactionType.INCOME -> acc + tx.amount
+                        TransactionType.EXPENSE -> acc - tx.amount
                     }
-                )
+                }
             }
-        }
+            .onFailure { _error.value = it.localizedMessage }
+
+        _isLoading.value = false
     }
 
     fun filterTransactionsByTimePeriod(period: String) {
         val now = System.currentTimeMillis()
         val cutoff = when (period) {
-            "1 week"  -> now - 7L * 24*60*60*1000
-            "1 month" -> now - 30L*24*60*60*1000
-            "3 months"-> now - 90L*24*60*60*1000
-            else      -> 0L
+            "1 week" -> now - 7L * 24 * 60 * 60 * 1000
+            "1 month" -> now - 30L * 24 * 60 * 60 * 1000
+            "3 months" -> now - 90L * 24 * 60 * 60 * 1000
+            else -> 0L
         }
         _transactions.value = allTxs.filter { it.date.toDate().time >= cutoff }
     }
 
-    fun deleteAccount(accountId: String) {
+    fun deleteAccount(accountId: String) = viewModelScope.launch {
         _isLoading.value = true
-        _error.value = null
-        repo.deleteAccount(accountId) { success ->
-            if (!success) _error.postValue("Failed to delete account.")
-            _isLoading.postValue(false)
-        }
+        val result = repo.deleteAccount(accountId)
+        if (result.isFailure) _error.value = result.exceptionOrNull()?.localizedMessage
+        _isLoading.value = false
     }
 }

@@ -8,49 +8,38 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import vc.prog3c.poe.R
-import vc.prog3c.poe.data.models.Transaction // Correct import
-import vc.prog3c.poe.data.models.TransactionType // Correct import
+import vc.prog3c.poe.data.models.Transaction
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
-class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
+class TransactionAdapter :
+    ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(DiffCallback) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_transaction, parent, false)
-        return TransactionViewHolder(view)
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TransactionViewHolder(
+        LayoutInflater.from(parent.context).inflate(R.layout.item_transaction, parent, false)
+    )
 
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
-        val transaction = getItem(position)
-        holder.bind(transaction)
+        holder.bind(getItem(position))
     }
 
-    class TransactionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val descriptionTextView: TextView = itemView.findViewById(R.id.transactionTitle)
-        private val categoryTextView: TextView = itemView.findViewById(R.id.transactionCategory)
-        private val dateTextView: TextView = itemView.findViewById(R.id.transactionDate)
-        private val amountTextView: TextView = itemView.findViewById(R.id.transactionAmount)
+    class TransactionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        private val title: TextView = view.findViewById(R.id.transactionTitle)
+        private val category: TextView = view.findViewById(R.id.transactionCategory)
+        private val date: TextView = view.findViewById(R.id.transactionDate)
+        private val amount: TextView = view.findViewById(R.id.transactionAmount)
 
-        fun bind(transaction: Transaction) {
-            descriptionTextView.text = transaction.description ?: "No description"
-            categoryTextView.text = transaction.category
-
-            val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-            dateTextView.text = dateFormat.format(transaction.date.toDate())
-
-            amountTextView.text = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(transaction.amount)
+        fun bind(item: Transaction) {
+            title.text = item.description ?: "No description"
+            category.text = item.category
+            date.text = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(item.date.toDate())
+            amount.text = NumberFormat.getCurrencyInstance().format(item.amount)
         }
     }
 
-    class TransactionDiffCallback : DiffUtil.ItemCallback<Transaction>() {
-        override fun areItemsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
-            return oldItem.id == newItem.id
-        }
-
-        override fun areContentsTheSame(oldItem: Transaction, newItem: Transaction): Boolean {
-            return oldItem == newItem
-        }
+    companion object DiffCallback : DiffUtil.ItemCallback<Transaction>() {
+        override fun areItemsTheSame(oldItem: Transaction, newItem: Transaction) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Transaction, newItem: Transaction) = oldItem == newItem
     }
-} 
+}

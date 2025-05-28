@@ -14,7 +14,7 @@ import vc.prog3c.poe.databinding.ActivityDashboardBinding
 import vc.prog3c.poe.ui.adapters.CategoryAdapter
 import vc.prog3c.poe.ui.viewmodels.DashboardViewModel
 import java.text.NumberFormat
-import java.util.Locale
+import java.util.*
 
 class DashboardView : AppCompatActivity() {
     private lateinit var binding: ActivityDashboardBinding
@@ -26,19 +26,20 @@ class DashboardView : AppCompatActivity() {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        viewModel = ViewModelProvider(this)[DashboardViewModel::class.java]
+
         categoryAdapter = CategoryAdapter(emptyMap())
         binding.categoriesRecyclerView.adapter = categoryAdapter
-
-        viewModel = ViewModelProvider(this)[DashboardViewModel::class.java]
 
         setupToolbar()
         setupBottomNavigation()
         setupSwipeRefresh()
-        observeViewModel()
+        setupObservers()
 
         binding.manageGoalsView.initialize(viewModel, this)
         binding.editGoalButton.setOnClickListener {
-            binding.manageGoalsView.visibility = if (binding.manageGoalsView.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            binding.manageGoalsView.visibility = if (binding.manageGoalsView.visibility == View.VISIBLE)
+                View.GONE else View.VISIBLE
         }
 
         viewModel.refreshData()
@@ -46,9 +47,7 @@ class DashboardView : AppCompatActivity() {
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(false)
         supportActionBar?.title = "Dashboard"
-
         binding.profileImage.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
@@ -79,53 +78,44 @@ class DashboardView : AppCompatActivity() {
     private fun setupSwipeRefresh() {
         binding.swipeRefreshLayout.apply {
             setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
-            setOnRefreshListener { refreshData() }
+            setOnRefreshListener {
+                viewModel.refreshData()
+                isRefreshing = false
+            }
         }
     }
 
-    private fun refreshData() {
-        viewModel.refreshData()
-    }
-
-    private fun observeViewModel() {
-        viewModel.savingsGoals.observe(this) { goals ->
-            updateSavingsGoalUI(goals)
-        }
-
-        viewModel.budget.observe(this) { budget ->
-            updateBudgetUI(budget, viewModel.monthlyStats.value)
-        }
-        viewModel.monthlyStats.observe(this) { stats ->
-            updateBudgetUI(viewModel.budget.value, stats)
-        }
-
-        viewModel.categoryBreakdown.observe(this) { breakdown ->
-            updateCategoryAdapter(breakdown)
-        }
-
+    private fun setupObservers() {
+        viewModel.savingsGoals.observe(this) { updateSavingsGoalUI(it) }
+        viewModel.budget.observe(this) { updateBudgetUI(it, viewModel.monthlyStats.value) }
+        viewModel.monthlyStats.observe(this) { updateBudgetUI(viewModel.budget.value, it) }
+        viewModel.categoryBreakdown.observe(this) { updateCategoryAdapter(it) }
         viewModel.error.observe(this) { error ->
-            if (error == null && binding.manageGoalsView.visibility == View.VISIBLE) {
-                binding.manageGoalsView.visibility = View.GONE
-                Snackbar.make(binding.root, "Goal updated!", Snackbar.LENGTH_SHORT).show()
-            } else if (error != null) {
-                Snackbar.make(binding.root, error, Snackbar.LENGTH_SHORT).show()
+            when {
+                error == null && binding.manageGoalsView.visibility == View.VISIBLE -> {
+                    binding.manageGoalsView.visibility = View.GONE
+                    Snackbar.make(binding.root, "Goal updated!", Snackbar.LENGTH_SHORT).show()
+                }
+                error != null -> {
+                    Snackbar.make(binding.root, error, Snackbar.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
     private fun updateSavingsGoalUI(goals: List<SavingsGoal>) {
+        val currency = NumberFormat.getCurrencyInstance(Locale.getDefault())
+
         if (goals.isNotEmpty()) {
             val goal = goals[0]
-            val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
             val progress = if (goal.targetAmount > 0) goal.savedAmount / goal.targetAmount else 0.0
             val percent = (progress * 100).toInt().coerceIn(0, 100)
 
-            binding.savingsGoalText.text = "${goal.name}: ${currencyFormat.format(goal.savedAmount)} / ${currencyFormat.format(goal.targetAmount)}"
-            binding.currentSavingsText.text = currencyFormat.format(goal.savedAmount)
-            binding.maxSavingsText.text = currencyFormat.format(goal.targetAmount)
+            binding.savingsGoalText.text = "${goal.name}: ${currency.format(goal.savedAmount)} / ${currency.format(goal.targetAmount)}"
+            binding.currentSavingsText.text = currency.format(goal.savedAmount)
+            binding.maxSavingsText.text = currency.format(goal.targetAmount)
             binding.savingsPercentageText.text = "$percent%"
             binding.savingsProgressBar.progress = percent
-
             binding.savingsGoalDate.text = goal.targetDate?.let {
                 val dateFormat = android.text.format.DateFormat.getMediumDateFormat(this)
                 "Target date: ${dateFormat.format(it)}"
@@ -141,58 +131,54 @@ class DashboardView : AppCompatActivity() {
     }
 
     private fun updateBudgetUI(budget: Budget?, stats: MonthlyStats?) {
-        val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
+        val currency = NumberFormat.getCurrencyInstance(Locale.getDefault())
         val spent = stats?.totalExpenses ?: 0.0
         val max = budget?.max ?: 1.0
         val min = budget?.min ?: 0.0
 
-        if (budget != null) {
-            binding.budgetAmountText.text = currencyFormat.format(budget.max)
-            val monthName = try {
-                java.time.Month.of(budget.month).getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())
-            } catch (e: Exception) { "" }
-            binding.budgetMonthText.text = "$monthName ${budget.year}"
-        } else {
-            binding.budgetAmountText.text = currencyFormat.format(0)
-            binding.budgetMonthText.text = ""
-        }
+        binding.budgetAmountText.text = currency.format(budget?.max ?: 0.0)
+        binding.budgetMonthText.text = budget?.let {
+            try {
+                java.time.Month.of(it.month)
+                    .getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault()) + " ${it.year}"
+            } catch (e: Exception) {
+                ""
+            }
+        } ?: ""
 
-        binding.budgetSpentText.text = currencyFormat.format(spent)
+        binding.budgetSpentText.text = currency.format(spent)
         val percent = (spent / max * 100).toInt().coerceIn(0, 100)
         binding.budgetProgressBar.progress = percent
         binding.budgetProgressText.text = "$percent%"
 
-        when {
-            spent < min -> binding.budgetSpentText.setTextColor(resources.getColor(R.color.teal_200, theme))
-            spent <= max -> binding.budgetSpentText.setTextColor(resources.getColor(R.color.white, theme))
-            else -> binding.budgetSpentText.setTextColor(resources.getColor(R.color.red, theme))
+        val color = when {
+            spent < min -> R.color.teal_200
+            spent <= max -> R.color.white
+            else -> R.color.red
         }
+        binding.budgetSpentText.setTextColor(resources.getColor(color, theme))
     }
 
     private fun updateCategoryAdapter(breakdown: Map<String, Double>?) {
-        val breakdownSafe = breakdown ?: emptyMap()
-
-        if (breakdownSafe.isEmpty()) {
+        val data = breakdown ?: emptyMap()
+        if (data.isEmpty()) {
             binding.noCategoriesText.visibility = View.VISIBLE
             binding.categoriesRecyclerView.visibility = View.GONE
         } else {
             binding.noCategoriesText.visibility = View.GONE
             binding.categoriesRecyclerView.visibility = View.VISIBLE
-            categoryAdapter.updateCategoryData(breakdownSafe)
-
-            // 🔥 Force re-binding in case of stale adapter
-            binding.categoriesRecyclerView.adapter = categoryAdapter
+            categoryAdapter.updateCategoryData(data)
         }
     }
 
     private fun showError(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-            .setAction("Retry") { refreshData() }
+            .setAction("Retry") { viewModel.refreshData() }
             .show()
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 }

@@ -1,123 +1,56 @@
 package vc.prog3c.poe.data.repository
 
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.tasks.await
 import vc.prog3c.poe.data.models.MonthlyStats
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
-import java.util.Calendar
-import java.util.Date
+import java.util.*
 
-/**
- * Unified repository for both income and expense entries.
- * All transactions live under /users/{uid}/accounts/{accountId}/transactions/{transactionId}
- */
-class TransactionRepository {
+class TransactionRepository(
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance(),
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+) {
 
-    private val db = FirebaseFirestore.getInstance()
-    private val userId: String?
-        get() = FirebaseAuth.getInstance().currentUser?.uid
+    private val userId: String
+        get() = auth.currentUser?.uid ?: ""
 
-    /**
-     * Create a new transaction (income or expense).
-     */
-    fun addTransaction(
-        transaction: Transaction,
-        onComplete: (Boolean) -> Unit
-    ) {
-        val uid = userId ?: return onComplete(false)
-        val accountId = transaction.accountId ?: return onComplete(false)
-
+    private fun transactionCollection(accountId: String) =
         db.collection("users")
-            .document(uid)
+            .document(userId)
             .collection("accounts")
             .document(accountId)
             .collection("transactions")
+
+    suspend fun addTransaction(transaction: Transaction): Result<Unit> = runCatching {
+        val accountId = transaction.accountId.ifEmpty { throw Exception("Missing accountId") }
+        transactionCollection(accountId)
             .document(transaction.id)
             .set(transaction)
-            .addOnSuccessListener { onComplete(true) }
-            .addOnFailureListener { onComplete(false) }
+            .await()
     }
 
-    /**
-     * Fetch all transactions for an account, optionally filtering by type (INCOME/EXPENSE).
-     */
-    fun getTransactions(
-        accountId: String,
-        type: TransactionType? = null,
-        onComplete: (List<Transaction>) -> Unit
-    ) {
-        val uid = userId ?: return onComplete(emptyList())
+    suspend fun updateTransaction(transaction: Transaction): Result<Unit> = addTransaction(transaction)
 
-        var query = db.collection("users")
-            .document(uid)
-            .collection("accounts")
-            .document(accountId)
-            .collection("transactions")
-            .orderBy("date", Query.Direction.DESCENDING)
-
-        type?.let {
-            query = query.whereEqualTo("type", it.name)
-        }
-
-        query.get()
-            .addOnSuccessListener { snap ->
-                val list = snap.documents
-                    .mapNotNull { it.toObject(Transaction::class.java) }
-                onComplete(list)
-            }
-            .addOnFailureListener {
-                onComplete(emptyList())
-            }
-    }
-
-    /**
-     * Update an existing transaction.
-     */
-    fun updateTransaction(
-        transaction: Transaction,
-        onComplete: (Boolean) -> Unit
-    ) {
-        val uid = userId ?: return onComplete(false)
-        val accountId = transaction.accountId ?: return onComplete(false)
-
-        db.collection("users")
-            .document(uid)
-            .collection("accounts")
-            .document(accountId)
-            .collection("transactions")
-            .document(transaction.id)
-            .set(transaction)
-            .addOnSuccessListener { onComplete(true) }
-            .addOnFailureListener { onComplete(false) }
-    }
-
-    /**
-     * Delete a transaction.
-     */
-    fun deleteTransaction(
-        transactionId: String,
-        accountId: String,
-        onComplete: (Boolean) -> Unit
-    ) {
-        val uid = userId ?: return onComplete(false)
-
-        db.collection("users")
-            .document(uid)
-            .collection("accounts")
-            .document(accountId)
-            .collection("transactions")
+    suspend fun deleteTransaction(accountId: String, transactionId: String): Result<Unit> = runCatching {
+        transactionCollection(accountId)
             .document(transactionId)
             .delete()
-            .addOnSuccessListener { onComplete(true) }
-            .addOnFailureListener { onComplete(false) }
+            .await()
     }
 
-    fun getMonthlyStats(year: Int, month: Int, onComplete: (MonthlyStats) -> Unit) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return onComplete(MonthlyStats(0.0, 0.0, 0.0))
+    suspend fun getTransactions(accountId: String, type: TransactionType? = null): Result<List<Transaction>> = runCatching {
+        var query: Query = transactionCollection(accountId).orderBy("date", Query.Direction.DESCENDING)
+        if (type != null) query = query.whereEqualTo("type", type.name)
 
-        val db = FirebaseFirestore.getInstance()
+        val snapshot = query.get().await()
+        snapshot.documents.mapNotNull { it.toObject(Transaction::class.java) }
+    }
+
+    suspend fun getMonthlyStats(year: Int, month: Int): Result<MonthlyStats> = runCatching {
         val startCal = Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.MONTH, month - 1)
@@ -136,102 +69,88 @@ class TransactionRepository {
             set(Calendar.SECOND, 59)
             set(Calendar.MILLISECOND, 999)
         }
-        val startDate = com.google.firebase.Timestamp(startCal.time)
-        val endDate = com.google.firebase.Timestamp(endCal.time)
 
-        // First, get all accounts
-        db.collection("users").document(userId).collection("accounts")
-            .get()
-            .addOnSuccessListener { accountSnapshot ->
-                val accountIds = accountSnapshot.documents.map { it.id }
-                var totalIncome = 0.0
-                var totalExpenses = 0.0
-                var completed = 0
-                if (accountIds.isEmpty()) {
-                    onComplete(MonthlyStats(0.0, 0.0, 0.0))
-                    return@addOnSuccessListener
-                }
-                for (accountId in accountIds) {
-                    db.collection("users").document(userId)
-                        .collection("accounts").document(accountId)
-                        .collection("transactions")
-                        .whereGreaterThanOrEqualTo("date", startDate)
-                        .whereLessThanOrEqualTo("date", endDate)
-                        .get()
-                        .addOnSuccessListener { txSnap ->
-                            txSnap.documents.forEach { doc ->
-                                val type = doc.getString("type")
-                                val amount = doc.getDouble("amount") ?: 0.0
-                                when (type) {
-                                    "INCOME" -> totalIncome += amount
-                                    "EXPENSE" -> totalExpenses += amount
-                                }
-                            }
-                            completed++
-                            if (completed == accountIds.size) {
-                                val savings = totalIncome - totalExpenses
-                                onComplete(MonthlyStats(totalIncome, totalExpenses, savings))
-                            }
-                        }
-                }
-            }
-    }
+        val startDate = Timestamp(startCal.time)
+        val endDate = Timestamp(endCal.time)
 
-    fun getExpenseCategoryBreakdown(
-        year: Int,
-        month: Int,
-        onComplete: (Map<String, Double>) -> Unit
-    ) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return onComplete(emptyMap())
-
-        // Pull all transactions for this month, filter to EXPENSE, group by category
-        FirebaseFirestore.getInstance()
-            .collection("users")
+        val accountSnapshot = db.collection("users")
             .document(userId)
             .collection("accounts")
-            .get()
-            .addOnSuccessListener { accountsSnap ->
-                val allAccountIds = accountsSnap.documents.map { it.id }
-                val categoryTotals = mutableMapOf<String, Double>()
+            .get().await()
 
-                // Get all transactions from all accounts (parallel)
-                val tasks = allAccountIds.map { accountId ->
-                    FirebaseFirestore.getInstance()
-                        .collection("users")
-                        .document(userId)
-                        .collection("accounts")
-                        .document(accountId)
-                        .collection("transactions")
-                        .whereEqualTo("type", "EXPENSE")
-                        .get()
+        val accountIds = accountSnapshot.documents.map { it.id }
+        var totalIncome = 0.0
+        var totalExpenses = 0.0
+
+        for (accountId in accountIds) {
+            val transactions = transactionCollection(accountId)
+                .whereGreaterThanOrEqualTo("date", startDate)
+                .whereLessThanOrEqualTo("date", endDate)
+                .get().await()
+
+            for (doc in transactions) {
+                val type = doc.getString("type")
+                val amount = doc.getDouble("amount") ?: 0.0
+                when (type) {
+                    "INCOME" -> totalIncome += amount
+                    "EXPENSE" -> totalExpenses += amount
                 }
-
-                com.google.android.gms.tasks.Tasks.whenAllSuccess<Any>(tasks)
-                    .addOnSuccessListener { allResults ->
-                        allResults.forEach { querySnapObj ->
-                            val querySnap = querySnapObj as com.google.firebase.firestore.QuerySnapshot
-                            for (doc in querySnap.documents) {
-                                val transaction = doc.toObject(vc.prog3c.poe.data.models.Transaction::class.java)
-                                transaction?.let {
-                                    // Filter by date if needed (by month/year)
-                                    val cal = java.util.Calendar.getInstance()
-                                    it.date?.let { date ->
-                                        cal.time = date.toDate()
-                                        val txYear = cal.get(java.util.Calendar.YEAR)
-                                        val txMonth = cal.get(java.util.Calendar.MONTH) + 1
-                                        if (txYear == year && txMonth == month) {
-                                            val cat = it.category ?: "Other"
-                                            categoryTotals[cat] = (categoryTotals[cat] ?: 0.0) + it.amount
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        onComplete(categoryTotals)
-                    }
-                    .addOnFailureListener { onComplete(emptyMap()) }
             }
-            .addOnFailureListener { onComplete(emptyMap()) }
+        }
+
+        MonthlyStats(totalIncome, totalExpenses, totalIncome - totalExpenses)
+    }
+
+    suspend fun getExpenseCategoryBreakdown(year: Int, month: Int): Result<Map<String, Double>> = runCatching {
+        val accountSnapshot = db.collection("users")
+            .document(userId)
+            .collection("accounts")
+            .get().await()
+
+        val categoryTotals = mutableMapOf<String, Double>()
+
+        for (accountDoc in accountSnapshot) {
+            val transactions = transactionCollection(accountDoc.id)
+                .whereEqualTo("type", "EXPENSE")
+                .get().await()
+
+            for (doc in transactions) {
+                val transaction = doc.toObject(Transaction::class.java) ?: continue
+                val cal = Calendar.getInstance().apply { time = transaction.date.toDate() }
+                val txYear = cal.get(Calendar.YEAR)
+                val txMonth = cal.get(Calendar.MONTH) + 1
+                if (txYear == year && txMonth == month) {
+                    val category = transaction.category.ifBlank { "Other" }
+                    categoryTotals[category] = (categoryTotals[category] ?: 0.0) + transaction.amount
+                }
+            }
+        }
+
+        categoryTotals
+    }
+
+    suspend fun getCategoryTotals(): Result<Map<String, Double>> = runCatching {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        val result = mutableMapOf<String, Double>()
+
+        val accountDocs = db.collection("users").document(userId).collection("accounts").get().await()
+        for (account in accountDocs) {
+            val txns = db.collection("users")
+                .document(userId)
+                .collection("accounts")
+                .document(account.id)
+                .collection("transactions")
+                .whereEqualTo("type", "EXPENSE")
+                .get()
+                .await()
+
+            for (doc in txns) {
+                val category = doc.getString("category") ?: "Other"
+                val amount = doc.getDouble("amount") ?: 0.0
+                result[category] = result.getOrDefault(category, 0.0) + amount
+            }
+        }
+        result
     }
 
 }

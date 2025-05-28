@@ -1,17 +1,17 @@
 package vc.prog3c.poe.ui.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
+import kotlinx.coroutines.launch
 import vc.prog3c.poe.data.models.Budget
 import vc.prog3c.poe.data.models.MonthlyStats
 import vc.prog3c.poe.data.repository.BudgetRepository
-import vc.prog3c.poe.data.repository.TransactionRepository // you must already have this
-import java.util.Calendar
+import vc.prog3c.poe.data.repository.TransactionRepository
+import java.util.*
 
-class BudgetViewModel : ViewModel() {
-    private val budgetRepo = BudgetRepository()
-    private val transactionRepo = TransactionRepository()
+class BudgetViewModel(
+    private val budgetRepo: BudgetRepository = BudgetRepository(),
+    private val transactionRepo: TransactionRepository = TransactionRepository()
+) : ViewModel() {
 
     private val _budget = MutableLiveData<Budget?>()
     val budget: LiveData<Budget?> = _budget
@@ -19,43 +19,35 @@ class BudgetViewModel : ViewModel() {
     private val _monthlyStats = MutableLiveData<MonthlyStats?>()
     val monthlyStats: LiveData<MonthlyStats?> = _monthlyStats
 
-    fun loadBudgetAndStats() {
-        val cal = Calendar.getInstance()
-        val year = cal.get(Calendar.YEAR)
-        val month = cal.get(Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
 
-        // Load budget
-        budgetRepo.getBudgetForMonth(year, month) { bud ->
-            _budget.postValue(bud)
-        }
+    fun refresh() {
+        val now = Calendar.getInstance()
+        val year = now.get(Calendar.YEAR)
+        val month = now.get(Calendar.MONTH) + 1
 
-        // Load stats (expenses + income)
-        transactionRepo.getMonthlyStats(year, month) { stats ->
-            _monthlyStats.postValue(stats)
+        viewModelScope.launch {
+            // Fetch budget
+            val budgetResult = budgetRepo.getBudgetForMonth(year, month)
+            budgetResult.onSuccess { _budget.value = it }
+                .onFailure { _error.value = it.message ?: "Failed to fetch budget" }
+
+            // Fetch monthly stats
+            val statsResult = transactionRepo.getMonthlyStats(year, month)
+            statsResult.onSuccess { _monthlyStats.value = it }
+                .onFailure { _error.value = it.message ?: "Failed to fetch monthly stats" }
         }
     }
 
     fun saveBudget(budget: Budget) {
-        budgetRepo.saveBudget(budget) { success ->
-            if (success) loadBudgetAndStats()
-            // You can add error handling here
+        viewModelScope.launch {
+            val result = budgetRepo.saveBudget(budget)
+            if (result.isSuccess) {
+                refresh()
+            } else {
+                _error.value = result.exceptionOrNull()?.message ?: "Failed to save budget"
+            }
         }
     }
-
-    // This is in BudgetViewModel
-    fun refreshDashboardData() {
-        // Get this month/year
-        val cal = Calendar.getInstance()
-        val year = cal.get(Calendar.YEAR)
-        val month = cal.get(Calendar.MONTH) + 1
-
-        budgetRepo.getBudgetForMonth(year, month) { bud ->
-            _budget.postValue(bud)
-        }
-
-        transactionRepo.getMonthlyStats(year, month) { stats ->
-            _monthlyStats.postValue(stats)
-        }
-    }
-
 }

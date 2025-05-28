@@ -1,3 +1,4 @@
+// ✅ AccountDetailsView.kt
 package vc.prog3c.poe.ui.views
 
 import android.content.Intent
@@ -7,7 +8,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -22,12 +22,9 @@ import vc.prog3c.poe.databinding.ActivityAccountDetailsBinding
 import vc.prog3c.poe.ui.viewmodels.AccountDetailsViewModel
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.concurrent.TimeUnit
+import java.util.*
 
 class AccountDetailsView : AppCompatActivity() {
-
     private lateinit var binding: ActivityAccountDetailsBinding
     private lateinit var viewModel: AccountDetailsViewModel
 
@@ -36,12 +33,10 @@ class AccountDetailsView : AppCompatActivity() {
         binding = ActivityAccountDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Ensure user is authenticated
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid.isNullOrEmpty()) {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
-            finish()
-            return
+            finish(); return
         }
 
         viewModel = ViewModelProvider(this)[AccountDetailsViewModel::class.java]
@@ -52,14 +47,10 @@ class AccountDetailsView : AppCompatActivity() {
         setupLineChart()
         observeViewModel()
 
-        // Default to 1 month
         binding.timePeriodChipGroup.check(R.id.chip1Month)
-
-        // Load details
-        val accountId = intent.getStringExtra("account_id")
-        if (!accountId.isNullOrEmpty()) {
-            viewModel.loadAccountDetails(uid, accountId)
-        } else {
+        intent.getStringExtra("account_id")?.let {
+            viewModel.loadAccountDetails(it) // Updated: only pass accountId as required
+        } ?: run {
             Toast.makeText(this, "Account ID not provided", Toast.LENGTH_SHORT).show()
             finish()
         }
@@ -74,9 +65,9 @@ class AccountDetailsView : AppCompatActivity() {
     private fun setupTimePeriodChips() {
         binding.timePeriodChipGroup.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
-                R.id.chip1Week  -> viewModel.filterTransactionsByTimePeriod("1 week")
+                R.id.chip1Week -> viewModel.filterTransactionsByTimePeriod("1 week")
                 R.id.chip1Month -> viewModel.filterTransactionsByTimePeriod("1 month")
-                R.id.chip3Months-> viewModel.filterTransactionsByTimePeriod("3 months")
+                R.id.chip3Months -> viewModel.filterTransactionsByTimePeriod("3 months")
             }
         }
     }
@@ -88,116 +79,72 @@ class AccountDetailsView : AppCompatActivity() {
                 startActivity(this)
             }
         }
-
-        binding.deleteAccountButton.setOnClickListener {
-            showDeleteConfirmationDialog()
-        }
+        binding.deleteAccountButton.setOnClickListener { showDeleteConfirmationDialog() }
     }
 
     private fun setupLineChart() {
         binding.accountLineChart.apply {
             description.isEnabled = false
             setTouchEnabled(true)
-            setDrawGridBackground(false)
             isDragEnabled = true
             setScaleEnabled(true)
             setPinchZoom(true)
-
-            xAxis.apply {
-                position = XAxis.XAxisPosition.BOTTOM
-                setDrawGridLines(false)
-                setDrawAxisLine(true)
-                textColor = Color.BLACK
-                textSize = 10f
-                setAvoidFirstLastClipping(true)
-            }
-
-            axisLeft.apply {
-                setDrawGridLines(true)
-                setDrawAxisLine(true)
-                textColor = Color.BLACK
-                textSize = 10f
-            }
-
+            xAxis.position = XAxis.XAxisPosition.BOTTOM
+            xAxis.textColor = Color.BLACK
+            axisLeft.textColor = Color.BLACK
             axisRight.isEnabled = false
             legend.isEnabled = false
             animateX(1000)
-            extraBottomOffset = 10f
-            setExtraOffsets(10f, 10f, 10f, 10f)
         }
     }
 
     private fun observeViewModel() {
         viewModel.account.observe(this) { account ->
-            account?.let {
-                binding.accountNameTextView.text = it.name
-                binding.accountTypeTextView.text = it.type
-
-                viewModel.calculatedBalance.observe(this) { balance ->
-                    val za = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
-                    binding.accountBalanceAmount.text = za.format(balance)
-                }
-
-
-                val icon = when (it.type.lowercase(Locale.getDefault())) {
+            binding.accountNameTextView.text = account?.name
+            binding.accountTypeTextView.text = account?.type
+            binding.accountIcon.setImageResource(
+                when (account?.type?.lowercase(Locale.getDefault())) {
                     "credit" -> R.drawable.ic_credit_card
-                    "savings"-> R.drawable.ic_savings
-                    else      -> R.drawable.ic_account_balance
+                    "savings" -> R.drawable.ic_savings
+                    else -> R.drawable.ic_account_balance
                 }
-                binding.accountIcon.setImageResource(icon)
-                supportActionBar?.title = it.name
+            )
+            viewModel.calculatedBalance.observe(this) { bal ->
+                binding.accountBalanceAmount.text = NumberFormat.getCurrencyInstance(Locale("en", "ZA")).format(bal)
             }
         }
 
-        viewModel.transactions.observe(this) { txs ->
-            binding.transactionsSummaryTextView.text = "${txs.size} Transactions"
-            updateLineChart(txs)
+        viewModel.transactions.observe(this) {
+            binding.transactionsSummaryTextView.text = "${it.size} Transactions"
+            updateLineChart(it)
         }
 
-        viewModel.isLoading.observe(this) { /* show loader */ }
-        viewModel.error.observe(this) { it?.let { msg -> showError(msg) } }
+        viewModel.error.observe(this) { it?.let { showError(it) } }
     }
 
     private fun updateLineChart(transactions: List<Transaction>) {
-        if (transactions.isEmpty()) {
-            binding.accountLineChart.clear()
-            return
-        }
-
-        val sorted = transactions.sortedBy { it.date }
-        var balance = 0.0
-        val entries = sorted.map { tx ->
-            balance += when (tx.type) {
-                TransactionType.INCOME  -> tx.amount
+        if (transactions.isEmpty()) return binding.accountLineChart.clear()
+        val entries = mutableListOf<Entry>()
+        var runningBalance = 0.0
+        val labels = transactions.sortedBy { it.date }.mapIndexed { idx, tx ->
+            runningBalance += when (tx.type) {
+                TransactionType.INCOME -> tx.amount
                 TransactionType.EXPENSE -> -tx.amount
-                else                    -> 0.0
             }
-            Entry(tx.date.toDate().time.toFloat(), balance.toFloat())
+            entries.add(Entry(idx.toFloat(), runningBalance.toFloat()))
+            SimpleDateFormat("MMM dd", Locale.getDefault()).format(tx.date.toDate())
         }
 
-        val ds = LineDataSet(entries, "Balance").apply {
-            setDrawValues(false)
+        LineDataSet(entries, "Balance").apply {
+            valueTextColor = Color.BLACK
             setDrawFilled(true)
             fillAlpha = 85
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            lineWidth = 2f
-            val col = resources.getColor(R.color.primary, null)
-            color = col
-            setCircleColor(col)
-            fillColor = col
-            valueTextColor = Color.BLACK
+            color = resources.getColor(R.color.primary, null)
+            fillColor = resources.getColor(R.color.primary, null)
+            binding.accountLineChart.data = LineData(this)
+            binding.accountLineChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+            binding.accountLineChart.invalidate()
         }
-
-        binding.accountLineChart.data = LineData(ds)
-        val labels = sorted.map { fmt ->
-            SimpleDateFormat("MMM dd", Locale.getDefault()).format(fmt.date.toDate())
-        }
-        binding.accountLineChart.xAxis.apply {
-            valueFormatter = IndexAxisValueFormatter(labels)
-            labelRotationAngle = -45f
-            granularity = TimeUnit.DAYS.toMillis(1).toFloat()
-        }
-        binding.accountLineChart.invalidate()
     }
 
     private fun showDeleteConfirmationDialog() {
@@ -205,10 +152,8 @@ class AccountDetailsView : AppCompatActivity() {
             .setTitle("Delete Account")
             .setMessage("Are you sure you want to delete this account? This action cannot be undone.")
             .setPositiveButton("Delete") { d, _ ->
-                val accId = viewModel.account.value?.id
-                if (accId != null) viewModel.deleteAccount(accId)
-                d.dismiss()
-                finish()
+                viewModel.account.value?.id?.let { viewModel.deleteAccount(it) }
+                d.dismiss(); finish()
             }
             .setNegativeButton("Cancel") { d, _ -> d.dismiss() }
             .show()

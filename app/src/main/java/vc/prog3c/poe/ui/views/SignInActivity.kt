@@ -17,93 +17,95 @@ import vc.prog3c.poe.ui.viewmodels.SignInViewModel
 
 class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHost {
 
-    private lateinit var vBinds: ActivitySignInBinding
-    private lateinit var vModel: SignInViewModel
+    private lateinit var binding: ActivitySignInBinding
+    private lateinit var viewModel: SignInViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
-        setupBindings()
-        setupLayoutUi()
-        setupClickListeners()
+        binding = ActivitySignInBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        vModel = ViewModelProvider(this)[SignInViewModel::class.java]
+        viewModel = ViewModelProvider(this)[SignInViewModel::class.java]
 
-        observeViewModel()
-        tryAuthenticateUsingBiometrics()
+        setupListeners()
+        observeUiState()
+        authenticateWithBiometrics()
     }
 
-    private fun observeViewModel() {
-        vModel.uiState.observe(this) { state ->
+    private fun observeUiState() {
+        viewModel.uiState.observe(this) { state ->
             when (state) {
-                is SignInUiState.Success -> navigateToNextScreen()
-                is SignInUiState.Failure -> Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
-                is SignInUiState.Loading -> {} // Optional: show loading spinner
-                else -> {}
+                is SignInUiState.Success -> navigateToDashboard()
+                is SignInUiState.Failure -> showToast(state.message)
+                is SignInUiState.Loading -> {
+                    // Optional: show loading indicator here
+                }
+                else -> Unit
             }
         }
     }
 
-    private fun tryAuthenticateWithCredentials() {
-        val identity = vBinds.etUsername.text.toString().trim()
-        val password = vBinds.etPassword.text.toString().trim()
-        vModel.signIn(identity, password)
+    private fun attemptCredentialLogin() {
+        val email = binding.etUsername.text.toString().trim()
+        val password = binding.etPassword.text.toString().trim()
+        viewModel.signIn(email, password)
     }
 
-    private fun tryAuthenticateUsingBiometrics() {
-        // Optional: only call if a user is already cached (you can add auth check if needed)
+    private fun authenticateWithBiometrics() {
         BiometricTransactionUseCase(this, this).execute()
     }
 
-    private fun navigateToNextScreen() {
-        startActivity(Intent(this, DashboardView::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        })
-        finish()
+    private fun setupListeners() {
+        binding.loginButton.setOnClickListener(this)
+        binding.registerTextView.setOnClickListener(this)
     }
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.loginButton.id -> tryAuthenticateWithCredentials()
-            vBinds.registerTextView.id -> {
-                startActivity(Intent(this, SignUpActivity::class.java))
-            }
+            binding.loginButton.id -> attemptCredentialLogin()
+            binding.registerTextView.id -> navigateToSignUp()
         }
     }
 
-    private fun setupClickListeners() {
-        vBinds.loginButton.setOnClickListener(this)
-        vBinds.registerTextView.setOnClickListener(this)
+    private fun navigateToDashboard() {
+        Intent(this, DashboardView::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(this)
+        }
+        finish()
     }
 
-    // --- Biometrics ---
+    private fun navigateToSignUp() {
+        startActivity(Intent(this, SignUpActivity::class.java))
+        finish()
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    // --- BiometricUiHost implementations ---
+
     override fun onShowBiometrics(uiBuilder: BiometricPrompt.PromptInfo.Builder) {
         uiBuilder.apply {
             setTitle("Login with fingerprint")
-            setDescription("Use your fingerprint to login quickly")
+            setDescription("Use your fingerprint to log in")
             setNegativeButtonText("Use password instead")
         }
     }
 
     override fun onBiometricsSucceeded() {
-        Toast.makeText(this, "Biometrics Succeeded", Toast.LENGTH_SHORT).show()
-        // Optional: auto-login if you cache credentials
+        showToast("Biometrics successful")
+        // You could navigate or auto-login here if credentials are cached
     }
 
     override fun onBiometricsDismissed() {
-        Toast.makeText(this, "Biometrics Dismissed", Toast.LENGTH_SHORT).show()
+        showToast("Biometric login canceled")
     }
 
     override fun onBiometricsException(code: Int, message: String) {
-        Blogger.d(this::class.java.simpleName, message)
-    }
-
-    private fun setupBindings() {
-        vBinds = ActivitySignInBinding.inflate(layoutInflater)
-    }
-
-    private fun setupLayoutUi() {
-        setContentView(vBinds.root)
-        enableEdgeToEdge()
+        Blogger.d(this::class.java.simpleName, "Biometric error ($code): $message")
     }
 }

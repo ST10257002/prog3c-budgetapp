@@ -1,9 +1,10 @@
+// Updated Transaction Path continues in View layer
+
 package vc.prog3c.poe.ui.views
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -13,24 +14,22 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
 import vc.prog3c.poe.databinding.ActivityTransactionsBinding
-import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.ui.adapters.TransactionAdapter
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
-import java.text.NumberFormat
-import java.util.Locale
+import vc.prog3c.poe.utils.TransactionState
 
 class TransactionsView : AppCompatActivity() {
+
     private lateinit var binding: ActivityTransactionsBinding
     private lateinit var viewModel: TransactionViewModel
     private lateinit var adapter: TransactionAdapter
     private var accountId: String? = null
-    private var currentType: TransactionType? = null // Track current filter
+    private var currentType: TransactionType? = null
 
     private val addTransactionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Instead of extracting the transaction, just reload from database
-            viewModel.loadTransactions(accountId)
+            viewModel.loadTransactions(accountId ?: return@registerForActivityResult)
             Toast.makeText(this, "Transaction added", Toast.LENGTH_SHORT).show()
         }
     }
@@ -40,75 +39,70 @@ class TransactionsView : AppCompatActivity() {
         binding = ActivityTransactionsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
         accountId = intent.getStringExtra("account_id")
+        if (accountId == null) {
+            Toast.makeText(this, "Account ID missing", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
 
-        setupToolbar()
+        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+
         setupRecyclerView()
-        setupFilterChips()
+        setupToolbar()
+        setupChips()
         setupSwipeRefresh()
-        setupAddTransactionButton()
-        observeViewModel()
+        setupObservers()
+        setupAddButton()
 
-        // Initial load
-        viewModel.loadTransactions(accountId)
+        viewModel.loadTransactions(accountId!!)
+    }
+
+    private fun setupRecyclerView() {
+        adapter = TransactionAdapter()
+        binding.transactionsRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.transactionsRecyclerView.adapter = adapter
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = when (currentType) {
-            TransactionType.INCOME -> "Income"
-            TransactionType.EXPENSE -> "Expenses"
-            else -> "Transactions"
-        }
+        supportActionBar?.title = "Transactions"
     }
 
-    private fun setupRecyclerView() {
-        adapter = TransactionAdapter()
-        binding.transactionsRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@TransactionsView)
-            adapter = this@TransactionsView.adapter
-            layoutAnimation = AnimationUtils.loadLayoutAnimation(
-                context, R.anim.layout_animation_fall_down
-            )
-        }
-    }
-
-    private fun setupFilterChips() {
+    private fun setupChips() {
         binding.filterChipGroup.setOnCheckedChangeListener { group, checkedId ->
-            currentType = when (group.findViewById<Chip>(checkedId)?.id) {
-                R.id.allChip -> {
-                    viewModel.loadTransactions(accountId)
-                    null
-                }
-                R.id.incomeChip -> {
-                    viewModel.filterTransactionsByType(TransactionType.INCOME)
-                    TransactionType.INCOME
-                }
-                R.id.expenseChip -> {
-                    viewModel.filterTransactionsByType(TransactionType.EXPENSE)
-                    TransactionType.EXPENSE
-                }
+            val type = when (checkedId) {
+                R.id.incomeChip -> TransactionType.INCOME
+                R.id.expenseChip -> TransactionType.EXPENSE
                 else -> null
             }
-            setupToolbar() // Update title
+            currentType = type
+            viewModel.loadTransactions(accountId!!, type)
         }
     }
 
     private fun setupSwipeRefresh() {
-        binding.swipeRefreshLayout.apply {
-            setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
-            setOnRefreshListener { viewModel.loadTransactions(accountId) }
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            viewModel.loadTransactions(accountId!!, currentType)
         }
     }
 
-    private fun setupAddTransactionButton() {
-        binding.addTransactionButton.setOnClickListener {
-            if (accountId == null) {
-                Toast.makeText(this, "Account ID missing", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+    private fun setupObservers() {
+        viewModel.transactions.observe(this) { adapter.submitList(it) }
+        viewModel.totalIncome.observe(this) { binding.moneyInTextView.text = formatCurrency(it) }
+        viewModel.totalExpenses.observe(this) { binding.moneyOutTextView.text = formatCurrency(it) }
+        viewModel.state.observe(this) {
+            binding.swipeRefreshLayout.isRefreshing = it is TransactionState.Loading
+            when (it) {
+                is TransactionState.Error -> showSnackbar(it.message)
+                else -> Unit
             }
+        }
+    }
+
+    private fun setupAddButton() {
+        binding.addTransactionButton.setOnClickListener {
             val intent = Intent(this, AddTransactionActivity::class.java).apply {
                 putExtra("account_id", accountId)
             }
@@ -116,36 +110,15 @@ class TransactionsView : AppCompatActivity() {
         }
     }
 
-    private fun observeViewModel() {
-        viewModel.transactions.observe(this) { list ->
-            adapter.submitList(list)
-            binding.transactionsRecyclerView.scheduleLayoutAnimation()
-        }
-        viewModel.totalIncome.observe(this) { income ->
-            binding.moneyInTextView.text = formatCurrency(income)
-        }
-        viewModel.totalExpenses.observe(this) { expense ->
-            binding.moneyOutTextView.text = formatCurrency(expense)
-        }
-        viewModel.isLoading.observe(this) { loading ->
-            binding.swipeRefreshLayout.isRefreshing = loading
-            binding.loadingProgressBar.visibility =
-                if (loading) View.VISIBLE else View.GONE
-        }
-        viewModel.error.observe(this) { msg ->
-            msg?.let {
-                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
-                    .setAction("Retry") { viewModel.loadTransactions(accountId) }
-                    .show()
-            }
-        }
+    private fun showSnackbar(message: String) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
     }
 
-    private fun formatCurrency(amount: Double): String =
-        NumberFormat.getCurrencyInstance(Locale.getDefault()).format(amount)
+    private fun formatCurrency(value: Double): String =
+        java.text.NumberFormat.getCurrencyInstance().format(value)
 
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 }

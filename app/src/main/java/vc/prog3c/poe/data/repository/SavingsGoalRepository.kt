@@ -2,70 +2,40 @@ package vc.prog3c.poe.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import vc.prog3c.poe.data.models.SavingsGoal
 
-class SavingsGoalRepository {
-    private val db = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
+class SavingsGoalRepository(
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance(),
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+) {
+    private val userId: String
+        get() = auth.currentUser?.uid ?: ""
 
-    // Save a new savings goal
-    fun saveGoal(goal: SavingsGoal, onComplete: (Boolean) -> Unit) {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            onComplete(false)
-            return
-        }
-        val userId = currentUser.uid
-        val goalWithUserId = goal.copy(userId = userId)
-
-        // Use an auto-generated ID for each new savings goal
-        db.collection("users")
+    suspend fun fetchGoals(): Result<List<SavingsGoal>> = runCatching {
+        val snapshot = db.collection("users")
             .document(userId)
             .collection("savingsGoals")
-            .add(goalWithUserId) // Adds a new document with an auto-generated ID
-            .addOnSuccessListener { documentRef ->
-                // Optionally update the goal with its ID
-                documentRef.update("id", documentRef.id)
-                onComplete(true)
-            }
-            .addOnFailureListener { onComplete(false) }
+            .get()
+            .await()
+        snapshot.documents.mapNotNull { it.toObject(SavingsGoal::class.java) }
     }
 
-    // Update an existing savings goal
-    fun updateGoal(goalId: String, updatedFields: Map<String, Any>, onComplete: (Boolean) -> Unit) {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            onComplete(false)
-            return
-        }
-        val userId = currentUser.uid
+    suspend fun saveGoal(goal: SavingsGoal): Result<Unit> = runCatching {
+        val docRef = db.collection("users")
+            .document(userId)
+            .collection("savingsGoals")
+            .document() // Auto-ID
+        val goalWithId = goal.copy(id = docRef.id)
+        docRef.set(goalWithId).await()
+    }
 
+    suspend fun updateGoal(goalId: String, fields: Map<String, Any>): Result<Unit> = runCatching {
         db.collection("users")
             .document(userId)
             .collection("savingsGoals")
             .document(goalId)
-            .update(updatedFields)
-            .addOnSuccessListener { onComplete(true) }
-            .addOnFailureListener { onComplete(false) }
-    }
-
-    // Fetch all savings goals for the current user
-    fun fetchGoals(onComplete: (List<SavingsGoal>) -> Unit) {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            onComplete(emptyList())
-            return
-        }
-        val userId = currentUser.uid
-
-        db.collection("users")
-            .document(userId)
-            .collection("savingsGoals")
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val goals = snapshot.documents.mapNotNull { it.toObject(SavingsGoal::class.java) }
-                onComplete(goals)
-            }
-            .addOnFailureListener { onComplete(emptyList()) }
+            .update(fields)
+            .await()
     }
 }

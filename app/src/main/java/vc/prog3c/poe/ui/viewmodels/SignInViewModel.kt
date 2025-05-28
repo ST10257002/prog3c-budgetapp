@@ -1,3 +1,4 @@
+// ✅ SignInViewModel.kt
 package vc.prog3c.poe.ui.viewmodels
 
 import androidx.lifecycle.LiveData
@@ -9,7 +10,7 @@ import java.util.regex.Pattern
 class SignInViewModel : ViewModel() {
 
     private val auth = FirebaseAuth.getInstance()
-    private val _uiState = MutableLiveData<SignInUiState>()
+    private val _uiState = MutableLiveData<SignInUiState>(SignInUiState.Default)
     val uiState: LiveData<SignInUiState> = _uiState
 
     fun signIn(email: String, password: String) {
@@ -26,10 +27,11 @@ class SignInViewModel : ViewModel() {
         _uiState.value = SignInUiState.Loading
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-                _uiState.value = if (task.isSuccessful)
+                _uiState.value = if (task.isSuccessful) {
                     SignInUiState.Success
-                else
+                } else {
                     SignInUiState.Failure("Authentication failed: ${task.exception?.message}")
+                }
             }
     }
 

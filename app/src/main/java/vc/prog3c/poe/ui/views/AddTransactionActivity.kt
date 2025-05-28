@@ -13,47 +13,25 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.Timestamp
 import vc.prog3c.poe.R
-import vc.prog3c.poe.databinding.ActivityAddTransactionBinding
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
+import vc.prog3c.poe.databinding.ActivityAddTransactionBinding
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
-import vc.prog3c.poe.ui.viewmodels.TransactionState
+import vc.prog3c.poe.utils.TransactionState
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
-import java.util.UUID
+import java.util.*
 
 class AddTransactionActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityAddTransactionBinding
     private lateinit var viewModel: TransactionViewModel
+    private var accountId: String? = null
     private val calendar = Calendar.getInstance()
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     private val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-    private var accountId: String? = null
-    private val selectedPhotos = mutableListOf<String>() // Placeholder for photo handling
 
-    private val expenseCategories = listOf(
-        "Food & Dining",
-        "Transportation",
-        "Housing",
-        "Utilities",
-        "Entertainment",
-        "Shopping",
-        "Healthcare",
-        "Education",
-        "Travel",
-        "Other"
-    )
-
-    private val incomeCategories = listOf(
-        "Salary",
-        "Freelance",
-        "Investments",
-        "Gifts",
-        "Refunds",
-        "Other"
-    )
+    private val expenseCategories = listOf("Food", "Housing", "Transport", "Entertainment", "Other")
+    private val incomeCategories = listOf("Salary", "Freelance", "Gift", "Other")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,275 +39,125 @@ class AddTransactionActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
-        accountId = intent.getStringExtra("account_id")
+        accountId = intent.getStringExtra("account_id") ?: run {
+            Toast.makeText(this, "Missing account ID", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         setupToolbar()
-        setupTransactionTypeDropdown()
-        setupSaveButton()
+        setupDropdowns()
+        setupListeners()
         observeViewModel()
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.title = "Add Transaction"
     }
 
-    private fun setupTransactionTypeDropdown() {
-        val transactionTypes = listOf("Income", "Expense")
-        val adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_dropdown_item_1line,
-            transactionTypes
-        )
-        binding.transactionTypeInput.setAdapter(adapter)
-
-        binding.transactionTypeInput.setOnItemClickListener { _, _, position, _ ->
-            when (position) {
-                0 -> showIncomeForm()
-                1 -> showExpenseForm()
-            }
-        }
+    private fun setupDropdowns() {
+        binding.transactionTypeInput.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, listOf("Income", "Expense")))
+        binding.incomeForm.sourceInput.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, incomeCategories))
+        binding.expenseForm.categoryInput.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, expenseCategories))
     }
 
-    private fun setupSaveButton() {
+    private fun setupListeners() {
+        binding.transactionTypeInput.setOnItemClickListener { _, _, position, _ ->
+            binding.incomeForm.root.visibility = if (position == 0) View.VISIBLE else View.GONE
+            binding.expenseForm.root.visibility = if (position == 1) View.VISIBLE else View.GONE
+        }
+
+        binding.incomeForm.dateInput.setOnClickListener {
+            DatePickerDialog(this, { _, year, month, day ->
+                calendar.set(year, month, day)
+                binding.incomeForm.dateInput.setText(dateFormatter.format(calendar.time))
+            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
+        binding.expenseForm.startTimeInput.setOnClickListener { showTimePicker(binding.expenseForm.startTimeInput) }
+        binding.expenseForm.endTimeInput.setOnClickListener { showTimePicker(binding.expenseForm.endTimeInput) }
+
         binding.saveButton.setOnClickListener {
             when (binding.transactionTypeInput.text.toString()) {
-                "Income" -> if (validateIncomeForm()) saveIncomeTransaction()
-                "Expense" -> if (validateExpenseForm()) saveExpenseTransaction()
-                else -> {
-                    Snackbar.make(binding.root, "Please select a transaction type", Snackbar.LENGTH_SHORT).show()
-                }
+                "Income" -> saveIncomeTransaction()
+                "Expense" -> saveExpenseTransaction()
+                else -> Snackbar.make(binding.root, "Please select a transaction type", Snackbar.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun showIncomeForm() {
-        binding.incomeForm.root.visibility = View.VISIBLE
-        binding.expenseForm.root.visibility = View.GONE
-        setupIncomeForm()
-    }
-
-    private fun showExpenseForm() {
-        binding.incomeForm.root.visibility = View.GONE
-        binding.expenseForm.root.visibility = View.VISIBLE
-        setupExpenseForm()
-    }
-
-    private fun setupIncomeForm() {
-        val incomeForm = binding.incomeForm
-        
-        // Setup source dropdown
-        val sourceAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, incomeCategories)
-        incomeForm.sourceInput.setAdapter(sourceAdapter)
-
-        // Setup date picker
-        incomeForm.dateInput.setOnClickListener {
-            showDatePicker(incomeForm.dateInput)
-        }
-        incomeForm.dateInput.setText(dateFormatter.format(calendar.time))
-    }
-
-    private fun setupExpenseForm() {
-        val expenseForm = binding.expenseForm
-        
-        // Setup category dropdown
-        val categoryAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, expenseCategories)
-        expenseForm.categoryInput.setAdapter(categoryAdapter)
-
-        // Setup time pickers
-        expenseForm.startTimeInput.setOnClickListener {
-            showTimePicker(expenseForm.startTimeInput)
-        }
-        expenseForm.endTimeInput.setOnClickListener {
-            showTimePicker(expenseForm.endTimeInput)
-        }
-        expenseForm.startTimeInput.setText(timeFormatter.format(calendar.time))
-        expenseForm.endTimeInput.setText(timeFormatter.format(calendar.time))
-
-        // Setup photo buttons
-        expenseForm.addPhotoButton.setOnClickListener {
-            // TODO: Implement photo selection from gallery
-            Snackbar.make(binding.root, "Photo selection coming soon", Snackbar.LENGTH_SHORT).show()
-        }
-
-        expenseForm.capturePhotoButton.setOnClickListener {
-            // TODO: Implement photo capture
-            Snackbar.make(binding.root, "Photo capture coming soon", Snackbar.LENGTH_SHORT).show()
-        }
-
-        // Setup photo recycler view
-        expenseForm.photoRecyclerView.layoutManager = LinearLayoutManager(this)
-        // TODO: Implement photo adapter
-    }
-
-    private fun showDatePicker(dateInput: com.google.android.material.textfield.TextInputEditText) {
-        DatePickerDialog(
-            this,
-            { _, year, month, day ->
-                calendar.set(year, month, day)
-                dateInput.setText(dateFormatter.format(calendar.time))
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
-
-    private fun showTimePicker(inputEditText: com.google.android.material.textfield.TextInputEditText) {
-        TimePickerDialog(
-            this,
-            { _, hour, minute ->
-                calendar.set(Calendar.HOUR_OF_DAY, hour)
-                calendar.set(Calendar.MINUTE, minute)
-                inputEditText.setText(timeFormatter.format(calendar.time))
-            },
-            calendar.get(Calendar.HOUR_OF_DAY),
-            calendar.get(Calendar.MINUTE),
-            true
-        ).show()
-    }
-
-    private fun validateIncomeForm(): Boolean {
-        val incomeForm = binding.incomeForm
-        var isValid = true
-
-        // Validate amount
-        val amountText = incomeForm.amountInput.text.toString()
-        if (amountText.isBlank()) {
-            incomeForm.amountLayout.error = "Amount is required"
-            isValid = false
-        } else {
-            try {
-                val amount = amountText.toDouble()
-                if (amount <= 0) {
-                    incomeForm.amountLayout.error = "Amount must be greater than 0"
-                    isValid = false
-                } else {
-                    incomeForm.amountLayout.error = null
-                }
-            } catch (e: NumberFormatException) {
-                incomeForm.amountLayout.error = "Invalid amount format"
-                isValid = false
-            }
-        }
-
-        // Validate source
-        val source = incomeForm.sourceInput.text.toString()
-        if (source.isBlank()) {
-            incomeForm.sourceLayout.error = "Source is required"
-            isValid = false
-        } else {
-            incomeForm.sourceLayout.error = null
-        }
-
-        // Validate date
-        if (incomeForm.dateInput.text.isNullOrBlank()) {
-            incomeForm.dateLayout.error = "Date is required"
-            isValid = false
-        } else {
-            incomeForm.dateLayout.error = null
-        }
-
-        return isValid
-    }
-
-    private fun validateExpenseForm(): Boolean {
-        val expenseForm = binding.expenseForm
-        var isValid = true
-
-        // Validate description
-        val description = expenseForm.descriptionInput.text.toString()
-        if (description.isBlank()) {
-            expenseForm.descriptionLayout.error = "Description is required"
-            isValid = false
-        } else {
-            expenseForm.descriptionLayout.error = null
-        }
-
-        // Validate amount
-        val amountText = expenseForm.amountInput.text.toString()
-        if (amountText.isBlank()) {
-            expenseForm.amountLayout.error = "Amount is required"
-            isValid = false
-        } else {
-            try {
-                val amount = amountText.toDouble()
-                if (amount <= 0) {
-                    expenseForm.amountLayout.error = "Amount must be greater than 0"
-                    isValid = false
-                } else {
-                    expenseForm.amountLayout.error = null
-                }
-            } catch (e: NumberFormatException) {
-                expenseForm.amountLayout.error = "Invalid amount format"
-                isValid = false
-            }
-        }
-
-        // Validate times
-        if (expenseForm.startTimeInput.text.isNullOrBlank()) {
-            expenseForm.startTimeLayout.error = "Start time is required"
-            isValid = false
-        } else {
-            expenseForm.startTimeLayout.error = null
-        }
-
-        if (expenseForm.endTimeInput.text.isNullOrBlank()) {
-            expenseForm.endTimeLayout.error = "End time is required"
-            isValid = false
-        } else {
-            expenseForm.endTimeLayout.error = null
-        }
-
-        // Validate category
-        val category = expenseForm.categoryInput.text.toString()
-        if (category.isBlank()) {
-            expenseForm.categoryLayout.error = "Category is required"
-            isValid = false
-        } else if (!expenseCategories.contains(category)) {
-            expenseForm.categoryLayout.error = "Please select a valid category"
-            isValid = false
-        } else {
-            expenseForm.categoryLayout.error = null
-        }
-
-        return isValid
+    private fun showTimePicker(targetView: android.widget.EditText) {
+        TimePickerDialog(this, { _, hour, minute ->
+            calendar.set(Calendar.HOUR_OF_DAY, hour)
+            calendar.set(Calendar.MINUTE, minute)
+            targetView.setText(timeFormatter.format(calendar.time))
+        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
     }
 
     private fun saveIncomeTransaction() {
-        val incomeForm = binding.incomeForm
+        val form = binding.incomeForm
+        val amount = form.amountInput.text.toString().toDoubleOrNull()
+        val source = form.sourceInput.text.toString()
+        val description = form.descriptionInput.text?.toString() ?: ""
+
+        if (amount == null || amount <= 0) {
+            form.amountLayout.error = "Enter a valid amount"
+            return
+        } else form.amountLayout.error = null
+
+        if (source.isBlank()) {
+            form.sourceLayout.error = "Source is required"
+            return
+        } else form.sourceLayout.error = null
+
         val transaction = Transaction(
             id = UUID.randomUUID().toString(),
             userId = viewModel.getCurrentUserId(),
             accountId = accountId ?: "",
             type = TransactionType.INCOME,
-            amount = incomeForm.amountInput.text.toString().toDouble(),
-            category = incomeForm.sourceInput.text.toString(),
-            date = Timestamp(calendar.timeInMillis / 1000, 0),
-            description = incomeForm.descriptionInput.text.toString()
+            amount = amount,
+            category = source,
+            date = Timestamp(calendar.time),
+            description = description
         )
+
         viewModel.addTransaction(transaction)
     }
 
     private fun saveExpenseTransaction() {
-        val expenseForm = binding.expenseForm
+        val form = binding.expenseForm
+        val amount = form.amountInput.text.toString().toDoubleOrNull()
+        val category = form.categoryInput.text.toString()
+        val description = form.descriptionInput.text?.toString() ?: ""
+
+        if (amount == null || amount <= 0) {
+            form.amountLayout.error = "Enter a valid amount"
+            return
+        } else form.amountLayout.error = null
+
+        if (category.isBlank()) {
+            form.categoryLayout.error = "Category is required"
+            return
+        } else form.categoryLayout.error = null
+
         val transaction = Transaction(
             id = UUID.randomUUID().toString(),
             userId = viewModel.getCurrentUserId(),
             accountId = accountId ?: "",
             type = TransactionType.EXPENSE,
-            amount = expenseForm.amountInput.text.toString().toDouble(),
-            category = expenseForm.categoryInput.text.toString(),
-            date = Timestamp(calendar.timeInMillis / 1000, 0),
-            description = expenseForm.descriptionInput.text.toString()
+            amount = amount,
+            category = category,
+            date = Timestamp(calendar.time),
+            description = description
         )
+
         viewModel.addTransaction(transaction)
     }
 
     private fun observeViewModel() {
-        viewModel.transactionState.observe(this) { state ->
+        viewModel.state.observe(this) { state ->
             when (state) {
                 is TransactionState.Success -> {
                     Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
@@ -338,18 +166,17 @@ class AddTransactionActivity : AppCompatActivity() {
                 is TransactionState.Error -> {
                     Snackbar.make(binding.root, state.message, Snackbar.LENGTH_LONG).show()
                 }
-                TransactionState.Loading -> {
-                    // Show loading indicator if needed
-                }
+                TransactionState.Loading -> { /* Optional: show loading UI */ }
+                TransactionState.Idle -> Unit
             }
         }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
-            onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
             return true
         }
         return super.onOptionsItemSelected(item)
     }
-} 
+}

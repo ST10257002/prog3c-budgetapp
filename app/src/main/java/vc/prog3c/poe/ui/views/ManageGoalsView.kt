@@ -22,48 +22,56 @@ class ManageGoalsView @JvmOverloads constructor(
     fun initialize(viewModel: DashboardViewModel, lifecycleOwner: LifecycleOwner) {
         this.viewModel = viewModel
 
-        // Save
+        setupListeners()
+        observeGoals(lifecycleOwner)
+    }
+
+    private fun setupListeners() {
         binding.saveButton.setOnClickListener {
             val name = binding.goalNameInput.text?.toString()?.trim()
             val min = binding.minGoalInput.text?.toString()?.toDoubleOrNull()
             val max = binding.maxGoalInput.text?.toString()?.toDoubleOrNull()
             val budget = binding.budgetInput.text?.toString()?.toDoubleOrNull()
 
-            if (currentGoalId != null && !name.isNullOrBlank() && min != null && max != null && budget != null) {
-                // Update all fields
-                viewModel.updateSavingsGoal(
-                    goalId = currentGoalId!!,
-                    min = min,
-                    max = max,
-                    budget = budget,
-                    name = name // New parameter
-                )
+            if (!name.isNullOrBlank() && min != null && max != null && budget != null) {
+                currentGoalId?.let { goalId ->
+                    viewModel?.updateSavingsGoal(goalId, min, max, budget, name)
+                }
             } else {
-                // Optionally, show error
+                // 🔺 You could show an error Snackbar or Toast here
+                binding.goalNameInput.error = if (name.isNullOrBlank()) "Required" else null
+                if (min == null) binding.minGoalInput.error = "Invalid"
+                if (max == null) binding.maxGoalInput.error = "Invalid"
+                if (budget == null) binding.budgetInput.error = "Invalid"
             }
         }
 
-        // Cancel
         binding.cancelButton.setOnClickListener {
             this.visibility = View.GONE
         }
+    }
 
-        // Observe and populate fields
-        viewModel.savingsGoals.observe(lifecycleOwner) { goals ->
+    private fun observeGoals(lifecycleOwner: LifecycleOwner) {
+        viewModel?.savingsGoals?.observe(lifecycleOwner) { goals ->
             if (goals.isNotEmpty()) {
-                val goal = goals[0]
+                val goal = goals.first()
                 currentGoalId = goal.id
+
                 binding.goalNameInput.setText(goal.name)
                 binding.minGoalInput.setText(goal.minMonthlyGoal.toString())
                 binding.maxGoalInput.setText(goal.maxMonthlyGoal.toString())
                 binding.budgetInput.setText(goal.monthlyBudget.toString())
             } else {
-                binding.goalNameInput.setText("")
-                binding.minGoalInput.setText("")
-                binding.maxGoalInput.setText("")
-                binding.budgetInput.setText("")
-                currentGoalId = null
+                clearInputs()
             }
         }
+    }
+
+    private fun clearInputs() {
+        currentGoalId = null
+        binding.goalNameInput.setText("")
+        binding.minGoalInput.setText("")
+        binding.maxGoalInput.setText("")
+        binding.budgetInput.setText("")
     }
 }

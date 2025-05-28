@@ -38,7 +38,7 @@ class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.Transacti
             categoryTextView.text = transaction.category
 
             val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-            dateTextView.text = dateFormat.format(transaction.date)
+            dateTextView.text = dateFormat.format(transaction.date.toDate())
 
             amountTextView.text = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(transaction.amount)
         }

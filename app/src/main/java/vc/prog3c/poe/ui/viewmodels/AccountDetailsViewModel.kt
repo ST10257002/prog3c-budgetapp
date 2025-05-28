@@ -29,6 +29,10 @@ class AccountDetailsViewModel(
     private val _error        = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
+    private val _calculatedBalance = MutableLiveData<Double>()
+    val calculatedBalance: LiveData<Double> = _calculatedBalance
+
+
     private var allTxs: List<Transaction> = emptyList()
 
     /** ← now needs userId too */
@@ -45,6 +49,14 @@ class AccountDetailsViewModel(
                 allTxs = txs
                 _transactions.postValue(txs)
                 _isLoading.postValue(false)
+                _calculatedBalance.postValue(
+                    txs.fold(0.0) { acc, tx ->
+                        when (tx.type) {
+                            TransactionType.INCOME  -> acc + tx.amount
+                            TransactionType.EXPENSE -> acc - tx.amount
+                        }
+                    }
+                )
             }
         }
     }

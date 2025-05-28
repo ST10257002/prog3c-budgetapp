@@ -177,4 +177,61 @@ class TransactionRepository {
             }
     }
 
+    fun getExpenseCategoryBreakdown(
+        year: Int,
+        month: Int,
+        onComplete: (Map<String, Double>) -> Unit
+    ) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return onComplete(emptyMap())
+
+        // Pull all transactions for this month, filter to EXPENSE, group by category
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(userId)
+            .collection("accounts")
+            .get()
+            .addOnSuccessListener { accountsSnap ->
+                val allAccountIds = accountsSnap.documents.map { it.id }
+                val categoryTotals = mutableMapOf<String, Double>()
+
+                // Get all transactions from all accounts (parallel)
+                val tasks = allAccountIds.map { accountId ->
+                    FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .document(userId)
+                        .collection("accounts")
+                        .document(accountId)
+                        .collection("transactions")
+                        .whereEqualTo("type", "EXPENSE")
+                        .get()
+                }
+
+                com.google.android.gms.tasks.Tasks.whenAllSuccess<Any>(tasks)
+                    .addOnSuccessListener { allResults ->
+                        allResults.forEach { querySnapObj ->
+                            val querySnap = querySnapObj as com.google.firebase.firestore.QuerySnapshot
+                            for (doc in querySnap.documents) {
+                                val transaction = doc.toObject(vc.prog3c.poe.data.models.Transaction::class.java)
+                                transaction?.let {
+                                    // Filter by date if needed (by month/year)
+                                    val cal = java.util.Calendar.getInstance()
+                                    it.date?.let { date ->
+                                        cal.time = date.toDate()
+                                        val txYear = cal.get(java.util.Calendar.YEAR)
+                                        val txMonth = cal.get(java.util.Calendar.MONTH) + 1
+                                        if (txYear == year && txMonth == month) {
+                                            val cat = it.category ?: "Other"
+                                            categoryTotals[cat] = (categoryTotals[cat] ?: 0.0) + it.amount
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        onComplete(categoryTotals)
+                    }
+                    .addOnFailureListener { onComplete(emptyMap()) }
+            }
+            .addOnFailureListener { onComplete(emptyMap()) }
+    }
+
 }

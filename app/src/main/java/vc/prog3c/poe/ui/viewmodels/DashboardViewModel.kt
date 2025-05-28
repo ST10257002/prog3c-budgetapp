@@ -1,5 +1,6 @@
 package vc.prog3c.poe.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,14 +10,16 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.utils.ColorTemplate
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.data.services.FirestoreService
 import java.util.Date
 import vc.prog3c.poe.data.models.Card
 import vc.prog3c.poe.data.models.Budget
 import vc.prog3c.poe.data.models.SavingsGoal
-import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.IncomeExpenseData
 import vc.prog3c.poe.data.models.MonthlyStats
+import java.util.Calendar
 
 class DashboardViewModel : ViewModel() {
 
@@ -29,8 +32,8 @@ class DashboardViewModel : ViewModel() {
     private val _savingsGoals = MutableLiveData<List<SavingsGoal>>()
     val savingsGoals: LiveData<List<SavingsGoal>> = _savingsGoals
 
-    private val _categories = MutableLiveData<List<Category>>()
-    val categories: LiveData<List<Category>> = _categories
+//    private val _categories = MutableLiveData<List<Category>>()
+//    val categories: LiveData<List<Category>> = _categories
 
     private val _incomeExpenseData = MutableLiveData<IncomeExpenseData>()
     val incomeExpenseData: LiveData<IncomeExpenseData> = _incomeExpenseData
@@ -50,6 +53,9 @@ class DashboardViewModel : ViewModel() {
     private val _monthlyStats = MutableLiveData<MonthlyStats?>()
     val monthlyStats: LiveData<MonthlyStats?> = _monthlyStats
 
+    private val _categoryBreakdown = MutableLiveData<Map<String, Double>>()
+    val categoryBreakdown: LiveData<Map<String, Double>> = _categoryBreakdown
+
     init {
         loadInitialData()
     }
@@ -57,25 +63,19 @@ class DashboardViewModel : ViewModel() {
     private fun loadInitialData() {
         viewModelScope.launch {
             try {
-                _isLoading.value = true
+                val cal = Calendar.getInstance()
+                val year = cal.get(Calendar.YEAR)
+                val month = cal.get(Calendar.MONTH) + 1
+
                 loadSavingsGoals()
-
-                val cal = java.util.Calendar.getInstance()
-                val year = cal.get(java.util.Calendar.YEAR)
-                val month = cal.get(java.util.Calendar.MONTH) + 1
-
                 loadCurrentBudget(year, month)
                 loadMonthlyStats(year, month)
-
-                _error.value = null
+                loadCategoryBreakdown(year, month)
             } catch (e: Exception) {
-                _error.value = "Failed to load dashboard data: ${e.message}"
-            } finally {
-                _isLoading.value = false
+                _error.postValue("Error loading dashboard: ${e.message}")
             }
         }
     }
-
 
 
     private fun loadSavingsGoals() {
@@ -99,6 +99,72 @@ class DashboardViewModel : ViewModel() {
             _monthlyStats.postValue(stats)
         }
     }
+
+    private fun loadCategoryBreakdown(year: Int, month: Int) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
+
+        Log.d("DASH_TEST", "Starting category breakdown for user: $userId")
+
+        db.collection("users").document(userId).collection("accounts")
+            .get()
+            .addOnSuccessListener { accountDocs ->
+                val accountIds = accountDocs.map { it.id }
+                Log.d("DASH_TEST", "Fetched accounts: $accountIds")
+
+                val categoryTotals = mutableMapOf<String, Double>()
+                val tasks = accountIds.map { accountId ->
+                    Log.d("DASH_TEST", "Fetching transactions for account: $accountId")
+                    db.collection("users").document(userId)
+                        .collection("accounts").document(accountId)
+                        .collection("transactions")
+                        .whereEqualTo("type", "EXPENSE")
+                        .get()
+                }
+
+                com.google.android.gms.tasks.Tasks.whenAllSuccess<Any>(tasks)
+                    .addOnSuccessListener { results ->
+                        Log.d("DASH_TEST", "Fetched ${results.size} transaction result sets")
+
+                        for ((index, res) in results.withIndex()) {
+                            val snap = res as com.google.firebase.firestore.QuerySnapshot
+                            Log.d("DASH_TEST", "Account ${accountIds.getOrNull(index)} has ${snap.size()} transactions")
+
+                            for (doc in snap.documents) {
+                                val category = doc.getString("category") ?: "Other"
+                                val timestamp = doc.getTimestamp("date")
+                                val amount = doc.getDouble("amount") ?: 0.0
+
+                                Log.d("DASH_TEST", "Transaction: category=$category, amount=$amount, timestamp=$timestamp")
+
+                                if (timestamp != null) {
+                                    val cal = Calendar.getInstance()
+                                    cal.time = timestamp.toDate()
+                                    val docYear = cal.get(Calendar.YEAR)
+                                    val docMonth = cal.get(Calendar.MONTH) + 1
+
+                                    // ALL-TIME: Remove the filter
+                                    categoryTotals[category] = (categoryTotals[category] ?: 0.0) + amount
+                                }
+                            }
+                        }
+
+                        Log.d("DASH_TEST", "Final category totals: $categoryTotals")
+                        _categoryBreakdown.postValue(categoryTotals)
+                    }
+                    .addOnFailureListener {
+                        Log.e("DASH_TEST", "Failed to fetch transactions: ${it.message}", it)
+                        _categoryBreakdown.postValue(emptyMap())
+                    }
+            }
+            .addOnFailureListener {
+                Log.e("DASH_TEST", "Failed to fetch accounts: ${it.message}", it)
+                _categoryBreakdown.postValue(emptyMap())
+            }
+    }
+
+
+
 
     fun updateSavingsGoal(goalId: String, min: Double, max: Double, budget: Double, name: String) {
         val updatedFields = mapOf(

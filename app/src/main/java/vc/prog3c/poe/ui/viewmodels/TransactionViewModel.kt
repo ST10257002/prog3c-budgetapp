@@ -22,9 +22,6 @@ class TransactionViewModel : ViewModel() {
     private val _transactions = MutableLiveData<List<Transaction>>()
     val transactions: LiveData<List<Transaction>> = _transactions
 
-    // full list loaded from Firestore
-    private var _allTransactions = listOf<Transaction>()
-
     private val _totalIncome = MutableLiveData<Double>()
     val totalIncome: LiveData<Double> = _totalIncome
 
@@ -43,16 +40,21 @@ class TransactionViewModel : ViewModel() {
     fun getCurrentUserId(): String = auth.currentUser?.uid ?: ""
 
     /**
-     * Load all transactions for an account (null = no-op or all accounts behavior).
+     * Load all transactions for an account.
      */
     fun loadTransactions(accountId: String?) {
+        val userId = auth.currentUser?.uid ?: return
         if (accountId == null) return
         _transactionState.value = TransactionState.Loading
-        
+
         viewModelScope.launch {
             try {
-                firestore.collection("transactions")
-                    .whereEqualTo("accountId", accountId)
+                firestore.collection("users")
+                    .document(userId)
+                    .collection("accounts")
+                    .document(accountId)
+                    .collection("transactions")
+                    .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
                     .get()
                     .addOnSuccessListener { documents ->
                         val transactionList = documents.mapNotNull { it.toObject(Transaction::class.java) }
@@ -69,12 +71,8 @@ class TransactionViewModel : ViewModel() {
         }
     }
 
-    /** Refresh the current account's transactions. */
     fun refreshTransactions(accountId: String?) = loadTransactions(accountId)
 
-    /**
-     * Filter the loaded transactions by type (INCOME or EXPENSE).
-     */
     fun filterTransactionsByType(type: TransactionType) {
         val currentList = _transactions.value ?: return
         _transactions.value = currentList.filter { it.type == type }
@@ -85,19 +83,24 @@ class TransactionViewModel : ViewModel() {
      * Add a new transaction (income or expense).
      */
     fun addTransaction(transaction: Transaction) {
+        val userId = auth.currentUser?.uid ?: return
+        val accountId = transaction.accountId
         _isLoading.value = true
         _error.value = null
-
         _transactionState.value = TransactionState.Loading
-        
+
         viewModelScope.launch {
             try {
-                firestore.collection("transactions")
+                firestore.collection("users")
+                    .document(userId)
+                    .collection("accounts")
+                    .document(accountId)
+                    .collection("transactions")
                     .document(transaction.id)
                     .set(transaction)
                     .addOnSuccessListener {
                         _transactionState.value = TransactionState.Success()
-                        loadTransactions(transaction.accountId)
+                        loadTransactions(accountId)
                     }
                     .addOnFailureListener { e ->
                         _transactionState.value = TransactionState.Error(e.message ?: "Failed to add transaction")
@@ -112,19 +115,24 @@ class TransactionViewModel : ViewModel() {
      * Update an existing transaction.
      */
     fun updateTransaction(transaction: Transaction) {
+        val userId = auth.currentUser?.uid ?: return
+        val accountId = transaction.accountId
         _isLoading.value = true
         _error.value = null
-
         _transactionState.value = TransactionState.Loading
-        
+
         viewModelScope.launch {
             try {
-                firestore.collection("transactions")
+                firestore.collection("users")
+                    .document(userId)
+                    .collection("accounts")
+                    .document(accountId)
+                    .collection("transactions")
                     .document(transaction.id)
                     .set(transaction)
                     .addOnSuccessListener {
                         _transactionState.value = TransactionState.Success()
-                        loadTransactions(transaction.accountId)
+                        loadTransactions(accountId)
                     }
                     .addOnFailureListener { e ->
                         _transactionState.value = TransactionState.Error(e.message ?: "Failed to update transaction")
@@ -139,14 +147,18 @@ class TransactionViewModel : ViewModel() {
      * Delete a transaction by ID.
      */
     fun deleteTransaction(transactionId: String, accountId: String) {
+        val userId = auth.currentUser?.uid ?: return
         _isLoading.value = true
         _error.value = null
-
         _transactionState.value = TransactionState.Loading
-        
+
         viewModelScope.launch {
             try {
-                firestore.collection("transactions")
+                firestore.collection("users")
+                    .document(userId)
+                    .collection("accounts")
+                    .document(accountId)
+                    .collection("transactions")
                     .document(transactionId)
                     .delete()
                     .addOnSuccessListener {
@@ -166,7 +178,7 @@ class TransactionViewModel : ViewModel() {
         _totalIncome.value = transactions
             .filter { it.type == TransactionType.INCOME }
             .sumOf { it.amount }
-        
+
         _totalExpenses.value = transactions
             .filter { it.type == TransactionType.EXPENSE }
             .sumOf { it.amount }

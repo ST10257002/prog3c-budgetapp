@@ -7,7 +7,7 @@ object FirestoreService {
    // val expenses = ExpenseRepository()
     val savingsGoal = SavingsGoalRepository()
     val users = UserRepository()
-    val categories = CategoryRepository()
+    //val categories = CategoryRepository()
     val transaction = TransactionRepository() // expenses and income
     val account = AccountRepository()
     val budget = BudgetRepository()

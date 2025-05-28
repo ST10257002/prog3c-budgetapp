@@ -15,31 +15,21 @@
         android:gravity="center_vertical"
         android:background="?attr/selectableItemBackground">
 
-            <ImageView
-                android:id="@+id/categoryIcon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="6dp"
-                android:background="@drawable/circle_bg"
-                android:contentDescription="Category Icon" />
-
-            <TextView
-                android:id="@+id/categoryName"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
+        <TextView
+            android:id="@+id/categoryName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-            <TextView
+        <TextView
             android:id="@+id/categoryAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
             android:textSize="16sp" />
-
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

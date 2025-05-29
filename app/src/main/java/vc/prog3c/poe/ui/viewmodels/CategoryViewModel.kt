@@ -4,16 +4,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.PresetCategories
 
-class CategoryViewModel : ViewModel() {
+class CategoryViewModel(
+    private val authService: AuthService = AuthService()
+) : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
 
     private val _categories = MutableLiveData<List<Category>>()
     val categories: LiveData<List<Category>> = _categories
@@ -28,7 +29,7 @@ class CategoryViewModel : ViewModel() {
     private fun loadCategories() {
         viewModelScope.launch {
             try {
-                val userId = auth.currentUser?.uid ?: return@launch
+                val userId = authService.getCurrentUser()?.uid ?: return@launch
                 val userCategories = db.collection("users").document(userId)
                     .collection("categories")
                     .get()
@@ -47,7 +48,7 @@ class CategoryViewModel : ViewModel() {
     fun addCategory(category: Category) {
         viewModelScope.launch {
             try {
-                val userId = auth.currentUser?.uid ?: return@launch
+                val userId = authService.getCurrentUser()?.uid ?: return@launch
                 val categoryRef = db.collection("users").document(userId)
                     .collection("categories")
                     .document()
@@ -68,7 +69,7 @@ class CategoryViewModel : ViewModel() {
     fun deleteCategory(categoryId: String) {
         viewModelScope.launch {
             try {
-                val userId = auth.currentUser?.uid ?: return@launch
+                val userId = authService.getCurrentUser()?.uid ?: return@launch
                 val category = _categories.value?.find { it.id == categoryId }
                 
                 if (category?.isEditable == false) {
@@ -95,7 +96,7 @@ class CategoryViewModel : ViewModel() {
     fun updateCategory(category: Category) {
         viewModelScope.launch {
             try {
-                val userId = auth.currentUser?.uid ?: return@launch
+                val userId = authService.getCurrentUser()?.uid ?: return@launch
                 if (!category.isEditable) {
                     _error.value = "Cannot modify preset categories"
                     return@launch

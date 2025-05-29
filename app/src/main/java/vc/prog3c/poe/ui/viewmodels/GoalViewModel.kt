@@ -7,8 +7,11 @@ import java.util.Date
 import vc.prog3c.poe.data.models.Goal
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import vc.prog3c.poe.core.services.AuthService
 
-class GoalViewModel : ViewModel() {
+class GoalViewModel(
+    private val authService: AuthService = AuthService()
+) : ViewModel() {
     // TODO: Replace with Firestore implementation
     // - Create Firestore collection for goals
     // - Implement real-time listeners for goal updates
@@ -152,7 +155,7 @@ class GoalViewModel : ViewModel() {
     }
 
     fun saveValidatedGoalToFirestore(min: Double, max: Double, budget: Double, onResult: (Boolean) -> Unit) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return onResult(false)
+        val uid = authService.getCurrentUser()?.uid ?: return onResult(false)
 
         val goalData = mapOf(
             "minMonthlyGoal" to min,

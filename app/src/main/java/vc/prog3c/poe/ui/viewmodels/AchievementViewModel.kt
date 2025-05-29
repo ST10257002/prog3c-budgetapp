@@ -4,11 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.Achievement
 import vc.prog3c.poe.data.models.AchievementCategory
 import vc.prog3c.poe.data.models.AchievementDefinitions
@@ -17,9 +17,10 @@ import vc.prog3c.poe.data.models.BoosterBucksTransaction
 import vc.prog3c.poe.data.models.TransactionType
 import java.util.Date
 
-class AchievementViewModel : ViewModel() {
+class AchievementViewModel(
+    private val authService: AuthService = AuthService()
+) : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
 
     private val _achievements = MutableLiveData<List<Achievement>>()
     val achievements: LiveData<List<Achievement>> = _achievements
@@ -38,7 +39,7 @@ class AchievementViewModel : ViewModel() {
     private fun loadAchievements() {
         viewModelScope.launch {
             try {
-                val userId = auth.currentUser?.uid ?: return@launch
+                val userId = authService.getCurrentUser()?.uid ?: return@launch
                 val userAchievements = db.collection("users").document(userId)
                     .collection("achievements")
                     .get()
@@ -66,7 +67,7 @@ class AchievementViewModel : ViewModel() {
     private fun loadBoosterBucks() {
         viewModelScope.launch {
             try {
-                val userId = auth.currentUser?.uid ?: return@launch
+                val userId = authService.getCurrentUser()?.uid ?: return@launch
                 val boosterBucksRef = db.collection("users").document(userId)
                     .collection("boosterBucks").document("balance")
 

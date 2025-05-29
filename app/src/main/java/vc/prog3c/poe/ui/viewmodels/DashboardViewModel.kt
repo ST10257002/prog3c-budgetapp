@@ -10,10 +10,9 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.utils.ColorTemplate
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.services.FirestoreService
-import java.util.Date
 import vc.prog3c.poe.data.models.Card
 import vc.prog3c.poe.data.models.Budget
 import vc.prog3c.poe.data.models.SavingsGoal
@@ -22,7 +21,9 @@ import vc.prog3c.poe.data.models.MonthlyStats
 import java.util.Calendar
 import vc.prog3c.poe.data.models.Category
 
-class DashboardViewModel : ViewModel() {
+class DashboardViewModel(
+    private val authService: AuthService = AuthService()
+) : ViewModel() {
 
     private val _cards = MutableLiveData<List<Card>>()
     val cards: LiveData<List<Card>> = _cards
@@ -64,7 +65,7 @@ class DashboardViewModel : ViewModel() {
     private fun loadInitialData() {
         viewModelScope.launch {
             try {
-                val userId = FirebaseAuth.getInstance().currentUser?.uid
+                val userId = authService.getCurrentUser()?.uid
                 if (userId == null) {
                     _error.postValue("User not authenticated")
                     return@launch
@@ -86,7 +87,7 @@ class DashboardViewModel : ViewModel() {
     }
 
     private fun loadSavingsGoals() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId = authService.getCurrentUser()?.uid ?: return
         FirestoreService.savingsGoal.fetchGoals { goals ->
             if (goals != null) {
                 _savingsGoals.postValue(goals)
@@ -97,21 +98,21 @@ class DashboardViewModel : ViewModel() {
     }
 
     private fun loadCurrentBudget(year: Int, month: Int) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId = authService.getCurrentUser()?.uid ?: return
         FirestoreService.budget.getBudgetForMonth(year, month) { bud ->
             _budget.postValue(bud)
         }
     }
 
     private fun loadMonthlyStats(year: Int, month: Int) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId = authService.getCurrentUser()?.uid ?: return
         FirestoreService.transaction.getMonthlyStats(year, month) { stats ->
             _monthlyStats.postValue(stats)
         }
     }
 
     private fun loadCategoryBreakdown(year: Int, month: Int) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId = authService.getCurrentUser()?.uid ?: return
         val db = FirebaseFirestore.getInstance()
 
         Log.d("DASH_TEST", "Starting category breakdown for user: $userId")
@@ -174,7 +175,7 @@ class DashboardViewModel : ViewModel() {
     }
 
     private fun loadCategories() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId = authService.getCurrentUser()?.uid ?: return
         FirestoreService.categories.getAllCategories { categories ->
             _categories.postValue(categories ?: emptyList())
             if (categories == null) {

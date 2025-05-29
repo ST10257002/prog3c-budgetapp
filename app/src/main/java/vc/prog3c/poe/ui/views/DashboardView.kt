@@ -10,11 +10,14 @@ import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Budget
 import vc.prog3c.poe.data.models.MonthlyStats
 import vc.prog3c.poe.data.models.SavingsGoal
+import vc.prog3c.poe.data.models.Category
+import vc.prog3c.poe.data.models.CategoryType
 import vc.prog3c.poe.databinding.ActivityDashboardBinding
 import vc.prog3c.poe.ui.adapters.CategoryAdapter
 import vc.prog3c.poe.ui.viewmodels.DashboardViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import java.util.UUID
 
 class DashboardView : AppCompatActivity() {
     private lateinit var binding: ActivityDashboardBinding
@@ -26,22 +29,19 @@ class DashboardView : AppCompatActivity() {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        categoryAdapter = CategoryAdapter(emptyMap())
-        binding.categoriesRecyclerView.adapter = categoryAdapter
-
         viewModel = ViewModelProvider(this)[DashboardViewModel::class.java]
 
         setupToolbar()
         setupBottomNavigation()
         setupSwipeRefresh()
+        setupRecyclerView()
+        setupViews()
         observeViewModel()
+    }
 
-        binding.manageGoalsView.initialize(viewModel, this)
-        binding.editGoalButton.setOnClickListener {
-            binding.manageGoalsView.visibility = if (binding.manageGoalsView.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-        }
-
-        viewModel.refreshData()
+    override fun onResume() {
+        super.onResume()
+        refreshData()
     }
 
     private fun setupToolbar() {
@@ -83,18 +83,45 @@ class DashboardView : AppCompatActivity() {
         }
     }
 
+    private fun setupRecyclerView() {
+        categoryAdapter = CategoryAdapter(
+            onEditClick = { /* Handle edit if needed */ },
+            onDeleteClick = { /* Handle delete if needed */ }
+        )
+        binding.categoriesRecyclerView.apply {
+            adapter = categoryAdapter
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@DashboardView)
+            setHasFixedSize(true)
+        }
+    }
+
+    private fun setupViews() {
+        binding.manageGoalsButton.setOnClickListener {
+            val intent = Intent(this, ManageGoalsActivity::class.java)
+            startActivity(intent)
+        }
+
+        binding.manageCategoriesButton.setOnClickListener {
+            val intent = Intent(this, CategoryManagementActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
     private fun refreshData() {
         viewModel.refreshData()
+        binding.swipeRefreshLayout.isRefreshing = true
     }
 
     private fun observeViewModel() {
         viewModel.savingsGoals.observe(this) { goals ->
             updateSavingsGoalUI(goals)
+            binding.swipeRefreshLayout.isRefreshing = false
         }
 
         viewModel.budget.observe(this) { budget ->
             updateBudgetUI(budget, viewModel.monthlyStats.value)
         }
+
         viewModel.monthlyStats.observe(this) { stats ->
             updateBudgetUI(viewModel.budget.value, stats)
         }
@@ -104,12 +131,14 @@ class DashboardView : AppCompatActivity() {
         }
 
         viewModel.error.observe(this) { error ->
-            if (error == null && binding.manageGoalsView.visibility == View.VISIBLE) {
-                binding.manageGoalsView.visibility = View.GONE
-                Snackbar.make(binding.root, "Goal updated!", Snackbar.LENGTH_SHORT).show()
-            } else if (error != null) {
-                Snackbar.make(binding.root, error, Snackbar.LENGTH_SHORT).show()
+            error?.let {
+                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
+                binding.swipeRefreshLayout.isRefreshing = false
             }
+        }
+
+        viewModel.isLoading.observe(this) { isLoading ->
+            binding.swipeRefreshLayout.isRefreshing = isLoading
         }
     }
 
@@ -178,17 +207,54 @@ class DashboardView : AppCompatActivity() {
         } else {
             binding.noCategoriesText.visibility = View.GONE
             binding.categoriesRecyclerView.visibility = View.VISIBLE
-            categoryAdapter.updateCategoryData(breakdownSafe)
+            
+            // Get all categories from the ViewModel and ensure preset categories are included
+            val existingCategories = viewModel.categories.value ?: emptyList()
+            val allCategories = existingCategories.toMutableList()
+            
+            // Add preset categories if they don't exist
+            if (existingCategories.none { category -> category.type == CategoryType.SAVINGS }) {
+                allCategories.add(Category(
+                    id = "savings",
+                    name = "Savings",
+                    type = CategoryType.SAVINGS,
+                    icon = "ic_savings",
+                    color = "#4CAF50",
+                    isEditable = false
+                ))
+            }
+            if (existingCategories.none { category -> category.type == CategoryType.EMERGENCY }) {
+                allCategories.add(Category(
+                    id = "emergency",
+                    name = "Emergency Fund",
+                    type = CategoryType.EMERGENCY,
+                    icon = "ic_error",
+                    color = "#F44336",
+                    isEditable = false
+                ))
+            }
+            if (existingCategories.none { category -> category.type == CategoryType.UTILITIES }) {
+                allCategories.add(Category(
+                    id = "utilities",
+                    name = "Utilities",
+                    type = CategoryType.UTILITIES,
+                    icon = "ic_utilities",
+                    color = "#2196F3",
+                    isEditable = false
+                ))
+            }
 
-            // 🔥 Force re-binding in case of stale adapter
-            binding.categoriesRecyclerView.adapter = categoryAdapter
+            // Sort categories: preset categories first, then custom categories
+            val sortedCategories = allCategories.sortedWith(
+                compareBy<Category> { it.type != CategoryType.SAVINGS }
+                    .thenBy { it.type != CategoryType.EMERGENCY }
+                    .thenBy { it.type != CategoryType.UTILITIES }
+                    .thenBy { it.name }
+            )
+
+            categoryAdapter.submitList(sortedCategories)
+            categoryAdapter.updateCategoryTotals(breakdownSafe)
         }
-    }
-
-    private fun showError(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-            .setAction("Retry") { refreshData() }
-            .show()
     }
 
     override fun onSupportNavigateUp(): Boolean {

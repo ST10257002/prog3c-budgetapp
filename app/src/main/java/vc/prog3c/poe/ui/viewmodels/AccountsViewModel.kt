@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import vc.prog3c.poe.data.models.Account
+import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.data.repository.AccountRepository
 
@@ -45,12 +46,7 @@ class AccountsViewModel : ViewModel() {
             accountList.forEach { account ->
                 repo.getTransactionsForAccount(account.id) { txs ->
                     // Compute balance and count
-                    val balance = txs.fold(0.0) { acc, tx ->
-                        when (tx.type) {
-                            TransactionType.INCOME  -> acc + tx.amount
-                            TransactionType.EXPENSE -> acc - tx.amount
-                        }
-                    }
+                    val balance = calculateBalance(txs)
                     account.balance = balance
                     account.transactionsCount = txs.size
 
@@ -68,6 +64,16 @@ class AccountsViewModel : ViewModel() {
         }
     }
 
+    private fun calculateBalance(transactions: List<Transaction>): Double {
+        return transactions.sumOf { transaction ->
+            when (transaction.type) {
+                TransactionType.INCOME -> transaction.amount
+                TransactionType.EXPENSE -> -transaction.amount
+                TransactionType.EARNED -> 0.0
+                TransactionType.REDEEMED -> 0.0
+            }
+        }
+    }
 
     fun addAccount(account: Account) {
         _isLoading.value = true

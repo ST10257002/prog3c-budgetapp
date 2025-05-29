@@ -44,19 +44,12 @@ class AccountDetailsViewModel(
         repo.getAccount(accountId) { acct ->
             _account.postValue(acct)
 
-            // 2) load all txs (we’ll filter later)
+            // 2) load all txs (we'll filter later)
             repo.getTransactionsForAccount(accountId) { txs ->
                 allTxs = txs
                 _transactions.postValue(txs)
                 _isLoading.postValue(false)
-                _calculatedBalance.postValue(
-                    txs.fold(0.0) { acc, tx ->
-                        when (tx.type) {
-                            TransactionType.INCOME  -> acc + tx.amount
-                            TransactionType.EXPENSE -> acc - tx.amount
-                        }
-                    }
-                )
+                _calculatedBalance.postValue(calculateBalance(txs))
             }
         }
     }
@@ -78,6 +71,17 @@ class AccountDetailsViewModel(
         repo.deleteAccount(accountId) { success ->
             if (!success) _error.postValue("Failed to delete account.")
             _isLoading.postValue(false)
+        }
+    }
+
+    private fun calculateBalance(transactions: List<Transaction>): Double {
+        return transactions.sumOf { transaction ->
+            when (transaction.type) {
+                TransactionType.INCOME -> transaction.amount
+                TransactionType.EXPENSE -> -transaction.amount
+                TransactionType.EARNED -> 0.0
+                TransactionType.REDEEMED -> 0.0
+            }
         }
     }
 }

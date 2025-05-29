@@ -71,7 +71,12 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun setupButtons() {
         vBinds.manageGoalsButton.setOnClickListener {
-            startActivity(Intent(this, ManageGoalsView::class.java))
+            startActivity(Intent(this, ManageGoalsActivity::class.java))
+        }
+
+        vBinds.achievementsButton.setOnClickListener {
+            val intent = Intent(this, AchievementsActivity::class.java)
+            startActivity(intent)
         }
 
         vBinds.logoutButton.setOnClickListener {

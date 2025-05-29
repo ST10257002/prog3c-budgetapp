@@ -131,7 +131,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Select category"
-            android:inputType="none" />
+            android:inputType="none"
+            tools:ignore="SpeakableTextPresentCheck" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -188,5 +189,13 @@
         android:minHeight="100dp"
         android:maxHeight="200dp"
         android:layout_marginBottom="24dp" />
+
+    <!-- Submit Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/submitButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Expense"
+        style="@style/Widget.BudgetApp.Button" />
 
 </LinearLayout> 

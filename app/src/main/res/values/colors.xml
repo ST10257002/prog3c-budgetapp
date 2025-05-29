@@ -1,20 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#FF6200EE</color>
-    <color name="primary_dark">#FF3700B3</color>
-    <color name="primary_light">#FFE8DEF8</color>
-    <color name="accent">#FF03DAC5</color>
-    <color name="background">#FFFFFFFF</color>
-    <color name="text_primary">#DE000000</color>
-    <color name="text_secondary">#99000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="black">#FF000000</color>
-    <color name="bottom_nav_text_color">#FF757575</color>
-    <color name="bottom_nav_icon_color">#FF757575</color>
-    <color name="green">#4CAF50</color>
+    <!-- Primary Colors -->
+    <color name="primary">#58bc82</color>
+    <color name="primary_dark">#4CAF50</color>
+    <color name="primary_light">#E8F5E9</color>
+    <color name="accent">#58bc82</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#000000</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#000000</color>
+
+    <!-- Background Colors -->
+    <color name="background">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="divider">#EEEEEE</color>
+    <color name="progress_background">#E0E0E0</color>
+
+    <!-- Status Colors -->
+    <color name="green">#58bc82</color>
     <color name="red">#F44336</color>
-    <color name="gray">#757575</color>
-    <color name="light_gray">#EEEEEE</color>
-    <color name="divider">#BDBDBD</color>
-    <color name="password_strength_unknown">#FF757575</color>
+    <color name="yellow">#FFC107</color>
+
+    <!-- Card Colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_stroke">#58bc82</color>
+
+    <!-- Password Strength Colors -->
+    <color name="password_strength_unknown">#757575</color>
+    <color name="password_strength_weak">#F44336</color>
+    <color name="password_strength_medium">#FFC107</color>
+    <color name="password_strength_strong">#58bc82</color>
+
+    <!-- Bottom Navigation Colors -->
+    <color name="bottom_nav_icon_color">@color/primary</color>
+    <color name="bottom_nav_text_color">@color/primary</color>
+
+    <!-- Standard Colors -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
 </resources>

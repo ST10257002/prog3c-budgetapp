@@ -86,7 +86,7 @@ object SeedData {
                 accountId = savingsId,
                 type = TransactionType.INCOME,
                 amount = 2000.0,
-                category = "Gran’s gift",
+                category = "Gran's gift",
                 date = daysAgo(4), // recent
                 description = "Gift from gran"
             )
@@ -173,20 +173,22 @@ object SeedData {
 
 
         // Helper function to calculate balance from transaction list
-        fun calcBalance(transactions: List<Transaction>): Double {
-            return transactions.fold(0.0) { acc, tx ->
-                when (tx.type) {
-                    TransactionType.INCOME  -> acc + tx.amount
-                    TransactionType.EXPENSE -> acc - tx.amount
+         fun calculateBalance(transactions: List<Transaction>): Double {
+            return transactions.sumOf { transaction ->
+                when (transaction.type) {
+                    TransactionType.INCOME -> transaction.amount
+                    TransactionType.EXPENSE -> -transaction.amount
+                    TransactionType.EARNED -> 0.0
+                    TransactionType.REDEEMED -> 0.0
                 }
             }
         }
 
         // Create account objects with dynamic balances
         val accounts = listOf(
-            Account(checkingId, userId, "Everyday Checking", "Debit",   calcBalance(checkingTxs), checkingTxs.size),
-            Account(savingsId,  userId, "Rainy-Day Savings","Savings", calcBalance(savingsTxs),   savingsTxs.size),
-            Account(ccId,       userId, "Visa Credit Card", "Credit",  calcBalance(ccTxs),        ccTxs.size)
+            Account(checkingId, userId, "Everyday Checking", "Debit",   calculateBalance(checkingTxs), checkingTxs.size),
+            Account(savingsId,  userId, "Rainy-Day Savings","Savings", calculateBalance(savingsTxs),   savingsTxs.size),
+            Account(ccId,       userId, "Visa Credit Card", "Credit",  calculateBalance(ccTxs),        ccTxs.size)
         )
 
         val txMap = mapOf(

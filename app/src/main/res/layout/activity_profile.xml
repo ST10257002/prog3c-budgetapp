@@ -200,20 +200,24 @@
                 android:id="@+id/manageGoalsButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="16dp"
                 android:text="Manage Goals"
-                app:icon="@drawable/ic_goal"
-                app:iconGravity="textStart" />
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/achievementsButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="View Achievements"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/logoutButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:text="Logout"
-                android:textColor="@color/red"
-                app:icon="@drawable/ic_logout"
-                app:iconGravity="textStart"
-                app:iconTint="@color/red"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
         </LinearLayout>

@@ -20,6 +20,7 @@ import vc.prog3c.poe.data.models.SavingsGoal
 import vc.prog3c.poe.data.models.IncomeExpenseData
 import vc.prog3c.poe.data.models.MonthlyStats
 import java.util.Calendar
+import vc.prog3c.poe.data.models.Category
 
 class DashboardViewModel : ViewModel() {
 
@@ -32,8 +33,8 @@ class DashboardViewModel : ViewModel() {
     private val _savingsGoals = MutableLiveData<List<SavingsGoal>>()
     val savingsGoals: LiveData<List<SavingsGoal>> = _savingsGoals
 
-//    private val _categories = MutableLiveData<List<Category>>()
-//    val categories: LiveData<List<Category>> = _categories
+    private val _categories = MutableLiveData<List<Category>>()
+    val categories: LiveData<List<Category>> = _categories
 
     private val _incomeExpenseData = MutableLiveData<IncomeExpenseData>()
     val incomeExpenseData: LiveData<IncomeExpenseData> = _incomeExpenseData
@@ -63,6 +64,12 @@ class DashboardViewModel : ViewModel() {
     private fun loadInitialData() {
         viewModelScope.launch {
             try {
+                val userId = FirebaseAuth.getInstance().currentUser?.uid
+                if (userId == null) {
+                    _error.postValue("User not authenticated")
+                    return@launch
+                }
+
                 val cal = Calendar.getInstance()
                 val year = cal.get(Calendar.YEAR)
                 val month = cal.get(Calendar.MONTH) + 1
@@ -71,14 +78,15 @@ class DashboardViewModel : ViewModel() {
                 loadCurrentBudget(year, month)
                 loadMonthlyStats(year, month)
                 loadCategoryBreakdown(year, month)
+                loadCategories()
             } catch (e: Exception) {
                 _error.postValue("Error loading dashboard: ${e.message}")
             }
         }
     }
 
-
     private fun loadSavingsGoals() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         FirestoreService.savingsGoal.fetchGoals { goals ->
             if (goals != null) {
                 _savingsGoals.postValue(goals)
@@ -89,12 +97,14 @@ class DashboardViewModel : ViewModel() {
     }
 
     private fun loadCurrentBudget(year: Int, month: Int) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         FirestoreService.budget.getBudgetForMonth(year, month) { bud ->
             _budget.postValue(bud)
         }
     }
 
     private fun loadMonthlyStats(year: Int, month: Int) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         FirestoreService.transaction.getMonthlyStats(year, month) { stats ->
             _monthlyStats.postValue(stats)
         }
@@ -163,8 +173,15 @@ class DashboardViewModel : ViewModel() {
             }
     }
 
-
-
+    private fun loadCategories() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        FirestoreService.categories.getAllCategories { categories ->
+            _categories.postValue(categories ?: emptyList())
+            if (categories == null) {
+                _error.postValue("Failed to load categories")
+            }
+        }
+    }
 
     fun updateSavingsGoal(goalId: String, min: Double, max: Double, budget: Double, name: String) {
         val updatedFields = mapOf(

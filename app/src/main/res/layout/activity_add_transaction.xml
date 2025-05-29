@@ -8,15 +8,23 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primary">
+        android:background="@color/white">
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:titleTextColor="@color/white"
-            app:title="Add Transaction" />
+            android:theme="@style/ThemeOverlay.AppCompat.Light">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Transaction"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+        </androidx.appcompat.widget.Toolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -31,65 +39,52 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Transaction Type Section -->
-            <TextView
+            <!-- Transaction Type Selection -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Transaction Type"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/transactionTypeLayout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Transaction Type"
+                    style="@style/Widget.BudgetApp.TextInputLayout.ExposedDropdownMenu">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/transactionTypeDropdown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:focusable="false" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Expense Form -->
+            <include
+                android:id="@+id/expenseForm"
+                layout="@layout/form_expense"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp">
+                android:visibility="gone" />
 
-                <AutoCompleteTextView
-                    android:id="@+id/transactionTypeInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <FrameLayout
-                android:id="@+id/formContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <include
-                    android:id="@+id/incomeForm"
-                    layout="@layout/form_income"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone" />
-
-                <include
-                    android:id="@+id/expenseForm"
-                    layout="@layout/form_expense"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone" />
-
-            </FrameLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/saveButton"
+            <!-- Income Form -->
+            <include
+                android:id="@+id/incomeForm"
+                layout="@layout/form_income"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Save Transaction"
-                android:layout_marginTop="24dp"
-                android:padding="12dp"
-                app:icon="@drawable/ic_save"
-                app:iconGravity="textStart"/>
+                android:visibility="gone" />
 
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Loading Overlay -->
     <FrameLayout
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"

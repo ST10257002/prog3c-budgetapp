@@ -3,40 +3,86 @@ package vc.prog3c.poe.ui.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import vc.prog3c.poe.R
+import vc.prog3c.poe.data.models.Category
+import vc.prog3c.poe.data.models.CategoryType
+import vc.prog3c.poe.databinding.ItemCategoryBinding
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale
 
 class CategoryAdapter(
-    private var categoryAmounts: Map<String, Double>
-) : RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
+    private val onEditClick: (Category) -> Unit,
+    private val onDeleteClick: (Category) -> Unit
+) : ListAdapter<Category, CategoryAdapter.CategoryViewHolder>(CategoryDiffCallback()) {
 
-    class CategoryViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val categoryName: TextView = view.findViewById(R.id.categoryName)
-        val categoryAmount: TextView = view.findViewById(R.id.categoryAmount)
+    private val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
+    private var categoryTotals: Map<String, Double> = emptyMap()
+
+    fun updateCategoryTotals(totals: Map<String, Double>) {
+        categoryTotals = totals
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_category, parent, false)
-        return CategoryViewHolder(view)
+        val binding = ItemCategoryBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return CategoryViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
-        val category = categoryAmounts.keys.elementAt(position)
-        val amount = categoryAmounts[category] ?: 0.0
-        val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
-
-        holder.categoryName.text = category
-        holder.categoryAmount.text = currencyFormat.format(amount)
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = categoryAmounts.size
+    inner class CategoryViewHolder(
+        private val binding: ItemCategoryBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun updateCategoryData(newData: Map<String, Double>) {
-        categoryAmounts = newData
-        notifyDataSetChanged()
+        fun bind(category: Category) {
+            binding.apply {
+                categoryName.text = category.name
+                categoryType.text = category.type.toString()
+                
+                // Set category icon based on type
+                categoryIcon.setImageResource(
+                    when (category.type) {
+                        CategoryType.SAVINGS -> R.drawable.ic_savings
+                        CategoryType.EMERGENCY -> R.drawable.ic_error
+                        CategoryType.UTILITIES -> R.drawable.ic_utilities
+                        else -> R.drawable.ic_category
+                    }
+                )
+
+                // Set total amount for this category
+                val total = categoryTotals[category.name] ?: 0.0
+                categoryTotal.text = currencyFormat.format(total)
+                
+                // Only show edit/delete buttons for custom categories
+                if (category.type == CategoryType.CUSTOM) {
+                    editButton.visibility = View.VISIBLE
+                    deleteButton.visibility = View.VISIBLE
+                    editButton.setOnClickListener { onEditClick(category) }
+                    deleteButton.setOnClickListener { onDeleteClick(category) }
+                } else {
+                    editButton.visibility = View.GONE
+                    deleteButton.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private class CategoryDiffCallback : DiffUtil.ItemCallback<Category>() {
+        override fun areItemsTheSame(oldItem: Category, newItem: Category): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: Category, newItem: Category): Boolean {
+            return oldItem == newItem
+        }
     }
 }

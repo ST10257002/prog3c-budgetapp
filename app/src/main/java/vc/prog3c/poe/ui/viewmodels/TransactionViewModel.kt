@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -82,33 +83,27 @@ class TransactionViewModel : ViewModel() {
     /**
      * Add a new transaction (income or expense).
      */
-    fun addTransaction(transaction: Transaction) {
-        val userId = auth.currentUser?.uid ?: return
+    fun addTransaction(transaction: Transaction): Task<Void> {
+        val userId = auth.currentUser?.uid ?: throw IllegalStateException("User not logged in")
         val accountId = transaction.accountId
         _isLoading.value = true
         _error.value = null
         _transactionState.value = TransactionState.Loading
 
-        viewModelScope.launch {
-            try {
-                firestore.collection("users")
-                    .document(userId)
-                    .collection("accounts")
-                    .document(accountId)
-                    .collection("transactions")
-                    .document(transaction.id)
-                    .set(transaction)
-                    .addOnSuccessListener {
-                        _transactionState.value = TransactionState.Success()
-                        loadTransactions(accountId)
-                    }
-                    .addOnFailureListener { e ->
-                        _transactionState.value = TransactionState.Error(e.message ?: "Failed to add transaction")
-                    }
-            } catch (e: Exception) {
-                _transactionState.value = TransactionState.Error(e.message ?: "An error occurred")
+        return firestore.collection("users")
+            .document(userId)
+            .collection("accounts")
+            .document(accountId)
+            .collection("transactions")
+            .document(transaction.id)
+            .set(transaction)
+            .addOnSuccessListener {
+                _transactionState.value = TransactionState.Success()
+                loadTransactions(accountId)
             }
-        }
+            .addOnFailureListener { e ->
+                _transactionState.value = TransactionState.Error(e.message ?: "Failed to add transaction")
+            }
     }
 
     /**

@@ -12,19 +12,23 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.Timestamp
+import com.permissionx.guolindev.request.ExplainScope
+import com.permissionx.guolindev.request.ForwardScope
 import vc.prog3c.poe.R
-import vc.prog3c.poe.databinding.ActivityAddTransactionBinding
+import vc.prog3c.poe.core.coordinators.ConsentCoordinator
+import vc.prog3c.poe.core.models.ConsentBundle
+import vc.prog3c.poe.core.models.ConsentUiHost
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
-import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
+import vc.prog3c.poe.databinding.ActivityAddTransactionBinding
 import vc.prog3c.poe.ui.viewmodels.TransactionState
+import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
-class AddTransactionActivity : AppCompatActivity() {
+class AddTransactionActivity : AppCompatActivity(), ConsentUiHost {
     private lateinit var binding: ActivityAddTransactionBinding
     private lateinit var viewModel: TransactionViewModel
     private val calendar = Calendar.getInstance()
@@ -47,12 +51,7 @@ class AddTransactionActivity : AppCompatActivity() {
     )
 
     private val incomeCategories = listOf(
-        "Salary",
-        "Freelance",
-        "Investments",
-        "Gifts",
-        "Refunds",
-        "Other"
+        "Salary", "Freelance", "Investments", "Gifts", "Refunds", "Other"
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +61,13 @@ class AddTransactionActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
         accountId = intent.getStringExtra("account_id")
+
+
+        ConsentCoordinator.requestConsent(
+            this, this, consentBundles = arrayOf(
+                ConsentBundle.CameraAccess, ConsentBundle.ImageLibraryAccess
+            )
+        )
 
         setupToolbar()
         setupTransactionTypeDropdown()
@@ -79,9 +85,7 @@ class AddTransactionActivity : AppCompatActivity() {
     private fun setupTransactionTypeDropdown() {
         val transactionTypes = listOf("Income", "Expense")
         val adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_dropdown_item_1line,
-            transactionTypes
+            this, android.R.layout.simple_dropdown_item_1line, transactionTypes
         )
         binding.transactionTypeInput.setAdapter(adapter)
 
@@ -99,7 +103,9 @@ class AddTransactionActivity : AppCompatActivity() {
                 "Income" -> if (validateIncomeForm()) saveIncomeTransaction()
                 "Expense" -> if (validateExpenseForm()) saveExpenseTransaction()
                 else -> {
-                    Snackbar.make(binding.root, "Please select a transaction type", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(
+                        binding.root, "Please select a transaction type", Snackbar.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -119,9 +125,10 @@ class AddTransactionActivity : AppCompatActivity() {
 
     private fun setupIncomeForm() {
         val incomeForm = binding.incomeForm
-        
+
         // Setup source dropdown
-        val sourceAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, incomeCategories)
+        val sourceAdapter =
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, incomeCategories)
         incomeForm.sourceInput.setAdapter(sourceAdapter)
 
         // Setup date picker
@@ -133,9 +140,10 @@ class AddTransactionActivity : AppCompatActivity() {
 
     private fun setupExpenseForm() {
         val expenseForm = binding.expenseForm
-        
+
         // Setup category dropdown
-        val categoryAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, expenseCategories)
+        val categoryAdapter =
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, expenseCategories)
         expenseForm.categoryInput.setAdapter(categoryAdapter)
 
         // Setup time pickers
@@ -179,15 +187,11 @@ class AddTransactionActivity : AppCompatActivity() {
 
     private fun showTimePicker(inputEditText: com.google.android.material.textfield.TextInputEditText) {
         TimePickerDialog(
-            this,
-            { _, hour, minute ->
+            this, { _, hour, minute ->
                 calendar.set(Calendar.HOUR_OF_DAY, hour)
                 calendar.set(Calendar.MINUTE, minute)
                 inputEditText.setText(timeFormatter.format(calendar.time))
-            },
-            calendar.get(Calendar.HOUR_OF_DAY),
-            calendar.get(Calendar.MINUTE),
-            true
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true
         ).show()
     }
 
@@ -335,9 +339,11 @@ class AddTransactionActivity : AppCompatActivity() {
                     Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
                     finish()
                 }
+
                 is TransactionState.Error -> {
                     Snackbar.make(binding.root, state.message, Snackbar.LENGTH_LONG).show()
                 }
+
                 TransactionState.Loading -> {
                     // Show loading indicator if needed
                 }
@@ -351,5 +357,35 @@ class AddTransactionActivity : AppCompatActivity() {
             return true
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onShowInitialConsentUi(
+        scope: ExplainScope, declinedTemporarily: List<String>
+    ) {
+        scope.showRequestReasonDialog(
+            permissions = declinedTemporarily,
+            getString(R.string.permx_explain_scope_description),
+            getString(R.string.permx_explain_scope_on_positive),
+            getString(R.string.permx_explain_scope_on_negative)
+        )
+    }
+
+    override fun onShowWarningConsentUi(
+        scope: ForwardScope, declinedPermanently: List<String>
+    ) {
+        scope.showForwardToSettingsDialog(
+            permissions = declinedPermanently,
+            getString(R.string.permx_forward_scope_description),
+            getString(R.string.permx_forward_scope_on_positive),
+            getString(R.string.permx_forward_scope_on_negative)
+        )
+    }
+
+    override fun onConsentsAccepted(accepted: List<String>) {
+        // TODO: ...
+    }
+
+    override fun onConsentsDeclined(declined: List<String>) {
+        // TODO: ...
     }
 } 

@@ -80,7 +80,7 @@
         android:visibility="gone" />
 
     <Button
-        android:id="@+id/loginButton"
+        android:id="@+id/bt_sign_in"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
@@ -89,7 +89,7 @@
         android:textColor="#FFFFFF" />
 
     <TextView
-        android:id="@+id/registerTextView"
+        android:id="@+id/tv_sign_up"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"

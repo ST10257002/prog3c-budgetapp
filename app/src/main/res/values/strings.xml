@@ -29,7 +29,7 @@
 
 
     <!-- Login and Registration -->
-    
+
     <string name="login">Login</string>
     <string name="register">Register</string>
     <string name="email">Email</string>
@@ -44,20 +44,26 @@
     <string name="passwords_dont_match">Passwords don\'t match</string>
     <string name="login_successful">Login successful</string>
     <string name="registration_successful">Registration successful</string>
-    
+
     <!-- PermissionX -->
-    
+
     <string name="permx_explain_scope_description">
         We need access to these permissions to ensure that you have a good experience with us.
         You will not be able to access some features without these.
     </string>
     <string name="permx_explain_scope_on_positive">Accept</string>
     <string name="permx_explain_scope_on_negative">Decline</string>
-    
+
     <string name="permx_forward_scope_description">
         Some permissions have been hidden by your operating system.
         Please grant them in the app settings by clicking the button below.
     </string>
     <string name="permx_forward_scope_on_positive">Grant in Settings</string>
     <string name="permx_forward_scope_on_negative">Decline</string>
+
+    <!-- Biometrics -->
+
+    <string name="biometrics_scope_title">Login with fingerprint</string>
+    <string name="biometrics_scope_description">Use your fingerprint to authenticate using the details of the previously logged-in profile.</string>
+    <string name="biometrics_scope_on_negative">Use credentials instead</string>
 </resources>

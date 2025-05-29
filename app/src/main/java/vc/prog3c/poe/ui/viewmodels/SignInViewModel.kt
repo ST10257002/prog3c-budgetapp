@@ -1,43 +1,73 @@
 package vc.prog3c.poe.ui.viewmodels
 
+import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
-import java.util.regex.Pattern
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import vc.prog3c.poe.core.models.SignInCredentials
+import vc.prog3c.poe.core.services.AuthService
+import vc.prog3c.poe.core.utils.Blogger
+import vc.prog3c.poe.data.services.FirestoreService
 
-class SignInViewModel : ViewModel() {
+class SignInViewModel(
+    private val authService: AuthService = AuthService()
+) : ViewModel() {
+    companion object {
+        private const val TAG = "SignInViewModel"
+    }
 
-    private val auth = FirebaseAuth.getInstance()
+
+    // --- Fields
+
+
     private val _uiState = MutableLiveData<SignInUiState>()
     val uiState: LiveData<SignInUiState> = _uiState
 
-    fun signIn(email: String, password: String) {
-        if (email.isBlank() || password.isBlank()) {
-            _uiState.value = SignInUiState.Failure("Email and password are required")
-            return
-        }
 
-        if (!isValidEmail(email)) {
-            _uiState.value = SignInUiState.Failure("Invalid email format")
-            return
+    // --- Activity Functions
+
+
+    /**
+     * Uses the [AuthService] to authenticate the returning user.
+     */
+    fun signIn(
+        credentials: SignInCredentials
+    ) = viewModelScope.launch {
+        credentials.getValidationErrors()?.let {
+            _uiState.value = SignInUiState.Failure(it)
+            return@launch
         }
 
         _uiState.value = SignInUiState.Loading
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                _uiState.value = if (task.isSuccessful)
-                    SignInUiState.Success
-                else
-                    SignInUiState.Failure("Authentication failed: ${task.exception?.message}")
+
+        runCatching {
+            withTimeout(10000) {
+                authService.signInAsync(credentials.identity, credentials.password)
             }
+        }.apply {
+            onSuccess { user ->
+                Blogger.d(TAG, "Sign-in for user ${user.uid} success")
+                _uiState.value = SignInUiState.Success
+            }
+            
+            onFailure { throwable ->
+                Blogger.d(TAG, "Sign-up failed: ${throwable.message}")
+                _uiState.value = SignInUiState.Failure("Unexpected error during sign-in")
+            }
+        }
     }
 
-    private fun isValidEmail(email: String): Boolean {
-        val emailPattern = Pattern.compile(
-            "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
-            Pattern.CASE_INSENSITIVE
-        )
-        return emailPattern.matcher(email).matches()
+
+    fun canAutoLoginUser(): Boolean = authService.isUserSignedIn()
+    
+    
+    fun tryAutoLoginUser() {
+        when (canAutoLoginUser()) {
+            true -> _uiState.value = SignInUiState.Success
+            else -> throw IllegalStateException("Authenticated user is not cached")
+        }
     }
 }

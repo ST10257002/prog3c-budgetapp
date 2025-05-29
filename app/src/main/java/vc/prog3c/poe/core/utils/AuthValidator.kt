@@ -9,6 +9,9 @@ object AuthValidator {
     }
 
 
+    fun isMatchingCreds(input: String, match: String): Boolean = (input == match)
+
+
     fun isValidPassword(
         input: String
     ): Boolean {

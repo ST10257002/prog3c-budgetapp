@@ -4,6 +4,8 @@ data class User(
     val id: String = "", // Firestore doc ID = Firebase UID
     val uid: String = "",         // FirebaseAuth UID
     val name: String = "",
+    val username: String = "",
+    val surname: String = "",
     val email: String = "",
     val phoneNumber: String = "",
     val address: String = "",
@@ -13,4 +15,6 @@ data class User(
     val cardType: String = "",  // e.g., Visa, Mastercard
     val cvc: String = "",
     val expiryDate: String = "" // e.g., 12/28
-)
+) {
+    fun getFullName(): String = "$name $surname"
+}

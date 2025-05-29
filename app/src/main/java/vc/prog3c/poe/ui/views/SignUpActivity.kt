@@ -7,14 +7,25 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import vc.prog3c.poe.core.models.SignUpCredentials
+import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.databinding.ActivitySignUpBinding
 import vc.prog3c.poe.ui.viewmodels.SignUpUiState
 import vc.prog3c.poe.ui.viewmodels.SignUpViewModel
 
 class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
+
     private lateinit var vBinds: ActivitySignUpBinding
     private lateinit var vModel: SignUpViewModel
+
+    companion object {
+        private const val TAG = "SignUpActivity"
+    }
+
+
+    // --- Lifecycle
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,41 +39,50 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
         observeViewModel()
     }
 
+
+    // --- ViewModel
+
+
     private fun observeViewModel() {
         vModel.uiState.observe(this) { state ->
             when (state) {
                 is SignUpUiState.Success -> navigateToDashboard()
                 is SignUpUiState.Failure -> {
-                    Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
+                    Blogger.e(TAG, state.message)
+                    Toast.makeText(
+                        this, state.message, Toast.LENGTH_SHORT
+                    ).show()
                 }
-                is SignUpUiState.Loading -> {
-                    // Optional: show loading spinner
-                }
+
+                is SignUpUiState.Loading -> {}
                 else -> {}
             }
         }
     }
 
-    private fun tryAuthenticateCredentials() {
-        val firstName = vBinds.firstNameEditText.text.toString().trim()
-        val lastName = vBinds.lastNameEditText.text.toString().trim()
-        val fullName = "$firstName $lastName"
-        val email = vBinds.emailEditText.text.toString().trim()
-        val password = vBinds.etPassword.text.toString().trim()
-        val confirmPassword = vBinds.confirmPasswordEditText.text.toString().trim()
 
-        vModel.signUp(
-            name = fullName,
-            email = email,
-            password = password,
-            confirmPassword = confirmPassword
+    // --- Internals
+
+
+    private fun tryAuthenticateCredentials() {
+        val credentials = SignUpCredentials(
+            name = vBinds.etNameFirst.text.toString().trim(),
+            surname = vBinds.etNameFinal.text.toString().trim(),
+            usermail = vBinds.etUserMail.text.toString().trim(),
+            username = vBinds.etUsername.text.toString().trim(),
+            defaultPassword = vBinds.etDefaultPassword.text.toString().trim(),
+            confirmPassword = vBinds.etConfirmPassword.text.toString().trim()
         )
+
+        vModel.signUp(credentials)
     }
+
 
     private fun navigateToSignIn() {
         startActivity(Intent(this, SignInActivity::class.java))
         finish()
     }
+
 
     private fun navigateToDashboard() {
         val intent = Intent(this, DashboardView::class.java)
@@ -71,21 +91,31 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
         finish()
     }
 
+
+    // --- Event Handlers
+
+
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.registerButton.id -> tryAuthenticateCredentials()
-            vBinds.loginButton.id -> navigateToSignIn()
+            vBinds.btSignUp.id -> tryAuthenticateCredentials()
+            vBinds.btSignIn.id -> navigateToSignIn()
         }
     }
 
+
     private fun setupClickListeners() {
-        vBinds.registerButton.setOnClickListener(this)
-        vBinds.loginButton.setOnClickListener(this)
+        vBinds.btSignUp.setOnClickListener(this)
+        vBinds.btSignIn.setOnClickListener(this)
     }
+
+
+    // --- UI
+
 
     private fun setupBindings() {
         vBinds = ActivitySignUpBinding.inflate(layoutInflater)
     }
+
 
     private fun setupLayoutUi() {
         setContentView(vBinds.root)

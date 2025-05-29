@@ -46,7 +46,7 @@
                 app:boxCornerRadiusBottomEnd="8dp">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/firstNameEditText"
+                    android:id="@+id/et_name_first"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPersonName"
@@ -70,7 +70,7 @@
                 app:boxCornerRadiusBottomEnd="8dp">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/lastNameEditText"
+                    android:id="@+id/et_name_final"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPersonName"
@@ -119,7 +119,7 @@
             app:boxCornerRadiusBottomEnd="8dp">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/emailEditText"
+                android:id="@+id/et_user_mail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
@@ -145,7 +145,7 @@
             app:passwordToggleTint="#58bc82">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_password"
+                android:id="@+id/et_default_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
@@ -177,7 +177,7 @@
             app:passwordToggleTint="#58bc82">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/confirmPasswordEditText"
+                android:id="@+id/et_confirm_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
@@ -258,7 +258,7 @@
             android:visibility="gone" />
 
         <Button
-            android:id="@+id/registerButton"
+            android:id="@+id/bt_sign_up"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
@@ -275,7 +275,7 @@
             android:layout_marginTop="16dp" />
 
         <Button
-            android:id="@+id/loginButton"
+            android:id="@+id/bt_sign_in"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Login"

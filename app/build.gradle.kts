@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace = "vc.prog3c.poe"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "vc.prog3c.poe"
-        minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = 29
+        targetSdk = 35
+        versionCode = 2
+        versionName = "post-2025w21a"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

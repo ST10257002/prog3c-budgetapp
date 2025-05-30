@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
@@ -15,6 +17,7 @@ import vc.prog3c.poe.data.models.MonthlyStats
 import vc.prog3c.poe.data.models.SavingsGoal
 import vc.prog3c.poe.databinding.ActivityDashboardBinding
 import vc.prog3c.poe.ui.adapters.CategoryAdapter
+import vc.prog3c.poe.ui.viewmodels.DashboardUiState
 import vc.prog3c.poe.ui.viewmodels.DashboardViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -54,33 +57,37 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
     // --- ViewModel
 
 
-    private fun observeViewModel() {
-        vModel.savingsGoals.observe(this) { goals ->
-            updateSavingsGoalUI(goals)
-            vBinds.swipeRefreshLayout.isRefreshing = false
-        }
-
-        vModel.budget.observe(this) { budget ->
-            updateBudgetUI(budget, vModel.monthlyStats.value)
-        }
-
-        vModel.monthlyStats.observe(this) { stats ->
-            updateBudgetUI(vModel.budget.value, stats)
-        }
-
-        vModel.categoryBreakdown.observe(this) { breakdown ->
-            updateCategoryAdapter(breakdown)
-        }
-
-        vModel.error.observe(this) { error ->
-            error?.let {
-                Snackbar.make(vBinds.root, it, Snackbar.LENGTH_LONG).show()
+    private fun observeViewModel() = vModel.uiState.observe(this) { state ->
+        when (state) {
+            is DashboardUiState.Default -> {
                 vBinds.swipeRefreshLayout.isRefreshing = false
             }
-        }
 
-        vModel.isLoading.observe(this) { isLoading ->
-            vBinds.swipeRefreshLayout.isRefreshing = isLoading
+            is DashboardUiState.Loading -> {
+                vBinds.swipeRefreshLayout.isRefreshing = true
+            }
+
+            is DashboardUiState.Failure -> {
+                vBinds.swipeRefreshLayout.isRefreshing = false
+                Snackbar.make(
+                    vBinds.root, state.message, Snackbar.LENGTH_LONG
+                ).show()
+            }
+
+            is DashboardUiState.Updated -> {
+                state.breakdowns?.let {
+                    updateCategoryAdapter(it)
+                }
+
+                state.savingsGoals?.let {
+                    updateSavingsGoalUI(it)
+                    vBinds.swipeRefreshLayout.isRefreshing = false
+                }
+
+                if (state.statistics != null || state.budget != null) {
+                    updateBudgetUI(state.budget, state.statistics)
+                }
+            }
         }
     }
 
@@ -110,7 +117,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
                 else -> false
             }
         }
-        
+
         vBinds.bottomNavigation.selectedItemId = R.id.nav_dashboard
     }
 
@@ -333,6 +340,11 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
     private fun setupLayoutUi() {
         setContentView(vBinds.root)
         enableEdgeToEdge()
+        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         setupToolbar()
         setupSwipeRefresh()

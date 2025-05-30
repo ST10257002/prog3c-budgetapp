@@ -51,20 +51,18 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
     // --- ViewModel
 
 
-    private fun observeViewModel() {
-        vModel.uiState.observe(this) { state ->
-            when (state) {
-                is SignInUiState.Success -> navigateToNextScreen()
-                is SignInUiState.Failure -> {
-                    Blogger.e(TAG, state.message)
-                    Toast.makeText(
-                        this, state.message, Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-                is SignInUiState.Loading -> {}
-                else -> {}
+    private fun observeViewModel() = vModel.uiState.observe(this) { state ->
+        when (state) {
+            is SignInUiState.Success -> navigateToNextScreen()
+            is SignInUiState.Failure -> {
+                Blogger.e(TAG, state.message)
+                Toast.makeText(
+                    this, state.message, Toast.LENGTH_SHORT
+                ).show()
             }
+
+            is SignInUiState.Loading -> {}
+            else -> {}
         }
     }
 

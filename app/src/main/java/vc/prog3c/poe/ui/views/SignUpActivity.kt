@@ -43,20 +43,18 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
     // --- ViewModel
 
 
-    private fun observeViewModel() {
-        vModel.uiState.observe(this) { state ->
-            when (state) {
-                is SignUpUiState.Success -> navigateToDashboard()
-                is SignUpUiState.Failure -> {
-                    Blogger.e(TAG, state.message)
-                    Toast.makeText(
-                        this, state.message, Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-                is SignUpUiState.Loading -> {}
-                else -> {}
+    private fun observeViewModel() = vModel.uiState.observe(this) { state ->
+        when (state) {
+            is SignUpUiState.Success -> navigateToDashboard()
+            is SignUpUiState.Failure -> {
+                Blogger.e(TAG, state.message)
+                Toast.makeText(
+                    this, state.message, Toast.LENGTH_SHORT
+                ).show()
             }
+
+            is SignUpUiState.Loading -> {}
+            else -> {}
         }
     }
 

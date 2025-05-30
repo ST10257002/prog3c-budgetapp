@@ -58,6 +58,7 @@ class AddTransactionActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
+    // TODO: REPLACE WITH SERVICE
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -74,6 +75,7 @@ class AddTransactionActivity : AppCompatActivity() {
         }
     }
 
+    // TODO: REPLACE WITH SERVICE
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -84,6 +86,7 @@ class AddTransactionActivity : AppCompatActivity() {
         }
     }
 
+    // TODO: REPLACE WITH SERVICE
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -387,6 +390,7 @@ class AddTransactionActivity : AppCompatActivity() {
             }
     }
 
+    
     private fun uploadPhoto(uri: Uri): Task<Uri> {
         return storage.reference
             .child("transactions/${UUID.randomUUID()}")
@@ -399,27 +403,33 @@ class AddTransactionActivity : AppCompatActivity() {
             }
     }
 
+    
     // Helper functions for date/time formatting and parsing
     private fun Date.formatToString(): String {
         return SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(this)
     }
 
+    
     private fun parseDate(dateStr: String): Date {
         return SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(dateStr) ?: Date()
     }
 
+    
     private fun parseTime(timeStr: String): Date {
         return SimpleDateFormat("HH:mm", Locale.getDefault()).parse(timeStr) ?: Date()
     }
 
+    
     private fun showSuccessMessage(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
+    
 
     private fun showErrorMessage(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
     }
 
+    
     private fun observeViewModels() {
         viewModel.transactionState.observe(this) { state ->
             when (state) {
@@ -442,6 +452,8 @@ class AddTransactionActivity : AppCompatActivity() {
         }
     }
 
+    
+    // TODO: REPLACE WITH SERVICE
     private fun checkPermissionAndLaunchImagePicker() {
         when {
             ContextCompat.checkSelfPermission(
@@ -456,6 +468,8 @@ class AddTransactionActivity : AppCompatActivity() {
         }
     }
 
+    
+    // TODO: REPLACE WITH SERVICE
     private fun checkPermissionAndLaunchCamera() {
         when {
             ContextCompat.checkSelfPermission(
@@ -469,11 +483,15 @@ class AddTransactionActivity : AppCompatActivity() {
             }
         }
     }
+    
 
+    // TODO: REPLACE WITH SERVICE
     private fun launchImagePicker() {
         imagePickerLauncher.launch(ImageUtils.getImagePickerIntent())
     }
+    
 
+    // TODO: REPLACE WITH SERVICE
     private fun launchCamera() {
         currentPhotoFile = ImageUtils.createImageFile(this)
         currentPhotoFile?.let { file ->
@@ -481,6 +499,7 @@ class AddTransactionActivity : AppCompatActivity() {
         }
     }
 
+    
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {

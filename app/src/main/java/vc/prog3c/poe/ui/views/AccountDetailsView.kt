@@ -37,7 +37,7 @@ class AccountDetailsView : AppCompatActivity() {
         setContentView(binding.root)
 
         // Ensure user is authenticated
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val uid = FirebaseAuth.getInstance().currentUser?.uid // TODO: REPLACE WITH SERVICE
         if (uid.isNullOrEmpty()) {
             Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
             finish()

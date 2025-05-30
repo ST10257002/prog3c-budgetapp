@@ -2,91 +2,48 @@ package vc.prog3c.poe.ui.views
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import vc.prog3c.poe.R
 import vc.prog3c.poe.databinding.ActivityProfileBinding
 import vc.prog3c.poe.ui.viewmodels.AuthViewModel
 
-class ProfileActivity : AppCompatActivity() {
+class ProfileActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var vBinds: ActivityProfileBinding
     private lateinit var vModel: AuthViewModel
 
+
+    // --- Lifecycle
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        vBinds = ActivityProfileBinding.inflate(layoutInflater)
-        setContentView(vBinds.root)
+
+        setupBindings()
+        setupLayoutUi()
+        setupClickListeners()
 
         vModel = ViewModelProvider(this)[AuthViewModel::class.java]
 
-        setupToolbar()
         setupBottomNavigation()
-        setupButtons()
         observeViewModel()
 
         vModel.loadUserProfile() // Load user info from Firestore
     }
 
-    private fun setupToolbar() {
-        setSupportActionBar(vBinds.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Profile"
-    }
-
-    private fun setupBottomNavigation() {
-        vBinds.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_dashboard -> {
-                    startActivity(Intent(this, DashboardView::class.java))
-                    finish() // Close current activity
-                    true
-                }
-                R.id.nav_accounts -> {
-                    startActivity(Intent(this, AccountsView::class.java))
-                    finish() // Close current activity
-                    true
-                }
-                R.id.nav_graph -> {
-                    startActivity(Intent(this, GraphView::class.java))
-                    finish() // Close current activity
-                    true
-                }
-                R.id.nav_profile -> {
-                    // Already on profile
-                    true
-                }
-                else -> false
-            }
-        }
-        vBinds.bottomNavigation.selectedItemId = R.id.nav_profile
-    }
 
     override fun onResume() {
-        super.onResume()
-        // Ensure profile is selected when returning to this activity
+        super.onResume() // Ensure profile is selected when returning to this activity
         vBinds.bottomNavigation.selectedItemId = R.id.nav_profile
     }
 
-    private fun setupButtons() {
-        vBinds.manageGoalsButton.setOnClickListener {
-            startActivity(Intent(this, ManageGoalsActivity::class.java))
-        }
 
-        vBinds.achievementsButton.setOnClickListener {
-            val intent = Intent(this, AchievementsActivity::class.java)
-            startActivity(intent)
-        }
+    // --- ViewModel
 
-        vBinds.logoutButton.setOnClickListener {
-            vModel.signOut()
-            startActivity(Intent(this, SignInActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            })
-            finish()
-        }
-    }
 
     private fun observeViewModel() {
         vModel.currentUser.observe(this) { user ->
@@ -107,8 +64,105 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
+
+    // --- Internals
+
+
+    private fun setupBottomNavigation() {
+        vBinds.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_dashboard -> {
+                    startActivity(Intent(this, DashboardView::class.java))
+                    finish() // Close current activity
+                    true
+                }
+
+                R.id.nav_accounts -> {
+                    startActivity(Intent(this, AccountsView::class.java))
+                    finish() // Close current activity
+                    true
+                }
+
+                R.id.nav_graph -> {
+                    startActivity(Intent(this, GraphView::class.java))
+                    finish() // Close current activity
+                    true
+                }
+
+                R.id.nav_profile -> {
+                    // Already on profile
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        vBinds.bottomNavigation.selectedItemId = R.id.nav_profile
+    }
+
+
+    // --- Event Handlers
+
+
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
+    }
+
+
+    override fun onClick(view: View?) {
+        when (view?.id) {
+            vBinds.manageGoalsButton.id -> startActivity(
+                Intent(
+                    this, ManageGoalsActivity::class.java
+                )
+            )
+
+            vBinds.achievementsButton.id -> {
+                val intent = Intent(this, AchievementsActivity::class.java)
+                startActivity(intent)
+            }
+
+            vBinds.logoutButton.id -> {
+                vModel.signOut()
+                startActivity(Intent(this, SignInActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                })
+                finish()
+            }
+        }
+    }
+
+
+    private fun setupClickListeners() {
+        vBinds.manageGoalsButton.setOnClickListener(this)
+        vBinds.achievementsButton.setOnClickListener(this)
+        vBinds.logoutButton.setOnClickListener(this)
+    }
+
+
+    // --- UI Configuration
+
+
+    private fun setupToolbar() {
+        setSupportActionBar(vBinds.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Profile"
+    }
+
+
+    // --- UI
+
+
+    private fun setupBindings() {
+        vBinds = ActivityProfileBinding.inflate(layoutInflater)
+    }
+
+
+    private fun setupLayoutUi() {
+        setContentView(vBinds.root)
+        enableEdgeToEdge()
+        setupToolbar()
     }
 }

@@ -3,12 +3,13 @@ package vc.prog3c.poe.ui.views
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
-import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Achievement
 import vc.prog3c.poe.data.models.AchievementCategory
 import vc.prog3c.poe.data.models.BoosterBucks
@@ -19,14 +20,19 @@ import java.text.NumberFormat
 import java.util.Locale
 
 class AchievementsActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityAchievementsBinding
+    private lateinit var vBinds: ActivityAchievementsBinding
     private lateinit var viewModel: AchievementViewModel
     private lateinit var adapter: AchievementAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAchievementsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        vBinds = ActivityAchievementsBinding.inflate(layoutInflater)
+        setContentView(vBinds.root)
+        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         viewModel = ViewModelProvider(this)[AchievementViewModel::class.java]
 
@@ -38,7 +44,7 @@ class AchievementsActivity : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(vBinds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Achievements"
     }
@@ -47,14 +53,14 @@ class AchievementsActivity : AppCompatActivity() {
         adapter = AchievementAdapter(emptyList()) { achievement ->
             showAchievementDetails(achievement)
         }
-        binding.achievementsRecyclerView.apply {
+        vBinds.achievementsRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@AchievementsActivity)
             adapter = this@AchievementsActivity.adapter
         }
     }
 
     private fun setupTabLayout() {
-        binding.achievementTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+        vBinds.achievementTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 val category = when (tab?.position) {
                     0 -> null // All
@@ -75,7 +81,7 @@ class AchievementsActivity : AppCompatActivity() {
     }
 
     private fun setupBoosterBucksCard() {
-        binding.redeemButton.setOnClickListener {
+        vBinds.redeemButton.setOnClickListener {
             showRedeemDialog()
         }
     }
@@ -91,15 +97,15 @@ class AchievementsActivity : AppCompatActivity() {
 
         viewModel.error.observe(this) { error ->
             error?.let {
-                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(vBinds.root, it, Snackbar.LENGTH_LONG).show()
             }
         }
     }
 
     private fun updateBoosterBucksDisplay(boosterBucks: BoosterBucks) {
         val formatter = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
-        binding.boosterBucksBalance.text = boosterBucks.availableBalance.toString()
-        binding.boosterBucksValue.text = formatter.format(boosterBucks.availableBalance * BoosterBucks.CONVERSION_RATE)
+        vBinds.boosterBucksBalance.text = boosterBucks.availableBalance.toString()
+        vBinds.boosterBucksValue.text = formatter.format(boosterBucks.availableBalance * BoosterBucks.CONVERSION_RATE)
     }
 
     private fun showAchievementDetails(achievement: Achievement) {
@@ -120,7 +126,7 @@ class AchievementsActivity : AppCompatActivity() {
         val boosterBucks = viewModel.boosterBucks.value ?: return
         if (boosterBucks.availableBalance < BoosterBucks.MIN_REDEMPTION) {
             Snackbar.make(
-                binding.root,
+                vBinds.root,
                 "You need at least ${BoosterBucks.MIN_REDEMPTION} Booster Bucks to redeem",
                 Snackbar.LENGTH_LONG
             ).show()

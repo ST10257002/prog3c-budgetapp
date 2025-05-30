@@ -6,8 +6,9 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
-import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -22,19 +23,23 @@ import vc.prog3c.poe.databinding.ActivityAccountDetailsBinding
 import vc.prog3c.poe.ui.viewmodels.AccountDetailsViewModel
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class AccountDetailsView : AppCompatActivity() {
 
-    private lateinit var binding: ActivityAccountDetailsBinding
+    private lateinit var vBinds: ActivityAccountDetailsBinding
     private lateinit var viewModel: AccountDetailsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAccountDetailsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        vBinds = ActivityAccountDetailsBinding.inflate(layoutInflater)
+        setContentView(vBinds.root)
+        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         // Ensure user is authenticated
         val uid = FirebaseAuth.getInstance().currentUser?.uid // TODO: REPLACE WITH SERVICE
@@ -53,7 +58,7 @@ class AccountDetailsView : AppCompatActivity() {
         observeViewModel()
 
         // Default to 1 month
-        binding.timePeriodChipGroup.check(R.id.chip1Month)
+        vBinds.timePeriodChipGroup.check(R.id.chip1Month)
 
         // Load details
         val accountId = intent.getStringExtra("account_id")
@@ -66,13 +71,13 @@ class AccountDetailsView : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(vBinds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Account"
     }
 
     private fun setupTimePeriodChips() {
-        binding.timePeriodChipGroup.setOnCheckedChangeListener { _, checkedId ->
+        vBinds.timePeriodChipGroup.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.chip1Week  -> viewModel.filterTransactionsByTimePeriod("1 week")
                 R.id.chip1Month -> viewModel.filterTransactionsByTimePeriod("1 month")
@@ -82,20 +87,20 @@ class AccountDetailsView : AppCompatActivity() {
     }
 
     private fun setupButtons() {
-        binding.viewTransactionsButton.setOnClickListener {
+        vBinds.viewTransactionsButton.setOnClickListener {
             Intent(this, TransactionsView::class.java).apply {
                 putExtra("account_id", viewModel.account.value?.id)
                 startActivity(this)
             }
         }
 
-        binding.deleteAccountButton.setOnClickListener {
+        vBinds.deleteAccountButton.setOnClickListener {
             showDeleteConfirmationDialog()
         }
     }
 
     private fun setupLineChart() {
-        binding.accountLineChart.apply {
+        vBinds.accountLineChart.apply {
             description.isEnabled = false
             setTouchEnabled(true)
             setDrawGridBackground(false)
@@ -130,12 +135,12 @@ class AccountDetailsView : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.account.observe(this) { account ->
             account?.let {
-                binding.accountNameTextView.text = it.name
-                binding.accountTypeTextView.text = it.type
+                vBinds.accountNameTextView.text = it.name
+                vBinds.accountTypeTextView.text = it.type
 
                 viewModel.calculatedBalance.observe(this) { balance ->
                     val za = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
-                    binding.accountBalanceAmount.text = za.format(balance)
+                    vBinds.accountBalanceAmount.text = za.format(balance)
                 }
 
 
@@ -144,13 +149,13 @@ class AccountDetailsView : AppCompatActivity() {
                     "savings"-> R.drawable.ic_savings
                     else      -> R.drawable.ic_account_balance
                 }
-                binding.accountIcon.setImageResource(icon)
+                vBinds.accountIcon.setImageResource(icon)
                 supportActionBar?.title = it.name
             }
         }
 
         viewModel.transactions.observe(this) { txs ->
-            binding.transactionsSummaryTextView.text = "${txs.size} Transactions"
+            vBinds.transactionsSummaryTextView.text = "${txs.size} Transactions"
             updateLineChart(txs)
         }
 
@@ -160,7 +165,7 @@ class AccountDetailsView : AppCompatActivity() {
 
     private fun updateLineChart(transactions: List<Transaction>) {
         if (transactions.isEmpty()) {
-            binding.accountLineChart.clear()
+            vBinds.accountLineChart.clear()
             return
         }
 
@@ -188,16 +193,16 @@ class AccountDetailsView : AppCompatActivity() {
             valueTextColor = Color.BLACK
         }
 
-        binding.accountLineChart.data = LineData(ds)
+        vBinds.accountLineChart.data = LineData(ds)
         val labels = sorted.map { fmt ->
             SimpleDateFormat("MMM dd", Locale.getDefault()).format(fmt.date.toDate())
         }
-        binding.accountLineChart.xAxis.apply {
+        vBinds.accountLineChart.xAxis.apply {
             valueFormatter = IndexAxisValueFormatter(labels)
             labelRotationAngle = -45f
             granularity = TimeUnit.DAYS.toMillis(1).toFloat()
         }
-        binding.accountLineChart.invalidate()
+        vBinds.accountLineChart.invalidate()
     }
 
     private fun showDeleteConfirmationDialog() {
@@ -215,7 +220,7 @@ class AccountDetailsView : AppCompatActivity() {
     }
 
     private fun showError(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(vBinds.root, message, Snackbar.LENGTH_LONG).show()
     }
 
     override fun onSupportNavigateUp(): Boolean {

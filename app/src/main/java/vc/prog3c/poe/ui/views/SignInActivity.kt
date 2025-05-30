@@ -7,6 +7,8 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import vc.prog3c.poe.R
 import vc.prog3c.poe.core.models.BiometricUiHost
@@ -162,5 +164,10 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
     private fun setupLayoutUi() {
         setContentView(vBinds.root)
         enableEdgeToEdge()
+        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
     }
 }

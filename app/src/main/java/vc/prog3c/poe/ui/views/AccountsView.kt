@@ -9,6 +9,8 @@ import android.widget.AutoCompleteTextView
 import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.mikephil.charting.components.Legend
@@ -29,14 +31,19 @@ import java.util.Locale
 import java.util.UUID
 
 class AccountsView : AppCompatActivity() {
-    private lateinit var binding: ActivityAccountsBinding
+    private lateinit var vBinds: ActivityAccountsBinding
     private lateinit var viewModel: AccountsViewModel
     private lateinit var accountAdapter: AccountAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAccountsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        vBinds = ActivityAccountsBinding.inflate(layoutInflater)
+        setContentView(vBinds.root)
+        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         viewModel = ViewModelProvider(this)[AccountsViewModel::class.java]
 
@@ -53,13 +60,13 @@ class AccountsView : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(vBinds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Accounts"
     }
 
     private fun setupBottomNavigation() {
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
+        vBinds.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_dashboard -> {
                     startActivity(Intent(this, DashboardView::class.java))
@@ -78,11 +85,11 @@ class AccountsView : AppCompatActivity() {
                 else -> false
             }
         }
-        binding.bottomNavigation.selectedItemId = R.id.nav_accounts
+        vBinds.bottomNavigation.selectedItemId = R.id.nav_accounts
     }
 
     private fun setupSwipeRefresh() {
-        binding.swipeRefreshLayout.apply {
+        vBinds.swipeRefreshLayout.apply {
             setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
             setOnRefreshListener { viewModel.fetchAccounts() }
         }
@@ -90,7 +97,7 @@ class AccountsView : AppCompatActivity() {
 
     private fun setupAccountsRecyclerView() {
         accountAdapter = AccountAdapter()
-        binding.accountsRecyclerView.apply {
+        vBinds.accountsRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@AccountsView)
             adapter = accountAdapter
         }
@@ -102,7 +109,7 @@ class AccountsView : AppCompatActivity() {
     }
 
     private fun setupAddAccountButton() {
-        binding.addAccountButton.setOnClickListener { showAddAccountDialog() }
+        vBinds.addAccountButton.setOnClickListener { showAddAccountDialog() }
     }
 
     private fun showAddAccountDialog() {
@@ -131,7 +138,7 @@ class AccountsView : AppCompatActivity() {
             // ⚡️ REAL USER ID
             val uid = FirebaseAuth.getInstance().currentUser?.uid
                 ?: return@setOnClickListener run {
-                    Snackbar.make(binding.root, "Not signed in", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(vBinds.root, "Not signed in", Snackbar.LENGTH_SHORT).show()
                 }
 
             val newAccount = Account(
@@ -150,7 +157,7 @@ class AccountsView : AppCompatActivity() {
     }
 
     private fun setupNetWorthPieChart() {
-        binding.netWorthPieChart.apply {
+        vBinds.netWorthPieChart.apply {
             description.isEnabled = false
             isRotationEnabled = false
             centerText = "Net Worth"
@@ -178,14 +185,14 @@ class AccountsView : AppCompatActivity() {
             updateNetWorthPieChart(list)
         }
         viewModel.netWorth.observe(this) { total ->
-            binding.netWorthAmount.text =
+            vBinds.netWorthAmount.text =
                 NumberFormat.getCurrencyInstance(Locale.getDefault()).format(total)
         }
         viewModel.isLoading.observe(this) { loading ->
-            binding.swipeRefreshLayout.isRefreshing = loading
+            vBinds.swipeRefreshLayout.isRefreshing = loading
         }
         viewModel.error.observe(this) { msg ->
-            msg?.let { Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show() }
+            msg?.let { Snackbar.make(vBinds.root, it, Snackbar.LENGTH_LONG).show() }
         }
     }
 
@@ -194,14 +201,14 @@ class AccountsView : AppCompatActivity() {
             .map { PieEntry(it.balance.toFloat(), it.name) }
             .filter { it.value > 0f }
         if (entries.isEmpty()) {
-            binding.netWorthPieChart.data = null
-            binding.netWorthPieChart.invalidate()
+            vBinds.netWorthPieChart.data = null
+            vBinds.netWorthPieChart.invalidate()
             return
         }
         val ds = PieDataSet(entries, "Account Distribution").apply {
             valueTextColor = Color.BLACK
             valueTextSize  = 12f
-            valueFormatter = PercentFormatter(binding.netWorthPieChart)
+            valueFormatter = PercentFormatter(vBinds.netWorthPieChart)
             colors = listOf(
                 resources.getColor(R.color.primary, null),
                 resources.getColor(R.color.green,   null),
@@ -210,8 +217,8 @@ class AccountsView : AppCompatActivity() {
                 Color.parseColor("#9C27B0")
             )
         }
-        binding.netWorthPieChart.data = PieData(ds)
-        binding.netWorthPieChart.invalidate()
-        binding.netWorthPieChart.animateY(1000)
+        vBinds.netWorthPieChart.data = PieData(ds)
+        vBinds.netWorthPieChart.invalidate()
+        vBinds.netWorthPieChart.animateY(1000)
     }
 }

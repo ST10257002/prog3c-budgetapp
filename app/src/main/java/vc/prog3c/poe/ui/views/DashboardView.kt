@@ -50,7 +50,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-        refreshData()
+        vModel.refreshData()
     }
 
 
@@ -131,12 +131,6 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@DashboardView)
             setHasFixedSize(true)
         }
-    }
-
-
-    private fun refreshData() {
-        vModel.refreshData()
-        vBinds.swipeRefreshLayout.isRefreshing = true
     }
 
 
@@ -322,9 +316,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
     private fun setupSwipeRefresh() {
         vBinds.swipeRefreshLayout.apply {
             setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
-            setOnRefreshListener {
-                refreshData()
-            }
+            setOnRefreshListener { vModel.refreshData() }
         }
     }
 

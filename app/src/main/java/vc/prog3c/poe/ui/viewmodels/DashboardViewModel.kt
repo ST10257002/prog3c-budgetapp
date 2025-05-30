@@ -22,6 +22,7 @@ import vc.prog3c.poe.data.models.MonthlyStats
 import vc.prog3c.poe.data.models.SavingsGoal
 import vc.prog3c.poe.data.services.FirestoreService
 import vc.prog3c.poe.ui.viewmodels.DashboardUiState.Failure
+import vc.prog3c.poe.ui.viewmodels.DashboardUiState.Loading
 import vc.prog3c.poe.ui.viewmodels.DashboardUiState.Updated
 import java.util.Calendar
 
@@ -261,6 +262,7 @@ class DashboardViewModel(
 
 
     fun refreshData() {
+        _uiState.value = Loading
         loadInitialData()
     }
 

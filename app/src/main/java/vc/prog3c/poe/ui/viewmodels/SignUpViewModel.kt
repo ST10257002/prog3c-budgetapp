@@ -77,7 +77,7 @@ class SignUpViewModel(
             surname = credentials.surname
         )
 
-        FirestoreService.users.addUser(user) { operationSuccessful ->
+        FirestoreService.user.addUser(user) { operationSuccessful ->
             when (operationSuccessful) {
                 true -> onDatabaseLinkSuccess()
                 else -> viewModelScope.launch {

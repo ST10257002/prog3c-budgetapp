@@ -21,13 +21,13 @@ class AuthViewModel : ViewModel() {
     val error: LiveData<String> = _error
 
     fun loadUserProfile() {
-        FirestoreService.users.getUser { user ->
+        FirestoreService.user.getUser { user ->
             _currentUser.postValue(user)
         }
     }
 
     fun completeUserProfile(update: User) {
-        FirestoreService.users.updateUser(update) { success ->
+        FirestoreService.user.updateUser(update) { success ->
             if (success) {
                 _currentUser.postValue(update)
             } else {

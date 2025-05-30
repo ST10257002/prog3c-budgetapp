@@ -176,7 +176,7 @@ class DashboardViewModel(
 
     private fun loadCategories() {
         val userId = authService.getCurrentUser()?.uid ?: return
-        FirestoreService.categories.getAllCategories { categories ->
+        FirestoreService.category.getAllCategories { categories ->
             _categories.postValue(categories ?: emptyList())
             if (categories == null) {
                 _error.postValue("Failed to load categories")

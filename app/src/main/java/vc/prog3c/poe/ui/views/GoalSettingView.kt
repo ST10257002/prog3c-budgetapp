@@ -14,8 +14,8 @@ import vc.prog3c.poe.ui.viewmodels.GoalViewModel
 
 class GoalSettingView : AppCompatActivity(), View.OnClickListener {
 
-    private lateinit var vBinds: ActivityGoalSettingBinding
-    private lateinit var vModel: GoalViewModel
+    private lateinit var binds: ActivityGoalSettingBinding
+    private lateinit var model: GoalViewModel
 
 
     // --- Lifecycle
@@ -28,7 +28,7 @@ class GoalSettingView : AppCompatActivity(), View.OnClickListener {
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[GoalViewModel::class.java]
+        model = ViewModelProvider(this)[GoalViewModel::class.java]
 
         observeViewModel()
     }
@@ -38,7 +38,7 @@ class GoalSettingView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun observeViewModel() {
-        vModel.error.observe(this) { error ->
+        model.error.observe(this) { error ->
             error?.let {
                 Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             }
@@ -50,17 +50,17 @@ class GoalSettingView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun saveForm() {
-        val minGoal = vBinds.minGoalEditText.text.toString().toDoubleOrNull()
-        val maxGoal = vBinds.maxGoalEditText.text.toString().toDoubleOrNull()
-        val monthlyBudget = vBinds.budgetEditText.text.toString().toDoubleOrNull()
+        val minGoal = binds.minGoalEditText.text.toString().toDoubleOrNull()
+        val maxGoal = binds.maxGoalEditText.text.toString().toDoubleOrNull()
+        val monthlyBudget = binds.budgetEditText.text.toString().toDoubleOrNull()
 
         if (minGoal == null || maxGoal == null || monthlyBudget == null) {
             Toast.makeText(this, "Please enter valid amounts", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (vModel.validateGoal(minGoal, maxGoal, monthlyBudget)) {
-            vModel.saveValidatedGoalToFirestore(minGoal, maxGoal, monthlyBudget) { success ->
+        if (model.validateGoal(minGoal, maxGoal, monthlyBudget)) {
+            model.saveValidatedGoalToFirestore(minGoal, maxGoal, monthlyBudget) { success ->
                 if (success) {
                     Toast.makeText(this, "Goal saved!", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, DashboardView::class.java))
@@ -70,7 +70,7 @@ class GoalSettingView : AppCompatActivity(), View.OnClickListener {
                 }
             }
         } else {
-            Toast.makeText(this, vModel.error.value ?: "Invalid goal", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, model.error.value ?: "Invalid goal", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -80,13 +80,13 @@ class GoalSettingView : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.saveButton.id -> saveForm()
+            binds.saveButton.id -> saveForm()
         }
     }
 
 
     private fun setupClickListeners() {
-        vBinds.saveButton.setOnClickListener(this)
+        binds.saveButton.setOnClickListener(this)
     }
 
 
@@ -94,14 +94,14 @@ class GoalSettingView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupBindings() {
-        vBinds = ActivityGoalSettingBinding.inflate(layoutInflater)
+        binds = ActivityGoalSettingBinding.inflate(layoutInflater)
     }
 
 
     private fun setupLayoutUi() {
-        setContentView(vBinds.root)
+        setContentView(binds.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

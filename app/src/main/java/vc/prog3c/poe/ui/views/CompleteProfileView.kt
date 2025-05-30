@@ -14,8 +14,8 @@ import vc.prog3c.poe.ui.viewmodels.AuthViewModel
 
 class CompleteProfileView : AppCompatActivity(), View.OnClickListener {
 
-    private lateinit var vBinds: ActivityCompleteProfileBinding
-    private lateinit var vModel: AuthViewModel // TODO: <-- This needs to change as this viewmodel is no longer used and needs deleting
+    private lateinit var binds: ActivityCompleteProfileBinding
+    private lateinit var model: AuthViewModel // TODO: <-- This needs to change as this viewmodel is no longer used and needs deleting
 
 
     // --- Lifecycle
@@ -28,7 +28,7 @@ class CompleteProfileView : AppCompatActivity(), View.OnClickListener {
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[AuthViewModel::class.java]
+        model = ViewModelProvider(this)[AuthViewModel::class.java]
 
         observeViewModel()
     }
@@ -38,7 +38,7 @@ class CompleteProfileView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun observeViewModel() {
-        vModel.error.observe(this) { error ->
+        model.error.observe(this) { error ->
             error?.let {
                 Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             }
@@ -50,12 +50,12 @@ class CompleteProfileView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun saveForm() {
-        val address = vBinds.accountEditText.text.toString()
-        val phone = vBinds.phoneNumberEditText.text.toString()
-        val cardNumber = vBinds.cardNumberEditText.text.toString()
-        val cardType = vBinds.cardTypeSpinner.text.toString()
-        val cvc = vBinds.cvcEditText.text.toString()
-        val expiry = vBinds.expiryEditText.text.toString()
+        val address = binds.accountEditText.text.toString()
+        val phone = binds.phoneNumberEditText.text.toString()
+        val cardNumber = binds.cardNumberEditText.text.toString()
+        val cardType = binds.cardTypeSpinner.text.toString()
+        val cvc = binds.cvcEditText.text.toString()
+        val expiry = binds.expiryEditText.text.toString()
 
         if (address.isNotEmpty() && phone.isNotEmpty() && cardNumber.isNotEmpty() && cardType.isNotEmpty() && cvc.isNotEmpty() && expiry.isNotEmpty()) {
             // TODO: Save profile information
@@ -78,15 +78,15 @@ class CompleteProfileView : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.addProfilePicButton.id -> {} // TODO: Handle profile picture selection
-            vBinds.saveButton.id -> saveForm()
+            binds.addProfilePicButton.id -> {} // TODO: Handle profile picture selection
+            binds.saveButton.id -> saveForm()
         }
     }
 
 
     private fun setupClickListeners() {
-        vBinds.addProfilePicButton.setOnClickListener(this)
-        vBinds.saveButton.setOnClickListener(this)
+        binds.addProfilePicButton.setOnClickListener(this)
+        binds.saveButton.setOnClickListener(this)
     }
 
 
@@ -94,7 +94,7 @@ class CompleteProfileView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupToolbar() {
-        setSupportActionBar(vBinds.toolbar)
+        setSupportActionBar(binds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
@@ -105,7 +105,7 @@ class CompleteProfileView : AppCompatActivity(), View.OnClickListener {
             this, android.R.layout.simple_dropdown_item_1line, cardTypes
         )
 
-        vBinds.cardTypeSpinner.setAdapter(adapter)
+        binds.cardTypeSpinner.setAdapter(adapter)
     }
 
 
@@ -113,14 +113,14 @@ class CompleteProfileView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupBindings() {
-        vBinds = ActivityCompleteProfileBinding.inflate(layoutInflater)
+        binds = ActivityCompleteProfileBinding.inflate(layoutInflater)
     }
 
 
     private fun setupLayoutUi() {
-        setContentView(vBinds.root)
+        setContentView(binds.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

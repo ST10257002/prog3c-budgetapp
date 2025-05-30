@@ -4,12 +4,10 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
-import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -25,20 +23,20 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class GraphView : AppCompatActivity() {
-    private lateinit var binding: ActivityGraphViewBinding
-    private lateinit var viewModel: GraphViewModel // Correct reference
+    private lateinit var binds: ActivityGraphViewBinding
+    private lateinit var model: GraphViewModel // Correct reference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityGraphViewBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+        binds = ActivityGraphViewBinding.inflate(layoutInflater)
+        setContentView(binds.root)
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        viewModel = ViewModelProvider(this)[GraphViewModel::class.java] // Correct reference
+        model = ViewModelProvider(this)[GraphViewModel::class.java] // Correct reference
 
         setupToolbar()
         setupBottomNavigation()
@@ -47,17 +45,17 @@ class GraphView : AppCompatActivity() {
         observeViewModel()
 
         // Initial data load
-        viewModel.loadGraphData() // Call ViewModel function
+        model.loadGraphData() // Call ViewModel function
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(binds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Graphs"
     }
 
     private fun setupBottomNavigation() {
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
+        binds.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_dashboard -> {
                     startActivity(Intent(this, DashboardView::class.java))
@@ -80,11 +78,11 @@ class GraphView : AppCompatActivity() {
                 else -> false
             }
         }
-        binding.bottomNavigation.selectedItemId = R.id.nav_graph
+        binds.bottomNavigation.selectedItemId = R.id.nav_graph
     }
 
     private fun setupSwipeRefresh() {
-        binding.swipeRefreshLayout.apply {
+        binds.swipeRefreshLayout.apply {
             setColorSchemeResources(
                 R.color.primary,
                 R.color.green,
@@ -97,12 +95,12 @@ class GraphView : AppCompatActivity() {
     }
 
     private fun refreshData() {
-        viewModel.refreshGraphData() // Call ViewModel function
+        model.refreshGraphData() // Call ViewModel function
     }
 
 
     private fun setupChart() {
-        binding.lineChart.apply { // Use binding.lineChart
+        binds.lineChart.apply { // Use binding.lineChart
             description.isEnabled = false
             setTouchEnabled(true)
             setDrawGridBackground(false)
@@ -137,27 +135,27 @@ class GraphView : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.incomeExpenseData.observe(this) { data ->
+        model.incomeExpenseData.observe(this) { data ->
             // Update the chart with the observed data
             updateChart(data)
         }
 
-        viewModel.totalIncome.observe(this) { income ->
+        model.totalIncome.observe(this) { income ->
             // Update UI elements for total income if they exist
             // binding.totalIncomeTextView.text = formatCurrency(income) // Example
         }
 
-        viewModel.totalExpenses.observe(this) { expenses ->
+        model.totalExpenses.observe(this) { expenses ->
             // Update UI elements for total expenses if they exist
             // binding.totalExpensesTextView.text = formatCurrency(expenses) // Example
         }
 
-        viewModel.isLoading.observe(this) { isLoading ->
-            binding.swipeRefreshLayout.isRefreshing = isLoading
-            binding.loadingProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE // Use binding.loadingProgressBar
+        model.isLoading.observe(this) { isLoading ->
+            binds.swipeRefreshLayout.isRefreshing = isLoading
+            binds.loadingProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE // Use binding.loadingProgressBar
         }
 
-        viewModel.error.observe(this) { error ->
+        model.error.observe(this) { error ->
             error?.let {
                 showError(it)
             }
@@ -166,8 +164,8 @@ class GraphView : AppCompatActivity() {
 
     private fun updateChart(data: Map<Long, Pair<Double, Double>>) {
         if (data.isEmpty()) {
-            binding.lineChart.data = null // Use binding.lineChart
-            binding.lineChart.invalidate() // Use binding.lineChart
+            binds.lineChart.data = null // Use binding.lineChart
+            binds.lineChart.invalidate() // Use binding.lineChart
             return
         }
 
@@ -201,10 +199,10 @@ class GraphView : AppCompatActivity() {
 
         val lineData = LineData(incomeDataSet, expenseDataSet) // Add both datasets
 
-        binding.lineChart.data = lineData // Use binding.lineChart
+        binds.lineChart.data = lineData // Use binding.lineChart
 
         // Format X-axis to show dates
-        val xAxis = binding.lineChart.xAxis // Use binding.lineChart.xAxis
+        val xAxis = binds.lineChart.xAxis // Use binding.lineChart.xAxis
         xAxis.valueFormatter = object : IndexAxisValueFormatter() {
             private val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
             override fun getFormattedValue(value: Float): String {
@@ -216,13 +214,13 @@ class GraphView : AppCompatActivity() {
         xAxis.granularity = TimeUnit.DAYS.toMillis(1).toFloat() // Example: labels every day
         xAxis.labelRotationAngle = -45f
 
-        binding.lineChart.invalidate() // Use binding.lineChart
-        binding.lineChart.animateX(1000) // Use binding.lineChart
+        binds.lineChart.invalidate() // Use binding.lineChart
+        binds.lineChart.animateX(1000) // Use binding.lineChart
     }
 
 
     private fun showError(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show() // Use binding.root
+        Snackbar.make(binds.root, message, Snackbar.LENGTH_LONG).show() // Use binding.root
     }
 
     override fun onSupportNavigateUp(): Boolean {

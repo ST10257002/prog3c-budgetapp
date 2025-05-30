@@ -18,8 +18,8 @@ import vc.prog3c.poe.ui.viewmodels.SignUpViewModel
 class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
 
-    private lateinit var vBinds: ActivitySignUpBinding
-    private lateinit var vModel: SignUpViewModel
+    private lateinit var binds: ActivitySignUpBinding
+    private lateinit var model: SignUpViewModel
 
     companion object {
         private const val TAG = "SignUpActivity"
@@ -36,7 +36,7 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[SignUpViewModel::class.java]
+        model = ViewModelProvider(this)[SignUpViewModel::class.java]
 
         observeViewModel()
     }
@@ -45,7 +45,7 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
     // --- ViewModel
 
 
-    private fun observeViewModel() = vModel.uiState.observe(this) { state ->
+    private fun observeViewModel() = model.uiState.observe(this) { state ->
         when (state) {
             is SignUpUiState.Success -> navigateToDashboard()
             is SignUpUiState.Failure -> {
@@ -66,15 +66,15 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun tryAuthenticateCredentials() {
         val credentials = SignUpCredentials(
-            name = vBinds.etNameFirst.text.toString().trim(),
-            surname = vBinds.etNameFinal.text.toString().trim(),
-            usermail = vBinds.etUserMail.text.toString().trim(),
-            username = vBinds.etUsername.text.toString().trim(),
-            defaultPassword = vBinds.etDefaultPassword.text.toString().trim(),
-            confirmPassword = vBinds.etConfirmPassword.text.toString().trim()
+            name = binds.etNameFirst.text.toString().trim(),
+            surname = binds.etNameFinal.text.toString().trim(),
+            usermail = binds.etUserMail.text.toString().trim(),
+            username = binds.etUsername.text.toString().trim(),
+            defaultPassword = binds.etDefaultPassword.text.toString().trim(),
+            confirmPassword = binds.etConfirmPassword.text.toString().trim()
         )
 
-        vModel.signUp(credentials)
+        model.signUp(credentials)
     }
 
 
@@ -97,15 +97,15 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.btSignUp.id -> tryAuthenticateCredentials()
-            vBinds.btSignIn.id -> navigateToSignIn()
+            binds.btSignUp.id -> tryAuthenticateCredentials()
+            binds.btSignIn.id -> navigateToSignIn()
         }
     }
 
 
     private fun setupClickListeners() {
-        vBinds.btSignUp.setOnClickListener(this)
-        vBinds.btSignIn.setOnClickListener(this)
+        binds.btSignUp.setOnClickListener(this)
+        binds.btSignIn.setOnClickListener(this)
     }
 
 
@@ -113,14 +113,14 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupBindings() {
-        vBinds = ActivitySignUpBinding.inflate(layoutInflater)
+        binds = ActivitySignUpBinding.inflate(layoutInflater)
     }
 
 
     private fun setupLayoutUi() {
-        setContentView(vBinds.root)
+        setContentView(binds.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

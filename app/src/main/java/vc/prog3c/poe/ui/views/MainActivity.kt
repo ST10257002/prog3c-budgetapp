@@ -12,7 +12,7 @@ import vc.prog3c.poe.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var vBinds: ActivityMainBinding
+    private lateinit var binds: ActivityMainBinding
     private lateinit var navController: NavController
 
 
@@ -42,14 +42,14 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setupBindings() {
-        vBinds = ActivityMainBinding.inflate(layoutInflater)
+        binds = ActivityMainBinding.inflate(layoutInflater)
     }
 
 
     private fun setupLayoutUi() {
-        setContentView(vBinds.root)
+        setContentView(binds.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

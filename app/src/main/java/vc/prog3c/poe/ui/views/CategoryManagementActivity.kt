@@ -21,8 +21,8 @@ import java.util.UUID
 
 class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
-    private lateinit var vBinds: ActivityCategoryManagementBinding
-    private lateinit var vModel: CategoryViewModel
+    private lateinit var binds: ActivityCategoryManagementBinding
+    private lateinit var model: CategoryViewModel
     private lateinit var adapter: CategoryAdapter
 
 
@@ -36,7 +36,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[CategoryViewModel::class.java]
+        model = ViewModelProvider(this)[CategoryViewModel::class.java]
         
         observeViewModel()
     }
@@ -46,13 +46,13 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun observeViewModel() {
-        vModel.categories.observe(this) { categories ->
+        model.categories.observe(this) { categories ->
             adapter.submitList(categories)
         }
 
-        vModel.error.observe(this) { error ->
+        model.error.observe(this) { error ->
             error?.let {
-                Snackbar.make(vBinds.root, it, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binds.root, it, Snackbar.LENGTH_LONG).show()
             }
         }
     }
@@ -87,7 +87,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
                         color = "#FF000000",
                         isEditable = true
                     )
-                    vModel.addCategory(newCategory)
+                    model.addCategory(newCategory)
                 }
             }.setNegativeButton("Cancel", null).show()
     }
@@ -95,7 +95,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun showEditCategoryDialog(category: Category) {
         if (!category.isEditable) {
-            Snackbar.make(vBinds.root, "This category cannot be edited", Snackbar.LENGTH_SHORT)
+            Snackbar.make(binds.root, "This category cannot be edited", Snackbar.LENGTH_SHORT)
                 .show()
             return
         }
@@ -122,7 +122,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
                     val updatedCategory = category.copy(
                         name = name, type = CategoryType.valueOf(type)
                     )
-                    vModel.updateCategory(updatedCategory)
+                    model.updateCategory(updatedCategory)
                 }
             }.setNegativeButton("Cancel", null).show()
     }
@@ -130,7 +130,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun showDeleteConfirmationDialog(category: Category) {
         if (!category.isEditable) {
-            Snackbar.make(vBinds.root, "This category cannot be deleted", Snackbar.LENGTH_SHORT)
+            Snackbar.make(binds.root, "This category cannot be deleted", Snackbar.LENGTH_SHORT)
                 .show()
             return
         }
@@ -138,7 +138,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
         MaterialAlertDialogBuilder(this).setTitle("Delete Category")
             .setMessage("Are you sure you want to delete ${category.name}?")
             .setPositiveButton("Delete") { _, _ ->
-                vModel.deleteCategory(category.id)
+                model.deleteCategory(category.id)
             }.setNegativeButton("Cancel", null).show()
     }
 
@@ -160,13 +160,13 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.addCategoryButton.id -> showAddCategoryDialog()
+            binds.addCategoryButton.id -> showAddCategoryDialog()
         }
     }
     
     
     private fun setupClickListeners() {
-        vBinds.addCategoryButton.setOnClickListener(this)
+        binds.addCategoryButton.setOnClickListener(this)
     }
 
 
@@ -174,7 +174,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupToolbar() {
-        setSupportActionBar(vBinds.toolbar)
+        setSupportActionBar(binds.toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             title = "Manage Categories"
@@ -186,7 +186,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
         adapter = CategoryAdapter(
             onEditClick = { category -> showEditCategoryDialog(category) },
             onDeleteClick = { category -> showDeleteConfirmationDialog(category) })
-        vBinds.recyclerView.adapter = adapter
+        binds.recyclerView.adapter = adapter
     }
 
 
@@ -194,14 +194,14 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupBindings() {
-        vBinds = ActivityCategoryManagementBinding.inflate(layoutInflater)
+        binds = ActivityCategoryManagementBinding.inflate(layoutInflater)
     }
 
 
     private fun setupLayoutUi() {
-        setContentView(vBinds.root)
+        setContentView(binds.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

@@ -15,8 +15,8 @@ import vc.prog3c.poe.ui.viewmodels.GoalViewModel
 
 class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
 
-    private lateinit var vBinds: ActivityManageGoalsBinding
-    private lateinit var vModel: GoalViewModel
+    private lateinit var binds: ActivityManageGoalsBinding
+    private lateinit var model: GoalViewModel
 
 
     // --- Lifecycle
@@ -29,7 +29,7 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[GoalViewModel::class.java]
+        model = ViewModelProvider(this)[GoalViewModel::class.java]
 
         observeViewModel()
     }
@@ -39,9 +39,9 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun observeViewModel() {
-        vModel.error.observe(this) { error ->
+        model.error.observe(this) { error ->
             error?.let {
-                Snackbar.make(vBinds.root, it, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binds.root, it, Snackbar.LENGTH_LONG).show()
             }
         }
     }
@@ -54,61 +54,61 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
         var isValid = true
 
         // Validate minimum goal
-        val minGoalText = vBinds.minGoalInput.text.toString()
+        val minGoalText = binds.minGoalInput.text.toString()
         if (minGoalText.isBlank()) {
-            vBinds.minGoalLayout.error = "Minimum goal is required"
+            binds.minGoalLayout.error = "Minimum goal is required"
             isValid = false
         } else {
             try {
                 val minGoal = minGoalText.toDouble()
                 if (minGoal <= 0) {
-                    vBinds.minGoalLayout.error = "Minimum goal must be greater than 0"
+                    binds.minGoalLayout.error = "Minimum goal must be greater than 0"
                     isValid = false
                 } else {
-                    vBinds.minGoalLayout.error = null
+                    binds.minGoalLayout.error = null
                 }
             } catch (e: NumberFormatException) {
-                vBinds.minGoalLayout.error = "Invalid amount format"
+                binds.minGoalLayout.error = "Invalid amount format"
                 isValid = false
             }
         }
 
         // Validate maximum goal
-        val maxGoalText = vBinds.maxGoalInput.text.toString()
+        val maxGoalText = binds.maxGoalInput.text.toString()
         if (maxGoalText.isBlank()) {
-            vBinds.maxGoalLayout.error = "Maximum goal is required"
+            binds.maxGoalLayout.error = "Maximum goal is required"
             isValid = false
         } else {
             try {
                 val maxGoal = maxGoalText.toDouble()
                 if (maxGoal <= 0) {
-                    vBinds.maxGoalLayout.error = "Maximum goal must be greater than 0"
+                    binds.maxGoalLayout.error = "Maximum goal must be greater than 0"
                     isValid = false
                 } else {
-                    vBinds.maxGoalLayout.error = null
+                    binds.maxGoalLayout.error = null
                 }
             } catch (e: NumberFormatException) {
-                vBinds.maxGoalLayout.error = "Invalid amount format"
+                binds.maxGoalLayout.error = "Invalid amount format"
                 isValid = false
             }
         }
 
         // Validate monthly budget
-        val budgetText = vBinds.budgetInput.text.toString()
+        val budgetText = binds.budgetInput.text.toString()
         if (budgetText.isBlank()) {
-            vBinds.budgetLayout.error = "Monthly budget is required"
+            binds.budgetLayout.error = "Monthly budget is required"
             isValid = false
         } else {
             try {
                 val budget = budgetText.toDouble()
                 if (budget <= 0) {
-                    vBinds.budgetLayout.error = "Monthly budget must be greater than 0"
+                    binds.budgetLayout.error = "Monthly budget must be greater than 0"
                     isValid = false
                 } else {
-                    vBinds.budgetLayout.error = null
+                    binds.budgetLayout.error = null
                 }
             } catch (e: NumberFormatException) {
-                vBinds.budgetLayout.error = "Invalid amount format"
+                binds.budgetLayout.error = "Invalid amount format"
                 isValid = false
             }
         }
@@ -119,18 +119,18 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun saveForm() {
         if (validateForm()) {
-            val minGoal = vBinds.minGoalInput.text.toString().toDoubleOrNull() ?: 0.0
-            val maxGoal = vBinds.maxGoalInput.text.toString().toDoubleOrNull() ?: 0.0
-            val monthlyBudget = vBinds.budgetInput.text.toString().toDoubleOrNull() ?: 0.0
+            val minGoal = binds.minGoalInput.text.toString().toDoubleOrNull() ?: 0.0
+            val maxGoal = binds.maxGoalInput.text.toString().toDoubleOrNull() ?: 0.0
+            val monthlyBudget = binds.budgetInput.text.toString().toDoubleOrNull() ?: 0.0
 
-            if (vModel.validateGoal(minGoal, maxGoal, monthlyBudget)) {
-                vModel.saveValidatedGoalToFirestore(minGoal, maxGoal, monthlyBudget) { success ->
+            if (model.validateGoal(minGoal, maxGoal, monthlyBudget)) {
+                model.saveValidatedGoalToFirestore(minGoal, maxGoal, monthlyBudget) { success ->
                     if (success) {
                         Toast.makeText(this, "Goals updated successfully", Toast.LENGTH_SHORT)
                             .show()
                         finish()
                     } else {
-                        Snackbar.make(vBinds.root, "Failed to update goals", Snackbar.LENGTH_LONG)
+                        Snackbar.make(binds.root, "Failed to update goals", Snackbar.LENGTH_LONG)
                             .show()
                     }
                 }
@@ -153,13 +153,13 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.saveButton.id -> saveForm()
+            binds.saveButton.id -> saveForm()
         }
     }
 
 
     private fun setupClickListeners() {
-        vBinds.saveButton.setOnClickListener(this)
+        binds.saveButton.setOnClickListener(this)
     }
 
 
@@ -167,7 +167,7 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupToolbar() {
-        setSupportActionBar(vBinds.toolbar)
+        setSupportActionBar(binds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.title = "Manage Goals"
@@ -178,14 +178,14 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupBindings() {
-        vBinds = ActivityManageGoalsBinding.inflate(layoutInflater)
+        binds = ActivityManageGoalsBinding.inflate(layoutInflater)
     }
 
 
     private fun setupLayoutUi() {
-        setContentView(vBinds.root)
+        setContentView(binds.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

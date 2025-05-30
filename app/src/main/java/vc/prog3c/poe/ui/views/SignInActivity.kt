@@ -22,8 +22,8 @@ import vc.prog3c.poe.ui.viewmodels.SignInViewModel
 class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHost {
 
 
-    private lateinit var vBinds: ActivitySignInBinding
-    private lateinit var vModel: SignInViewModel
+    private lateinit var binds: ActivitySignInBinding
+    private lateinit var model: SignInViewModel
 
     companion object {
         private const val TAG = "SignInActivity"
@@ -40,11 +40,11 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[SignInViewModel::class.java]
+        model = ViewModelProvider(this)[SignInViewModel::class.java]
 
         observeViewModel()
 
-        if (vModel.canAutoLoginUser()) {
+        if (model.canAutoLoginUser()) {
             tryAuthenticateUsingBiometrics()
         }
     }
@@ -53,7 +53,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
     // --- ViewModel
 
 
-    private fun observeViewModel() = vModel.uiState.observe(this) { state ->
+    private fun observeViewModel() = model.uiState.observe(this) { state ->
         when (state) {
             is SignInUiState.Success -> navigateToNextScreen()
             is SignInUiState.Failure -> {
@@ -74,11 +74,11 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
 
     private fun tryAuthenticateWithCredentials() {
         val credentials = SignInCredentials(
-            identity = vBinds.etUsername.text.toString().trim(),
-            password = vBinds.etPassword.text.toString().trim()
+            identity = binds.etUsername.text.toString().trim(),
+            password = binds.etPassword.text.toString().trim()
         )
 
-        vModel.signIn(credentials)
+        model.signIn(credentials)
     }
 
 
@@ -102,8 +102,8 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.btSignIn.id -> tryAuthenticateWithCredentials()
-            vBinds.tvSignUp.id -> {
+            binds.btSignIn.id -> tryAuthenticateWithCredentials()
+            binds.tvSignUp.id -> {
                 startActivity(Intent(this, SignUpActivity::class.java))
             }
         }
@@ -111,8 +111,8 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
 
 
     private fun setupClickListeners() {
-        vBinds.btSignIn.setOnClickListener(this)
-        vBinds.tvSignUp.setOnClickListener(this)
+        binds.btSignIn.setOnClickListener(this)
+        binds.tvSignUp.setOnClickListener(this)
     }
 
 
@@ -135,7 +135,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
             this, "Biometrics Succeeded", Toast.LENGTH_SHORT
         ).show()
 
-        vModel.tryAutoLoginUser()
+        model.tryAutoLoginUser()
     }
 
 
@@ -157,14 +157,14 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
 
 
     private fun setupBindings() {
-        vBinds = ActivitySignInBinding.inflate(layoutInflater)
+        binds = ActivitySignInBinding.inflate(layoutInflater)
     }
 
 
     private fun setupLayoutUi() {
-        setContentView(vBinds.root)
+        setContentView(binds.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

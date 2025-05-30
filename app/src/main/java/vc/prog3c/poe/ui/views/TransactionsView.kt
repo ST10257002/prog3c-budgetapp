@@ -22,8 +22,8 @@ import java.text.NumberFormat
 import java.util.Locale
 
 class TransactionsView : AppCompatActivity() {
-    private lateinit var vBinds: ActivityTransactionsBinding
-    private lateinit var viewModel: TransactionViewModel
+    private lateinit var binds: ActivityTransactionsBinding
+    private lateinit var model: TransactionViewModel
     private lateinit var adapter: TransactionAdapter
     private var accountId: String? = null
     private var currentType: TransactionType? = null // Track current filter
@@ -31,22 +31,22 @@ class TransactionsView : AppCompatActivity() {
     private val addTransactionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             // Instead of extracting the transaction, just reload from database
-            viewModel.loadTransactions(accountId)
+            model.loadTransactions(accountId)
             Toast.makeText(this, "Transaction added", Toast.LENGTH_SHORT).show()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        vBinds = ActivityTransactionsBinding.inflate(layoutInflater)
-        setContentView(vBinds.root)
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        binds = ActivityTransactionsBinding.inflate(layoutInflater)
+        setContentView(binds.root)
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+        model = ViewModelProvider(this)[TransactionViewModel::class.java]
         accountId = intent.getStringExtra("account_id")
 
         setupToolbar()
@@ -57,11 +57,11 @@ class TransactionsView : AppCompatActivity() {
         observeViewModel()
 
         // Initial load
-        viewModel.loadTransactions(accountId)
+        model.loadTransactions(accountId)
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(vBinds.toolbar)
+        setSupportActionBar(binds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = when (currentType) {
             TransactionType.INCOME -> "Income"
@@ -72,7 +72,7 @@ class TransactionsView : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         adapter = TransactionAdapter()
-        vBinds.transactionsRecyclerView.apply {
+        binds.transactionsRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@TransactionsView)
             adapter = this@TransactionsView.adapter
             layoutAnimation = AnimationUtils.loadLayoutAnimation(
@@ -82,18 +82,18 @@ class TransactionsView : AppCompatActivity() {
     }
 
     private fun setupFilterChips() {
-        vBinds.filterChipGroup.setOnCheckedChangeListener { group, checkedId ->
+        binds.filterChipGroup.setOnCheckedChangeListener { group, checkedId ->
             currentType = when (group.findViewById<Chip>(checkedId)?.id) {
                 R.id.allChip -> {
-                    viewModel.loadTransactions(accountId)
+                    model.loadTransactions(accountId)
                     null
                 }
                 R.id.incomeChip -> {
-                    viewModel.filterTransactionsByType(TransactionType.INCOME)
+                    model.filterTransactionsByType(TransactionType.INCOME)
                     TransactionType.INCOME
                 }
                 R.id.expenseChip -> {
-                    viewModel.filterTransactionsByType(TransactionType.EXPENSE)
+                    model.filterTransactionsByType(TransactionType.EXPENSE)
                     TransactionType.EXPENSE
                 }
                 else -> null
@@ -103,14 +103,14 @@ class TransactionsView : AppCompatActivity() {
     }
 
     private fun setupSwipeRefresh() {
-        vBinds.swipeRefreshLayout.apply {
+        binds.swipeRefreshLayout.apply {
             setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
-            setOnRefreshListener { viewModel.loadTransactions(accountId) }
+            setOnRefreshListener { model.loadTransactions(accountId) }
         }
     }
 
     private fun setupAddTransactionButton() {
-        vBinds.addTransactionButton.setOnClickListener {
+        binds.addTransactionButton.setOnClickListener {
             if (accountId == null) {
                 Toast.makeText(this, "Account ID missing", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -123,25 +123,25 @@ class TransactionsView : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        viewModel.transactions.observe(this) { list ->
+        model.transactions.observe(this) { list ->
             adapter.submitList(list)
-            vBinds.transactionsRecyclerView.scheduleLayoutAnimation()
+            binds.transactionsRecyclerView.scheduleLayoutAnimation()
         }
-        viewModel.totalIncome.observe(this) { income ->
-            vBinds.moneyInTextView.text = formatCurrency(income)
+        model.totalIncome.observe(this) { income ->
+            binds.moneyInTextView.text = formatCurrency(income)
         }
-        viewModel.totalExpenses.observe(this) { expense ->
-            vBinds.moneyOutTextView.text = formatCurrency(expense)
+        model.totalExpenses.observe(this) { expense ->
+            binds.moneyOutTextView.text = formatCurrency(expense)
         }
-        viewModel.isLoading.observe(this) { loading ->
-            vBinds.swipeRefreshLayout.isRefreshing = loading
-            vBinds.loadingProgressBar.visibility =
+        model.isLoading.observe(this) { loading ->
+            binds.swipeRefreshLayout.isRefreshing = loading
+            binds.loadingProgressBar.visibility =
                 if (loading) View.VISIBLE else View.GONE
         }
-        viewModel.error.observe(this) { msg ->
+        model.error.observe(this) { msg ->
             msg?.let {
-                Snackbar.make(vBinds.root, it, Snackbar.LENGTH_LONG)
-                    .setAction("Retry") { viewModel.loadTransactions(accountId) }
+                Snackbar.make(binds.root, it, Snackbar.LENGTH_LONG)
+                    .setAction("Retry") { model.loadTransactions(accountId) }
                     .show()
             }
         }

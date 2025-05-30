@@ -18,9 +18,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.android.gms.tasks.OnFailureListener
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
@@ -47,8 +44,8 @@ import vc.prog3c.poe.utils.ImageUtils
 import java.io.File
 
 class AddTransactionActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityAddTransactionBinding
-    private lateinit var viewModel: TransactionViewModel
+    private lateinit var binds: ActivityAddTransactionBinding
+    private lateinit var model: TransactionViewModel
     private lateinit var categoryViewModel: CategoryViewModel
     private lateinit var dashboardViewModel: DashboardViewModel
     private var accountId: String? = null
@@ -102,15 +99,15 @@ class AddTransactionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAddTransactionBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+        binds = ActivityAddTransactionBinding.inflate(layoutInflater)
+        setContentView(binds.root)
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+        model = ViewModelProvider(this)[TransactionViewModel::class.java]
         categoryViewModel = ViewModelProvider(this)[CategoryViewModel::class.java]
         dashboardViewModel = ViewModelProvider(this)[DashboardViewModel::class.java]
         accountId = intent.getStringExtra("account_id")
@@ -132,7 +129,7 @@ class AddTransactionActivity : AppCompatActivity() {
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(binds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.title = "Add Transaction"
@@ -142,7 +139,7 @@ class AddTransactionActivity : AppCompatActivity() {
         photoAdapter = PhotoAdapter { uri ->
             // Handle photo click - you can implement photo preview here
         }
-        binding.expenseForm.photoRecyclerView.apply {
+        binds.expenseForm.photoRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@AddTransactionActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = photoAdapter
         }
@@ -151,9 +148,9 @@ class AddTransactionActivity : AppCompatActivity() {
     private fun setupTransactionTypeDropdown() {
         val transactionTypes = arrayOf("Income", "Expense")
         val adapter = ArrayAdapter(this, R.layout.item_dropdown, transactionTypes)
-        binding.transactionTypeDropdown.setAdapter(adapter)
+        binds.transactionTypeDropdown.setAdapter(adapter)
 
-        binding.transactionTypeDropdown.setOnItemClickListener { _, _, position, _ ->
+        binds.transactionTypeDropdown.setOnItemClickListener { _, _, position, _ ->
             when (position) {
                 0 -> showIncomeForm()
                 1 -> showExpenseForm()
@@ -162,13 +159,13 @@ class AddTransactionActivity : AppCompatActivity() {
     }
 
     private fun showIncomeForm() {
-        binding.incomeForm.root.visibility = View.VISIBLE
-        binding.expenseForm.root.visibility = View.GONE
+        binds.incomeForm.root.visibility = View.VISIBLE
+        binds.expenseForm.root.visibility = View.GONE
     }
 
     private fun showExpenseForm() {
-        binding.incomeForm.root.visibility = View.GONE
-        binding.expenseForm.root.visibility = View.VISIBLE
+        binds.incomeForm.root.visibility = View.GONE
+        binds.expenseForm.root.visibility = View.VISIBLE
     }
 
     private fun setupCategoryDropdown() {
@@ -189,8 +186,8 @@ class AddTransactionActivity : AppCompatActivity() {
             val categoryNames = filteredCategories.map { it.name }
             val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, categoryNames)
             
-            binding.expenseForm.categoryInput.setAdapter(adapter)
-            binding.expenseForm.categoryInput.setOnItemClickListener { _, _, position, _ ->
+            binds.expenseForm.categoryInput.setAdapter(adapter)
+            binds.expenseForm.categoryInput.setOnItemClickListener { _, _, position, _ ->
                 selectedCategory = filteredCategories[position]
             }
         }
@@ -198,22 +195,22 @@ class AddTransactionActivity : AppCompatActivity() {
 
     private fun setupDatePickers() {
         // Income form date picker
-        binding.incomeForm.dateInput.setOnClickListener {
+        binds.incomeForm.dateInput.setOnClickListener {
             showDatePicker { date ->
-                binding.incomeForm.dateInput.setText(date.formatToString())
+                binds.incomeForm.dateInput.setText(date.formatToString())
             }
         }
 
         // Expense form time pickers
-        binding.expenseForm.startTimeInput.setOnClickListener {
+        binds.expenseForm.startTimeInput.setOnClickListener {
             showTimePicker { time ->
-                binding.expenseForm.startTimeInput.setText(time.formatToString())
+                binds.expenseForm.startTimeInput.setText(time.formatToString())
             }
         }
 
-        binding.expenseForm.endTimeInput.setOnClickListener {
+        binds.expenseForm.endTimeInput.setOnClickListener {
             showTimePicker { time ->
-                binding.expenseForm.endTimeInput.setText(time.formatToString())
+                binds.expenseForm.endTimeInput.setText(time.formatToString())
             }
         }
     }
@@ -248,25 +245,25 @@ class AddTransactionActivity : AppCompatActivity() {
     }
 
     private fun setupPhotoHandling() {
-        binding.expenseForm.addPhotoButton.setOnClickListener {
+        binds.expenseForm.addPhotoButton.setOnClickListener {
             checkPermissionAndLaunchImagePicker()
         }
 
-        binding.expenseForm.capturePhotoButton.setOnClickListener {
+        binds.expenseForm.capturePhotoButton.setOnClickListener {
             checkPermissionAndLaunchCamera()
         }
     }
 
     private fun setupSubmitButtons() {
         // Income form submit
-        binding.incomeForm.submitButton.setOnClickListener {
+        binds.incomeForm.submitButton.setOnClickListener {
             if (validateIncomeForm()) {
                 submitIncomeTransaction()
             }
         }
 
         // Expense form submit
-        binding.expenseForm.submitButton.setOnClickListener {
+        binds.expenseForm.submitButton.setOnClickListener {
             if (validateExpenseForm()) {
                 submitExpenseTransaction()
             }
@@ -276,7 +273,7 @@ class AddTransactionActivity : AppCompatActivity() {
     private fun validateIncomeForm(): Boolean {
         var isValid = true
         
-        with(binding.incomeForm) {
+        with(binds.incomeForm) {
             // Validate amount
             if (amountInput.text.isNullOrEmpty()) {
                 amountLayout.error = "Amount is required"
@@ -302,7 +299,7 @@ class AddTransactionActivity : AppCompatActivity() {
     private fun validateExpenseForm(): Boolean {
         var isValid = true
         
-        with(binding.expenseForm) {
+        with(binds.expenseForm) {
             // Validate amount
             if (amountInput.text.isNullOrEmpty()) {
                 amountLayout.error = "Amount is required"
@@ -334,15 +331,15 @@ class AddTransactionActivity : AppCompatActivity() {
         val transaction = Transaction(
             id = UUID.randomUUID().toString(),
             type = TransactionType.INCOME,
-            amount = binding.incomeForm.amountInput.text.toString().toDoubleOrNull() ?: 0.0,
-            description = binding.incomeForm.descriptionInput.text.toString(),
-            date = Timestamp(parseDate(binding.incomeForm.dateInput.text.toString())),
+            amount = binds.incomeForm.amountInput.text.toString().toDoubleOrNull() ?: 0.0,
+            description = binds.incomeForm.descriptionInput.text.toString(),
+            date = Timestamp(parseDate(binds.incomeForm.dateInput.text.toString())),
             category = selectedCategory?.name ?: "",
             accountId = accountId ?: "",
             userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         )
 
-        viewModel.addTransaction(transaction)
+        model.addTransaction(transaction)
             .addOnSuccessListener {
                 showSuccessMessage("Income transaction added successfully")
                 finish()
@@ -375,15 +372,15 @@ class AddTransactionActivity : AppCompatActivity() {
                 val transaction = Transaction(
                     id = UUID.randomUUID().toString(),
                     type = TransactionType.EXPENSE,
-                    amount = binding.expenseForm.amountInput.text.toString().toDoubleOrNull() ?: 0.0,
-                    description = binding.expenseForm.descriptionInput.text.toString(),
+                    amount = binds.expenseForm.amountInput.text.toString().toDoubleOrNull() ?: 0.0,
+                    description = binds.expenseForm.descriptionInput.text.toString(),
                     date = Timestamp(Date()),
                     category = selectedCategory?.name ?: "",
                     accountId = accountId ?: "",
                     userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
                 )
 
-                viewModel.addTransaction(transaction)
+                model.addTransaction(transaction)
                     .addOnSuccessListener {
                         showSuccessMessage("Expense transaction added successfully")
                         finish()
@@ -428,32 +425,32 @@ class AddTransactionActivity : AppCompatActivity() {
 
     
     private fun showSuccessMessage(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(binds.root, message, Snackbar.LENGTH_SHORT).show()
     }
     
 
     private fun showErrorMessage(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(binds.root, message, Snackbar.LENGTH_LONG).show()
     }
 
     
     private fun observeViewModels() {
-        viewModel.transactionState.observe(this) { state ->
+        model.transactionState.observe(this) { state ->
             when (state) {
                 is TransactionState.Success -> {
-                    binding.loadingOverlay.visibility = View.GONE
+                    binds.loadingOverlay.visibility = View.GONE
                     Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
                     setResult(RESULT_OK)
                     finish()
                 }
 
                 is TransactionState.Error -> {
-                    binding.loadingOverlay.visibility = View.GONE
-                    Snackbar.make(binding.root, state.message, Snackbar.LENGTH_LONG).show()
+                    binds.loadingOverlay.visibility = View.GONE
+                    Snackbar.make(binds.root, state.message, Snackbar.LENGTH_LONG).show()
                 }
 
                 TransactionState.Loading -> {
-                    binding.loadingOverlay.visibility = View.VISIBLE
+                    binds.loadingOverlay.visibility = View.VISIBLE
                 }
             }
         }

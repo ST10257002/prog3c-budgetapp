@@ -24,8 +24,8 @@ import java.util.Locale
 
 class DashboardView : AppCompatActivity(), View.OnClickListener {
 
-    private lateinit var vBinds: ActivityDashboardBinding
-    private lateinit var vModel: DashboardViewModel
+    private lateinit var binds: ActivityDashboardBinding
+    private lateinit var model: DashboardViewModel
     private lateinit var categoryAdapter: CategoryAdapter
 
 
@@ -39,7 +39,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[DashboardViewModel::class.java]
+        model = ViewModelProvider(this)[DashboardViewModel::class.java]
 
         setupBottomNavigation()
         setupRecyclerView()
@@ -50,27 +50,27 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-        vModel.refreshData()
+        model.refreshData()
     }
 
 
     // --- ViewModel
 
 
-    private fun observeViewModel() = vModel.uiState.observe(this) { state ->
+    private fun observeViewModel() = model.uiState.observe(this) { state ->
         when (state) {
             is DashboardUiState.Default -> {
-                vBinds.swipeRefreshLayout.isRefreshing = false
+                binds.swipeRefreshLayout.isRefreshing = false
             }
 
             is DashboardUiState.Loading -> {
-                vBinds.swipeRefreshLayout.isRefreshing = true
+                binds.swipeRefreshLayout.isRefreshing = true
             }
 
             is DashboardUiState.Failure -> {
-                vBinds.swipeRefreshLayout.isRefreshing = false
+                binds.swipeRefreshLayout.isRefreshing = false
                 Snackbar.make(
-                    vBinds.root, state.message, Snackbar.LENGTH_LONG
+                    binds.root, state.message, Snackbar.LENGTH_LONG
                 ).show()
             }
 
@@ -81,7 +81,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
                 state.savingsGoals?.let {
                     updateSavingsGoalUI(it)
-                    vBinds.swipeRefreshLayout.isRefreshing = false
+                    binds.swipeRefreshLayout.isRefreshing = false
                 }
 
                 if (state.statistics != null || state.budget != null) {
@@ -96,7 +96,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupBottomNavigation() {
-        vBinds.bottomNavigation.setOnItemSelectedListener { item ->
+        binds.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_dashboard -> true
                 R.id.nav_accounts -> {
@@ -118,7 +118,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             }
         }
 
-        vBinds.bottomNavigation.selectedItemId = R.id.nav_dashboard
+        binds.bottomNavigation.selectedItemId = R.id.nav_dashboard
     }
 
 
@@ -126,7 +126,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         categoryAdapter = CategoryAdapter(
             onEditClick = { /* Handle edit if needed */ },
             onDeleteClick = { /* Handle delete if needed */ })
-        vBinds.categoriesRecyclerView.apply {
+        binds.categoriesRecyclerView.apply {
             adapter = categoryAdapter
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@DashboardView)
             setHasFixedSize(true)
@@ -141,26 +141,26 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             val progress = if (goal.targetAmount > 0) goal.savedAmount / goal.targetAmount else 0.0
             val percent = (progress * 100).toInt().coerceIn(0, 100)
 
-            vBinds.savingsGoalText.text =
+            binds.savingsGoalText.text =
                 "${goal.name}: ${currencyFormat.format(goal.savedAmount)} / ${
                     currencyFormat.format(goal.targetAmount)
                 }"
-            vBinds.currentSavingsText.text = currencyFormat.format(goal.savedAmount)
-            vBinds.maxSavingsText.text = currencyFormat.format(goal.targetAmount)
-            vBinds.savingsPercentageText.text = "$percent%"
-            vBinds.savingsProgressBar.progress = percent
+            binds.currentSavingsText.text = currencyFormat.format(goal.savedAmount)
+            binds.maxSavingsText.text = currencyFormat.format(goal.targetAmount)
+            binds.savingsPercentageText.text = "$percent%"
+            binds.savingsProgressBar.progress = percent
 
-            vBinds.savingsGoalDate.text = goal.targetDate?.let {
+            binds.savingsGoalDate.text = goal.targetDate?.let {
                 val dateFormat = android.text.format.DateFormat.getMediumDateFormat(this)
                 "Target date: ${dateFormat.format(it)}"
             } ?: ""
         } else {
-            vBinds.savingsGoalText.text = getString(R.string.no_savings_goals)
-            vBinds.currentSavingsText.text = "R0"
-            vBinds.maxSavingsText.text = "R0"
-            vBinds.savingsPercentageText.text = "0%"
-            vBinds.savingsProgressBar.progress = 0
-            vBinds.savingsGoalDate.text = ""
+            binds.savingsGoalText.text = getString(R.string.no_savings_goals)
+            binds.currentSavingsText.text = "R0"
+            binds.maxSavingsText.text = "R0"
+            binds.savingsPercentageText.text = "0%"
+            binds.savingsProgressBar.progress = 0
+            binds.savingsGoalDate.text = ""
         }
     }
 
@@ -172,38 +172,38 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         val min = budget?.min ?: 0.0
 
         if (budget != null) {
-            vBinds.budgetAmountText.text = currencyFormat.format(budget.max)
+            binds.budgetAmountText.text = currencyFormat.format(budget.max)
             val monthName = try {
                 java.time.Month.of(budget.month)
                     .getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())
             } catch (e: Exception) {
                 ""
             }
-            vBinds.budgetMonthText.text = "$monthName ${budget.year}"
+            binds.budgetMonthText.text = "$monthName ${budget.year}"
         } else {
-            vBinds.budgetAmountText.text = currencyFormat.format(0)
-            vBinds.budgetMonthText.text = ""
+            binds.budgetAmountText.text = currencyFormat.format(0)
+            binds.budgetMonthText.text = ""
         }
 
-        vBinds.budgetSpentText.text = currencyFormat.format(spent)
+        binds.budgetSpentText.text = currencyFormat.format(spent)
         val percent = (spent / max * 100).toInt().coerceIn(0, 100)
-        vBinds.budgetProgressBar.progress = percent
-        vBinds.budgetProgressText.text = "$percent%"
+        binds.budgetProgressBar.progress = percent
+        binds.budgetProgressText.text = "$percent%"
 
         when {
-            spent < min -> vBinds.budgetSpentText.setTextColor(
+            spent < min -> binds.budgetSpentText.setTextColor(
                 resources.getColor(
                     R.color.teal_200, theme
                 )
             )
 
-            spent <= max -> vBinds.budgetSpentText.setTextColor(
+            spent <= max -> binds.budgetSpentText.setTextColor(
                 resources.getColor(
                     R.color.white, theme
                 )
             )
 
-            else -> vBinds.budgetSpentText.setTextColor(resources.getColor(R.color.red, theme))
+            else -> binds.budgetSpentText.setTextColor(resources.getColor(R.color.red, theme))
         }
     }
 
@@ -212,14 +212,14 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         val breakdownSafe = breakdown ?: emptyMap()
 
         if (breakdownSafe.isEmpty()) {
-            vBinds.noCategoriesText.visibility = View.VISIBLE
-            vBinds.categoriesRecyclerView.visibility = View.GONE
+            binds.noCategoriesText.visibility = View.VISIBLE
+            binds.categoriesRecyclerView.visibility = View.GONE
         } else {
-            vBinds.noCategoriesText.visibility = View.GONE
-            vBinds.categoriesRecyclerView.visibility = View.VISIBLE
+            binds.noCategoriesText.visibility = View.GONE
+            binds.categoriesRecyclerView.visibility = View.VISIBLE
 
             // Get all categories from the ViewModel and ensure preset categories are included
-            val existingCategories = vModel.categories.value ?: emptyList()
+            val existingCategories = model.categories.value ?: emptyList()
             val allCategories = existingCategories.toMutableList()
 
             // Add preset categories if they don't exist
@@ -282,13 +282,13 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.profileImage.id -> startActivity(Intent(this, ProfileActivity::class.java))
-            vBinds.manageCategoriesButton.id -> {
+            binds.profileImage.id -> startActivity(Intent(this, ProfileActivity::class.java))
+            binds.manageCategoriesButton.id -> {
                 val intent = Intent(this, CategoryManagementActivity::class.java)
                 startActivity(intent)
             }
 
-            vBinds.manageGoalsButton.id -> {
+            binds.manageGoalsButton.id -> {
                 val intent = Intent(this, ManageGoalsActivity::class.java)
                 startActivity(intent)
             }
@@ -297,9 +297,9 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupClickListeners() {
-        vBinds.profileImage.setOnClickListener(this)
-        vBinds.manageCategoriesButton.setOnClickListener(this)
-        vBinds.manageGoalsButton.setOnClickListener(this)
+        binds.profileImage.setOnClickListener(this)
+        binds.manageCategoriesButton.setOnClickListener(this)
+        binds.manageGoalsButton.setOnClickListener(this)
     }
 
 
@@ -307,16 +307,16 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupToolbar() {
-        setSupportActionBar(vBinds.toolbar)
+        setSupportActionBar(binds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
         supportActionBar?.title = "Dashboard"
     }
 
 
     private fun setupSwipeRefresh() {
-        vBinds.swipeRefreshLayout.apply {
+        binds.swipeRefreshLayout.apply {
             setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
-            setOnRefreshListener { vModel.refreshData() }
+            setOnRefreshListener { model.refreshData() }
         }
     }
 
@@ -325,14 +325,14 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupBindings() {
-        vBinds = ActivityDashboardBinding.inflate(layoutInflater)
+        binds = ActivityDashboardBinding.inflate(layoutInflater)
     }
 
 
     private fun setupLayoutUi() {
-        setContentView(vBinds.root)
+        setContentView(binds.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

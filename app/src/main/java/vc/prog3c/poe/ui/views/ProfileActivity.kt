@@ -15,8 +15,8 @@ import vc.prog3c.poe.ui.viewmodels.AuthViewModel
 
 class ProfileActivity : AppCompatActivity(), View.OnClickListener {
 
-    private lateinit var vBinds: ActivityProfileBinding
-    private lateinit var vModel: AuthViewModel
+    private lateinit var binds: ActivityProfileBinding
+    private lateinit var model: AuthViewModel
 
 
     // --- Lifecycle
@@ -29,18 +29,18 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
         setupLayoutUi()
         setupClickListeners()
 
-        vModel = ViewModelProvider(this)[AuthViewModel::class.java]
+        model = ViewModelProvider(this)[AuthViewModel::class.java]
 
         setupBottomNavigation()
         observeViewModel()
 
-        vModel.loadUserProfile() // Load user info from Firestore
+        model.loadUserProfile() // Load user info from Firestore
     }
 
 
     override fun onResume() {
         super.onResume() // Ensure profile is selected when returning to this activity
-        vBinds.bottomNavigation.selectedItemId = R.id.nav_profile
+        binds.bottomNavigation.selectedItemId = R.id.nav_profile
     }
 
 
@@ -48,18 +48,18 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun observeViewModel() {
-        vModel.currentUser.observe(this) { user ->
+        model.currentUser.observe(this) { user ->
             user?.let {
-                vBinds.nameText.text = it.name
-                vBinds.emailText.text = it.email
-                vBinds.addressText.text = it.address
+                binds.nameText.text = it.name
+                binds.emailText.text = it.email
+                binds.addressText.text = it.address
 
                 // Optionally load profile picture if using Coil/Glide
                 // Glide.with(this).load(it.profilePictureUrl).into(vBinds.profileImage)
             }
         }
 
-        vModel.error.observe(this) { error ->
+        model.error.observe(this) { error ->
             error?.let {
                 Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             }
@@ -71,7 +71,7 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupBottomNavigation() {
-        vBinds.bottomNavigation.setOnItemSelectedListener { item ->
+        binds.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_dashboard -> {
                     startActivity(Intent(this, DashboardView::class.java))
@@ -100,7 +100,7 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
             }
         }
 
-        vBinds.bottomNavigation.selectedItemId = R.id.nav_profile
+        binds.bottomNavigation.selectedItemId = R.id.nav_profile
     }
 
 
@@ -115,19 +115,19 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            vBinds.manageGoalsButton.id -> startActivity(
+            binds.manageGoalsButton.id -> startActivity(
                 Intent(
                     this, ManageGoalsActivity::class.java
                 )
             )
 
-            vBinds.achievementsButton.id -> {
+            binds.achievementsButton.id -> {
                 val intent = Intent(this, AchievementsActivity::class.java)
                 startActivity(intent)
             }
 
-            vBinds.logoutButton.id -> {
-                vModel.signOut()
+            binds.logoutButton.id -> {
+                model.signOut()
                 startActivity(Intent(this, SignInActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 })
@@ -138,9 +138,9 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupClickListeners() {
-        vBinds.manageGoalsButton.setOnClickListener(this)
-        vBinds.achievementsButton.setOnClickListener(this)
-        vBinds.logoutButton.setOnClickListener(this)
+        binds.manageGoalsButton.setOnClickListener(this)
+        binds.achievementsButton.setOnClickListener(this)
+        binds.logoutButton.setOnClickListener(this)
     }
 
 
@@ -148,7 +148,7 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupToolbar() {
-        setSupportActionBar(vBinds.toolbar)
+        setSupportActionBar(binds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Profile"
     }
@@ -158,14 +158,14 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupBindings() {
-        vBinds = ActivityProfileBinding.inflate(layoutInflater)
+        binds = ActivityProfileBinding.inflate(layoutInflater)
     }
 
 
     private fun setupLayoutUi() {
-        setContentView(vBinds.root)
+        setContentView(binds.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(vBinds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

@@ -7,33 +7,40 @@ import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.data.repository.AccountRepository
+import vc.prog3c.poe.ui.viewmodels.AccountsUiState.Failure
+import vc.prog3c.poe.ui.viewmodels.AccountsUiState.Loading
+import vc.prog3c.poe.ui.viewmodels.AccountsUiState.Updated
 
-class AccountsViewModel : ViewModel() {
-    private val repo = AccountRepository()
+class AccountsViewModel(
+    private val repository: AccountRepository = AccountRepository()
+) : ViewModel() {
+    companion object {
+        private const val TAG = "AccountsViewModel"
+    }
 
-    private val _accounts = MutableLiveData<List<Account>>()
-    val accounts: LiveData<List<Account>> = _accounts
 
-    private val _netWorth = MutableLiveData<Double>()
-    val netWorth: LiveData<Double> = _netWorth
+    // --- Fields
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
-
+    private val _uiState = MutableLiveData<AccountsUiState>()
+    val uiState: LiveData<AccountsUiState> = _uiState
+    
+    
     init {
         fetchAccounts()
     }
 
+
+    // --- Internals
+
+
     fun fetchAccounts() {
-        _isLoading.value = true
-        repo.getAllAccounts { accountList ->
+        _uiState.value = Loading
+        repository.getAllAccounts { accountList ->
             if (accountList.isEmpty()) {
-                _accounts.postValue(emptyList())
-                _netWorth.postValue(0.0)
-                _isLoading.postValue(false)
+                _uiState.value = Updated(
+                    accounts = emptyList(), netWorth = 0.0
+                )
                 return@getAllAccounts
             }
 
@@ -42,7 +49,7 @@ class AccountsViewModel : ViewModel() {
             var completed = 0
 
             accountList.forEach { account ->
-                repo.getTransactionsForAccount(account.id) { txs ->
+                repository.getTransactionsForAccount(account.id) { txs ->
                     // Compute balance and count
                     val balance = calculateBalance(txs)
                     account.balance = balance
@@ -53,15 +60,17 @@ class AccountsViewModel : ViewModel() {
 
                     // When all accounts have been processed, post the results
                     if (completed == accountList.size) {
-                        _accounts.postValue(updatedAccounts)
-                        _netWorth.postValue(updatedAccounts.sumOf { it.balance })
-                        _isLoading.postValue(false)
+                        _uiState.value = Updated(
+                            accounts = updatedAccounts, netWorth = updatedAccounts.sumOf {
+                                it.balance
+                            })
                     }
                 }
             }
         }
     }
 
+    
     private fun calculateBalance(transactions: List<Transaction>): Double {
         return transactions.sumOf { transaction ->
             when (transaction.type) {
@@ -73,30 +82,30 @@ class AccountsViewModel : ViewModel() {
         }
     }
 
+    
     fun addAccount(account: Account) {
-        _isLoading.value = true
-        repo.addAccount(account) { success ->
+        _uiState.value = Loading
+        repository.addAccount(account) { success ->
             if (success) fetchAccounts()
-            else _error.postValue("Failed to add account.")
-            _isLoading.postValue(false)
+            else _uiState.value = Failure("Failed to create account.")
         }
     }
 
+    
     fun updateAccount(account: Account) {
-        _isLoading.value = true
-        repo.updateAccount(account) { success ->
+        _uiState.value = Loading
+        repository.updateAccount(account) { success ->
             if (success) fetchAccounts()
-            else _error.postValue("Failed to update account.")
-            _isLoading.postValue(false)
+            else _uiState.value = Failure("Failed to update account.")
         }
     }
 
+    
     fun deleteAccount(accountId: String) {
-        _isLoading.value = true
-        repo.deleteAccount(accountId) { success ->
+        _uiState.value = Loading
+        repository.deleteAccount(accountId) { success ->
             if (success) fetchAccounts()
-            else _error.postValue("Failed to delete account.")
-            _isLoading.postValue(false)
+            else _uiState.value = Failure("Failed to delete account.")
         }
     }
 }

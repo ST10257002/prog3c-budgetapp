@@ -58,7 +58,9 @@ class AchievementsActivity : AppCompatActivity(), View.OnClickListener {
 
         model.error.observe(this) { error ->
             error?.let {
-                Snackbar.make(binds.root, it, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(
+                    binds.root, it, Snackbar.LENGTH_LONG
+                ).show()
             }
         }
     }
@@ -192,14 +194,7 @@ class AchievementsActivity : AppCompatActivity(), View.OnClickListener {
     }
 
 
-    private fun setupBoosterBucksCard() {
-        binds.redeemButton.setOnClickListener {
-            showRedeemDialog()
-        }
-    }
-
-
-    // --- UI
+    // --- UI Registrations
 
 
     private fun setupBindings() {
@@ -219,6 +214,5 @@ class AchievementsActivity : AppCompatActivity(), View.OnClickListener {
         setupToolbar()
         setupRecyclerView()
         setupTabLayout()
-        setupBoosterBucksCard()
     }
 } 

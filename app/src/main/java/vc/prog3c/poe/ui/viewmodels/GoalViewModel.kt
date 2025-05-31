@@ -3,37 +3,52 @@ package vc.prog3c.poe.ui.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import java.util.Date
-import vc.prog3c.poe.data.models.Goal
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.core.services.AuthService
+import vc.prog3c.poe.data.models.Goal
+import java.util.Date
 
+// TODO: Replace with Firestore implementation
+// - Create Firestore collection for goals
+// - Implement real-time listeners for goal updates
+// - Add offline persistence support
+// - Implement data synchronization
+// - Add error handling for network issues
 class GoalViewModel(
-    private val authService: AuthService = AuthService()
+    private val authService: AuthService = AuthService(),
+    private val dataService: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) : ViewModel() {
-    // TODO: Replace with Firestore implementation
-    // - Create Firestore collection for goals
-    // - Implement real-time listeners for goal updates
-    // - Add offline persistence support
-    // - Implement data synchronization
-    // - Add error handling for network issues
+    companion object {
+        private const val TAG = "GoalViewModel"
+    }
+    
+    
+    // --- Fields
 
+    
     private val _goals = MutableLiveData<List<Goal>>()
     val goals: LiveData<List<Goal>> = _goals
+
 
     private val _activeGoals = MutableLiveData<List<Goal>>()
     val activeGoals: LiveData<List<Goal>> = _activeGoals
 
+
     private val _completedGoals = MutableLiveData<List<Goal>>()
     val completedGoals: LiveData<List<Goal>> = _completedGoals
+
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
+
     init {
         loadTestData()
     }
+
+    
+    // --- Internals
+    
 
     private fun loadTestData() {
         val currentDate = Date()
@@ -50,8 +65,7 @@ class GoalViewModel(
                 deadline = threeMonthsFromNow,
                 category = "Electronics",
                 description = "Save for a new MacBook Pro"
-            ),
-            Goal(
+            ), Goal(
                 id = "2",
                 name = "Vacation Fund",
                 targetAmount = 25000.0,
@@ -59,8 +73,7 @@ class GoalViewModel(
                 deadline = oneMonthFromNow,
                 category = "Travel",
                 description = "Save for summer vacation"
-            ),
-            Goal(
+            ), Goal(
                 id = "3",
                 name = "Emergency Fund",
                 targetAmount = 50000.0,
@@ -75,12 +88,14 @@ class GoalViewModel(
         updateGoalLists()
     }
 
+
     private fun updateGoalLists() {
         _goals.value?.let { allGoals ->
             _activeGoals.value = allGoals.filter { !it.isCompleted }
             _completedGoals.value = allGoals.filter { it.isCompleted }
         }
     }
+
 
     fun addGoal(goal: Goal) {
         // TODO: Implement Firestore goal addition
@@ -92,6 +107,7 @@ class GoalViewModel(
         _goals.value = currentList
         updateGoalLists()
     }
+
 
     fun updateGoal(goal: Goal) {
         // TODO: Implement Firestore goal update
@@ -107,6 +123,7 @@ class GoalViewModel(
         }
     }
 
+
     fun deleteGoal(goalId: String) {
         // TODO: Implement Firestore goal deletion
         // - Delete from Firestore collection
@@ -118,6 +135,7 @@ class GoalViewModel(
         updateGoalLists()
     }
 
+
     fun updateGoalProgress(goalId: String, newAmount: Double) {
         // TODO: Implement Firestore goal progress update
         // - Update Firestore document
@@ -128,8 +146,7 @@ class GoalViewModel(
         if (index != -1) {
             val goal = currentList[index]
             val updatedGoal = goal.copy(
-                currentAmount = newAmount,
-                isCompleted = newAmount >= goal.targetAmount
+                currentAmount = newAmount, isCompleted = newAmount >= goal.targetAmount
             )
             currentList[index] = updatedGoal
             _goals.value = currentList
@@ -137,16 +154,19 @@ class GoalViewModel(
         }
     }
 
+
     fun validateGoal(minGoal: Double, maxGoal: Double, monthlyBudget: Double): Boolean {
         return when {
             minGoal <= 0 || maxGoal <= 0 || monthlyBudget <= 0 -> {
                 _error.value = "Values must be greater than 0"
                 false
             }
+
             minGoal > maxGoal -> {
                 _error.value = "Min goal cannot be greater than max goal"
                 false
             }
+
             else -> {
                 _error.value = null
                 true
@@ -154,7 +174,10 @@ class GoalViewModel(
         }
     }
 
-    fun saveValidatedGoalToFirestore(min: Double, max: Double, budget: Double, onResult: (Boolean) -> Unit) {
+
+    fun saveValidatedGoalToFirestore(
+        min: Double, max: Double, budget: Double, onResult: (Boolean) -> Unit
+    ) {
         val uid = authService.getCurrentUser()?.uid ?: return onResult(false)
 
         val goalData = mapOf(
@@ -164,13 +187,8 @@ class GoalViewModel(
             "createdAt" to System.currentTimeMillis()
         )
 
-        FirebaseFirestore.getInstance()
-            .collection("users")
-            .document(uid)
-            .collection("goals")
-            .document("primary_savings_goal")
-            .set(goalData)
-            .addOnSuccessListener { onResult(true) }
+        dataService.collection("users").document(uid).collection("goals")
+            .document("primary_savings_goal").set(goalData).addOnSuccessListener { onResult(true) }
             .addOnFailureListener { onResult(false) }
     }
 } 

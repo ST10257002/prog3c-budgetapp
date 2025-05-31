@@ -11,6 +11,7 @@ import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
@@ -27,6 +28,7 @@ import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.databinding.ActivityAccountsBinding
 import vc.prog3c.poe.ui.adapters.AccountAdapter
+import vc.prog3c.poe.ui.viewmodels.AccountsUiState
 import vc.prog3c.poe.ui.viewmodels.AccountsViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -60,29 +62,43 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
     // --- ViewModel
 
 
-    private fun observeViewModel() {
-        model.accounts.observe(this) { list ->
-            accountAdapter.submitList(list)
-            updateNetWorthPieChart(list)
-        }
+    private fun observeViewModel() = model.uiState.observe(this) { state ->
+        when (state) {
+            is AccountsUiState.Default -> {
+                binds.swipeRefreshLayout.isRefreshing = false
+            }
 
-        model.netWorth.observe(this) { total ->
-            binds.netWorthAmount.text =
-                NumberFormat.getCurrencyInstance(Locale.getDefault()).format(total)
-        }
+            is AccountsUiState.Loading -> {
+                binds.swipeRefreshLayout.isRefreshing = true
+            }
 
-        model.isLoading.observe(this) { loading ->
-            binds.swipeRefreshLayout.isRefreshing = loading
-        }
+            is AccountsUiState.Updated -> {
+                binds.swipeRefreshLayout.isRefreshing = false
 
-        model.error.observe(this) { msg ->
-            msg?.let { Snackbar.make(binds.root, it, Snackbar.LENGTH_LONG).show() }
+                state.accounts?.let {
+                    accountAdapter.submitList(it)
+                    updateNetWorthPieChart(it)
+                }
+
+                state.netWorth?.let {
+                    binds.netWorthAmount.text = NumberFormat.getCurrencyInstance(
+                        Locale.getDefault()
+                    ).format(it)
+                }
+            }
+
+            is AccountsUiState.Failure -> {
+                binds.swipeRefreshLayout.isRefreshing = false
+                Snackbar.make(
+                    binds.root, state.message, Snackbar.LENGTH_LONG
+                ).show()
+            }
         }
     }
-
-
-    // --- Internals
     
+    
+    // --- Internals
+
 
     private fun showAddAccountDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_account, null)
@@ -151,14 +167,19 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
     }
 
 
-    private fun updateNetWorthPieChart(accounts: List<Account>) {
-        val entries =
-            accounts.map { PieEntry(it.balance.toFloat(), it.name) }.filter { it.value > 0f }
+    private fun updateNetWorthPieChart(
+        accounts: List<Account>
+    ) {
+        val entries = accounts.map {
+            PieEntry(it.balance.toFloat(), it.name)
+        }.filter { it.value > 0f }
+
         if (entries.isEmpty()) {
             binds.netWorthPieChart.data = null
             binds.netWorthPieChart.invalidate()
             return
         }
+
         val ds = PieDataSet(entries, "Account Distribution").apply {
             valueTextColor = Color.BLACK
             valueTextSize = 12f
@@ -167,10 +188,11 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
                 resources.getColor(R.color.primary, null),
                 resources.getColor(R.color.green, null),
                 resources.getColor(R.color.red, null),
-                Color.parseColor("#FF9800"),
-                Color.parseColor("#9C27B0")
+                "#FF9800".toColorInt(),
+                "#9C27B0".toColorInt()
             )
         }
+
         binds.netWorthPieChart.data = PieData(ds)
         binds.netWorthPieChart.invalidate()
         binds.netWorthPieChart.animateY(1000)
@@ -254,7 +276,7 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
     }
 
 
-    // --- UI 
+    // --- UI Registrations
 
 
     private fun setupBindings() {

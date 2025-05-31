@@ -321,7 +321,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
     }
 
 
-    // --- UI
+    // --- UI Registrations
 
 
     private fun setupBindings() {

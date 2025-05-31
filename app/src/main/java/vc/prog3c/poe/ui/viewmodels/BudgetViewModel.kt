@@ -10,15 +10,29 @@ import vc.prog3c.poe.data.repository.TransactionRepository // you must already h
 import java.util.Calendar
 
 class BudgetViewModel : ViewModel() {
+    companion object {
+        private const val TAG = "BudgetViewModel"
+    }
+    
+    
+    // --- Fields
+    
+    
     private val budgetRepo = BudgetRepository()
     private val transactionRepo = TransactionRepository()
 
+    
     private val _budget = MutableLiveData<Budget?>()
     val budget: LiveData<Budget?> = _budget
 
+    
     private val _monthlyStats = MutableLiveData<MonthlyStats?>()
     val monthlyStats: LiveData<MonthlyStats?> = _monthlyStats
 
+    
+    // --- Internals
+    
+    
     fun loadBudgetAndStats() {
         val cal = Calendar.getInstance()
         val year = cal.get(Calendar.YEAR)

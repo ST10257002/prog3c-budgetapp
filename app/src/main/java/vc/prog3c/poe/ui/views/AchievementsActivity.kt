@@ -18,6 +18,7 @@ import vc.prog3c.poe.data.models.BoosterBucks
 import vc.prog3c.poe.databinding.ActivityAchievementsBinding
 import vc.prog3c.poe.ui.adapters.AchievementAdapter
 import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
+import vc.prog3c.poe.ui.viewmodels.AchievementsUiState
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -47,19 +48,23 @@ class AchievementsActivity : AppCompatActivity(), View.OnClickListener {
     // --- ViewModel
 
 
-    private fun observeViewModel() {
-        model.achievements.observe(this) { achievements ->
-            adapter.updateAchievements(achievements)
-        }
+    private fun observeViewModel() = model.uiState.observe(this) { state ->
+        when (state) {
+            is AchievementsUiState.Default -> {}
+            is AchievementsUiState.Loading -> {}
+            is AchievementsUiState.Updated -> {
+                state.boosterBucks?.let {
+                    updateBoosterBucksDisplay(it)
+                }
 
-        model.boosterBucks.observe(this) { boosterBucks ->
-            updateBoosterBucksDisplay(boosterBucks)
-        }
+                state.achievements?.let {
+                    adapter.updateAchievements(it)
+                }
+            }
 
-        model.error.observe(this) { error ->
-            error?.let {
+            is AchievementsUiState.Failure -> {
                 Snackbar.make(
-                    binds.root, it, Snackbar.LENGTH_LONG
+                    binds.root, state.message, Snackbar.LENGTH_LONG
                 ).show()
             }
         }

@@ -5,23 +5,23 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.data.models.Transaction
-import vc.prog3c.poe.data.repository.AccountRepository
 import vc.prog3c.poe.data.models.TransactionType
+import vc.prog3c.poe.data.repository.AccountRepository
 
 class AccountDetailsViewModel(
     private val repo: AccountRepository = AccountRepository()
 ) : ViewModel() {
 
-    private val _account      = MutableLiveData<Account?>()
+    private val _account = MutableLiveData<Account?>()
     val account: LiveData<Account?> = _account
 
     private val _transactions = MutableLiveData<List<Transaction>>()
     val transactions: LiveData<List<Transaction>> = _transactions
 
-    private val _isLoading    = MutableLiveData<Boolean>()
+    private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _error        = MutableLiveData<String?>()
+    private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
     private val _calculatedBalance = MutableLiveData<Double>()
@@ -52,12 +52,15 @@ class AccountDetailsViewModel(
     fun filterTransactionsByTimePeriod(period: String) {
         val now = System.currentTimeMillis()
         val cutoff = when (period) {
-            "1 week"  -> now - 7L * 24*60*60*1000
-            "1 month" -> now - 30L*24*60*60*1000
-            "3 months"-> now - 90L*24*60*60*1000
-            else      -> 0L
+            "1 week" -> now - 7L * 24 * 60 * 60 * 1000
+            "1 month" -> now - 30L * 24 * 60 * 60 * 1000
+            "3 months" -> now - 90L * 24 * 60 * 60 * 1000
+            else -> 0L
         }
-        _transactions.value = allTxs.filter { it.date.toDate().time >= cutoff }
+        
+        _transactions.value = allTxs.filter { 
+            it.date.toDate().time >= cutoff 
+        }
     }
 
     fun deleteAccount(accountId: String) {

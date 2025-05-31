@@ -48,7 +48,9 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
         val uid =
             FirebaseAuth.getInstance().currentUser?.uid // TODO: REPLACE WITH SERVICE + THIS SHOULD BE IN VIEWMODEL NOT HERE
         if (uid.isNullOrEmpty()) {
-            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this, "User not authenticated", Toast.LENGTH_SHORT
+            ).show()
             finish()
             return
         }
@@ -57,12 +59,16 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
 
         observeViewModel()
 
+        binds.timePeriodChipGroup.check(R.id.chip1Month) // Default
+
         // Load details
         val accountId = intent.getStringExtra("account_id")
         if (!accountId.isNullOrEmpty()) {
             model.loadAccountDetails(uid, accountId)
         } else {
-            Toast.makeText(this, "Account ID not provided", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this, "Account ID not provided", Toast.LENGTH_SHORT
+            ).show()
             finish()
         }
     }
@@ -100,7 +106,9 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
         model.isLoading.observe(this) { /* show loader */ }
         model.error.observe(this) {
             it?.let { msg ->
-                Snackbar.make(binds.root, msg, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(
+                    binds.root, msg, Snackbar.LENGTH_LONG
+                ).show()
             }
         }
     }
@@ -191,7 +199,7 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
             setTitle("Delete Account")
             setMessage("Are you sure you want to delete this account? This action cannot be undone.")
             setPositiveButton("Delete") { _, _ ->
-                val accId = model.account.value?.id
+                val accId = model.account.value?.id // <-- Here maybe?
                 if (accId != null) model.deleteAccount(accId)
             }
             setNegativeButton("Cancel", null)
@@ -248,8 +256,6 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
                 R.id.chip3Months -> model.filterTransactionsByTimePeriod("3 months")
             }
         }
-        
-        binds.timePeriodChipGroup.check(R.id.chip1Month) // Default
     }
 
 
@@ -271,7 +277,7 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
         }
 
         setupToolbar()
-        setupTimePeriodChips()
         setupLineChart()
+        setupTimePeriodChips()
     }
 }

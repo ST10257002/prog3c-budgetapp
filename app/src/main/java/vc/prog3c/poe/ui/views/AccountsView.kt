@@ -25,6 +25,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import vc.prog3c.poe.R
+import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.databinding.ActivityAccountsBinding
 import vc.prog3c.poe.ui.adapters.AccountAdapter

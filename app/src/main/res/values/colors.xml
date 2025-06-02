@@ -37,7 +37,19 @@
     <color name="bottom_nav_text_color">@color/primary</color>
 
     <!-- Standard Colors -->
-    <color name="black">#000000</color>
-    <color name="white">#FFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
     <color name="transparent">#00000000</color>
+
+    <!-- New status colors -->
+    <color name="colorPrimary">#FF6200EE</color>
+    <color name="colorPrimaryDark">#FF3700B3</color>
+    <color name="colorAccent">#FF03DAC5</color>
+    <color name="colorGreen">#4CAF50</color>
+    <color name="colorBlue">#2196F3</color>
+    <color name="colorRed">#F44336</color>
+    <color name="colorPurple">#9C27B0</color>
+    <color name="colorOrange">#FF9800</color>
+    <color name="status_success">#4CAF50</color>
+    <color name="status_error">#F44336</color>
 </resources>

@@ -63,50 +63,69 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun showAddCategoryDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_category, null)
-        val nameInput =
-            dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.nameInput)
-        val typeInput =
-            dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.typeInput)
-        val typeDropdown =
-            typeInput.editText as? com.google.android.material.textfield.MaterialAutoCompleteTextView
+        val nameInput = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.nameInput)
+        val typeInput = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.typeInput)
+        val typeDropdown = typeInput.editText as? com.google.android.material.textfield.MaterialAutoCompleteTextView
+        val iconChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.iconChipGroup)
+        val colorChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.colorChipGroup)
 
         val types = CategoryType.values().filter { it != CategoryType.SAVINGS }
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, types)
         typeDropdown?.setAdapter(adapter)
 
-        MaterialAlertDialogBuilder(this).setTitle("Add Category").setView(dialogView)
+        // Set default selections
+        iconChipGroup.check(R.id.iconCategory)
+        colorChipGroup.check(R.id.colorGreen)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Add Category")
+            .setView(dialogView)
             .setPositiveButton("Add") { _, _ ->
                 val name = nameInput.editText?.text.toString()
                 val type = typeDropdown?.text.toString()
+                val selectedIconChip = dialogView.findViewById<com.google.android.material.chip.Chip>(iconChipGroup.checkedChipId)
+                val selectedColorChip = dialogView.findViewById<com.google.android.material.chip.Chip>(colorChipGroup.checkedChipId)
+
                 if (name.isNotBlank() && type.isNotBlank()) {
                     val newCategory = Category(
                         id = UUID.randomUUID().toString(),
                         name = name,
                         type = CategoryType.valueOf(type),
-                        icon = "ic_category",
-                        color = "#FF000000",
+                        icon = when (selectedIconChip.id) {
+                            R.id.iconSavings -> "ic_savings"
+                            R.id.iconUtilities -> "ic_utilities"
+                            R.id.iconEmergency -> "ic_error"
+                            else -> "ic_category"
+                        },
+                        color = when (selectedColorChip.id) {
+                            R.id.colorBlue -> "#2196F3"
+                            R.id.colorRed -> "#F44336"
+                            R.id.colorPurple -> "#9C27B0"
+                            R.id.colorOrange -> "#FF9800"
+                            else -> "#4CAF50"
+                        },
                         isEditable = true
                     )
                     model.addCategory(newCategory)
                 }
-            }.setNegativeButton("Cancel", null).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
     
 
     private fun showEditCategoryDialog(category: Category) {
         if (!category.isEditable) {
-            Snackbar.make(binds.root, "This category cannot be edited", Snackbar.LENGTH_SHORT)
-                .show()
+            Snackbar.make(binds.root, "This category cannot be edited", Snackbar.LENGTH_SHORT).show()
             return
         }
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_category, null)
-        val nameInput =
-            dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.nameInput)
-        val typeInput =
-            dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.typeInput)
-        val typeDropdown =
-            typeInput.editText as? com.google.android.material.textfield.MaterialAutoCompleteTextView
+        val nameInput = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.nameInput)
+        val typeInput = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.typeInput)
+        val typeDropdown = typeInput.editText as? com.google.android.material.textfield.MaterialAutoCompleteTextView
+        val iconChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.iconChipGroup)
+        val colorChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.colorChipGroup)
 
         nameInput.editText?.setText(category.name)
         val types = CategoryType.values().filter { it != CategoryType.SAVINGS }
@@ -114,17 +133,58 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
         typeDropdown?.setAdapter(adapter)
         typeDropdown?.setText(category.type.toString(), false)
 
-        MaterialAlertDialogBuilder(this).setTitle("Edit Category").setView(dialogView)
+        // Set current selections
+        iconChipGroup.check(
+            when (category.icon) {
+                "ic_savings" -> R.id.iconSavings
+                "ic_utilities" -> R.id.iconUtilities
+                "ic_error" -> R.id.iconEmergency
+                else -> R.id.iconCategory
+            }
+        )
+
+        colorChipGroup.check(
+            when (category.color) {
+                "#2196F3" -> R.id.colorBlue
+                "#F44336" -> R.id.colorRed
+                "#9C27B0" -> R.id.colorPurple
+                "#FF9800" -> R.id.colorOrange
+                else -> R.id.colorGreen
+            }
+        )
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Edit Category")
+            .setView(dialogView)
             .setPositiveButton("Save") { _, _ ->
                 val name = nameInput.editText?.text.toString()
                 val type = typeDropdown?.text.toString()
+                val selectedIconChip = dialogView.findViewById<com.google.android.material.chip.Chip>(iconChipGroup.checkedChipId)
+                val selectedColorChip = dialogView.findViewById<com.google.android.material.chip.Chip>(colorChipGroup.checkedChipId)
+
                 if (name.isNotBlank() && type.isNotBlank()) {
                     val updatedCategory = category.copy(
-                        name = name, type = CategoryType.valueOf(type)
+                        name = name,
+                        type = CategoryType.valueOf(type),
+                        icon = when (selectedIconChip.id) {
+                            R.id.iconSavings -> "ic_savings"
+                            R.id.iconUtilities -> "ic_utilities"
+                            R.id.iconEmergency -> "ic_error"
+                            else -> "ic_category"
+                        },
+                        color = when (selectedColorChip.id) {
+                            R.id.colorBlue -> "#2196F3"
+                            R.id.colorRed -> "#F44336"
+                            R.id.colorPurple -> "#9C27B0"
+                            R.id.colorOrange -> "#FF9800"
+                            else -> "#4CAF50"
+                        }
                     )
                     model.updateCategory(updatedCategory)
                 }
-            }.setNegativeButton("Cancel", null).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
     
 
@@ -207,7 +267,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
             insets
         }
         
-        setupRecyclerView()
         setupToolbar()
+        setupRecyclerView()
     }
 } 

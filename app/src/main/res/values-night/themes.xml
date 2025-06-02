@@ -1,8 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.BudgetApp"
-            parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <style name="Base.Theme.BudgetApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSecondaryVariant">@color/accent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">@color/primary</item>
+        <!-- Background colors -->
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="colorSurface">@color/surface_dark</item>
+        <item name="colorOnSurface">@color/text_primary_dark</item>
+        <!-- Text colors -->
+        <item name="android:textColorPrimary">@color/text_primary_dark</item>
+        <item name="android:textColorSecondary">@color/text_secondary_dark</item>
+        <item name="android:textColorHint">@color/text_hint_dark</item>
+        <!-- Card colors -->
+        <item name="cardBackgroundColor">@color/card_background_dark</item>
+        <item name="cardElevation">2dp</item>
+        <!-- Input field colors -->
+        <item name="materialButtonStyle">@style/Widget.BudgetApp.Button</item>
+        <item name="textInputStyle">@style/Widget.BudgetApp.TextInputLayout.Dark</item>
+        <!-- Navigation bar color -->
+        <item name="android:navigationBarColor">@color/primary</item>
+    </style>
+
+    <!-- Custom TextInputLayout Style for Dark Theme -->
+    <style name="Widget.BudgetApp.TextInputLayout.Dark" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/primary</item>
+        <item name="hintTextColor">@color/primary</item>
+        <item name="android:textColorHint">@color/text_hint_dark</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="android:textColor">@color/text_primary_dark</item>
+        <item name="boxBackgroundColor">@color/surface_dark</item>
+        <item name="boxStrokeWidth">2dp</item>
+        <item name="android:textSize">16sp</item>
     </style>
 </resources>

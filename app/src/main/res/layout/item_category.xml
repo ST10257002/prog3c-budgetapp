@@ -41,8 +41,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="8dp"
-            android:textAppearance="?attr/textAppearanceSubtitle1"
-            android:textColor="?attr/colorOnSurface"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:textColor="@color/text_primary"
             app:layout_constraintEnd_toStartOf="@id/editButton"
             app:layout_constraintStart_toEndOf="@id/categoryIcon"
             app:layout_constraintTop_toTopOf="@id/categoryIcon"
@@ -56,8 +56,8 @@
             android:background="@drawable/bg_category_type"
             android:paddingHorizontal="8dp"
             android:paddingVertical="2dp"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:textColor="?attr/colorPrimary"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+            android:textColor="@color/primary"
             app:layout_constraintStart_toStartOf="@id/categoryName"
             app:layout_constraintTop_toBottomOf="@id/categoryName"
             tools:text="SAVINGS" />
@@ -67,8 +67,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textAppearance="?attr/textAppearanceBody2"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:textColor="@color/text_secondary"
             app:layout_constraintEnd_toEndOf="@id/categoryName"
             app:layout_constraintStart_toStartOf="@id/categoryName"
             app:layout_constraintTop_toBottomOf="@id/categoryType"
@@ -79,8 +79,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textAppearance="?attr/textAppearanceBody2"
-            android:textColor="?attr/colorPrimary"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:textColor="@color/primary"
             app:layout_constraintStart_toStartOf="@id/categoryName"
             app:layout_constraintTop_toBottomOf="@id/categoryDescription"
             tools:text="$1,000.00" />
@@ -95,7 +95,7 @@
             android:src="@drawable/ic_edit"
             app:layout_constraintEnd_toStartOf="@id/deleteButton"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="?attr/colorPrimary" />
+            app:tint="@color/primary" />
 
         <ImageButton
             android:id="@+id/deleteButton"
@@ -107,7 +107,7 @@
             android:src="@drawable/ic_delete"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="?attr/colorError" />
+            app:tint="@color/red" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

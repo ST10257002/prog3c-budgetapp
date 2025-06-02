@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
@@ -34,6 +35,7 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
         setupBindings()
         setupLayoutUi()
+        setupRecyclerView()
         setupClickListeners()
 
         model = ViewModelProvider(this)[CategoryViewModel::class.java]
@@ -245,12 +247,13 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
     private fun setupRecyclerView() {
         adapter = CategoryAdapter(
             onEditClick = { category -> showEditCategoryDialog(category) },
-            onDeleteClick = { category -> showDeleteConfirmationDialog(category) })
-        binds.recyclerView.adapter = adapter
+            onDeleteClick = { category -> showDeleteConfirmationDialog(category) }
+        )
+        binds.recyclerView.apply {
+            layoutManager = LinearLayoutManager(this@CategoryManagementActivity)
+            adapter = this@CategoryManagementActivity.adapter
+        }
     }
-
-
-    // --- UI
 
 
     private fun setupBindings() {
@@ -268,6 +271,5 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
         }
         
         setupToolbar()
-        setupRecyclerView()
     }
 } 

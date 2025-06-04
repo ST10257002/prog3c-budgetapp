@@ -95,60 +95,45 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Filter and Add Transaction buttons -->
+            <!-- Filter and Add Transaction row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="8dp"
+                android:paddingBottom="8dp">
 
-                <ImageView
-                    android:id="@+id/filterIcon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_filter_list" />
+                <FrameLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:gravity="center">
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/filterChipGroup"
+                    <ImageView
+                        android:id="@+id/filterIcon"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_filter_list"
+                        android:contentDescription="Filter Icon" />
+                </FrameLayout>
+
+
+                <View
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    app:selectionRequired="true"
-                    app:singleSelection="true">
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/allChip"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="All" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/incomeChip"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Income" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/expenseChip"
-                        style="@style/Widget.MaterialComponents.Chip.Choice"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Expense" />
-
-                </com.google.android.material.chip.ChipGroup>
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/addTransactionButton"
                     style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+ Add Transaction" />
-
+                    android:text="+ Add Transaction"
+                    android:icon="@drawable/ic_add"
+                    app:iconPadding="4dp"
+                    app:iconGravity="textStart" />
             </LinearLayout>
+
 
             <!-- Transactions List -->
             <androidx.recyclerview.widget.RecyclerView

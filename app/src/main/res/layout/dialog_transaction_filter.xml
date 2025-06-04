@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Filter by Type"
+        android:textStyle="bold"
+        android:paddingBottom="8dp"/>
+
+    <RadioGroup
+        android:id="@+id/filterRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton android:id="@+id/filterAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="All" />
+        <RadioButton android:id="@+id/filterIncome" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Income" />
+        <RadioButton android:id="@+id/filterExpense" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Expense" />
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sort by"
+        android:textStyle="bold"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"/>
+
+    <RadioGroup
+        android:id="@+id/sortRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton android:id="@+id/sortNewest" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Newest" />
+        <RadioButton android:id="@+id/sortOldest" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Oldest" />
+        <RadioButton android:id="@+id/sortHighest" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Highest" />
+        <RadioButton android:id="@+id/sortLowest" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Lowest" />
+    </RadioGroup>
+</LinearLayout>

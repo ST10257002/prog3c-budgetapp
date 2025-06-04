@@ -10,6 +10,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
+import vc.prog3c.poe.data.models.FilterOption
+import vc.prog3c.poe.data.models.SortOption
 
 /**
  * Unified ViewModel for both income and expense transactions.
@@ -40,6 +42,8 @@ class TransactionViewModel : ViewModel() {
 
     fun getCurrentUserId(): String = auth.currentUser?.uid ?: ""
 
+    private var _fullTransactionList: List<Transaction> = emptyList()
+
     /**
      * Load all transactions for an account.
      */
@@ -59,8 +63,16 @@ class TransactionViewModel : ViewModel() {
                     .get()
                     .addOnSuccessListener { documents ->
                         val transactionList = documents.mapNotNull { it.toObject(Transaction::class.java) }
+
+                        // ✅ Store original list for repeated filtering
+                        _fullTransactionList = transactionList
+
+                        // ✅ Update visible list
                         _transactions.value = transactionList
+
+                        // ✅ Update totals based on full list
                         calculateTotals(transactionList)
+
                         _transactionState.value = TransactionState.Success()
                     }
                     .addOnFailureListener { e ->
@@ -71,6 +83,7 @@ class TransactionViewModel : ViewModel() {
             }
         }
     }
+
 
     fun refreshTransactions(accountId: String?) = loadTransactions(accountId)
 
@@ -178,4 +191,25 @@ class TransactionViewModel : ViewModel() {
             .filter { it.type == TransactionType.EXPENSE }
             .sumOf { it.amount }
     }
+
+    fun applyFilterAndSort(filter: FilterOption, sort: SortOption) {
+        val fullList = _fullTransactionList
+
+        val filtered = when (filter) {
+            FilterOption.INCOME -> fullList.filter { it.type == TransactionType.INCOME }
+            FilterOption.EXPENSE -> fullList.filter { it.type == TransactionType.EXPENSE }
+            FilterOption.ALL -> fullList
+        }
+
+        val sorted = when (sort) {
+            SortOption.NEWEST -> filtered.sortedByDescending { it.date }
+            SortOption.OLDEST -> filtered.sortedBy { it.date }
+            SortOption.HIGHEST -> filtered.sortedByDescending { it.amount }
+            SortOption.LOWEST -> filtered.sortedBy { it.amount }
+        }
+
+        _transactions.value = sorted
+        calculateTotals(filtered)
+    }
+
 }

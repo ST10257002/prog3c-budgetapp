@@ -1,9 +1,12 @@
 package vc.prog3c.poe.ui.views
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.ImageView
+import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
+import vc.prog3c.poe.data.models.FilterOption
+import vc.prog3c.poe.data.models.SortOption
 import vc.prog3c.poe.databinding.ActivityTransactionsBinding
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.ui.adapters.TransactionAdapter
@@ -51,7 +56,8 @@ class TransactionsView : AppCompatActivity() {
 
         setupToolbar()
         setupRecyclerView()
-        setupFilterChips()
+        //setupFilterChips()
+        setupFilterButton()
         setupSwipeRefresh()
         setupAddTransactionButton()
         observeViewModel()
@@ -81,6 +87,7 @@ class TransactionsView : AppCompatActivity() {
         }
     }
 
+/*
     private fun setupFilterChips() {
         binds.filterChipGroup.setOnCheckedChangeListener { group, checkedId ->
             currentType = when (group.findViewById<Chip>(checkedId)?.id) {
@@ -101,6 +108,7 @@ class TransactionsView : AppCompatActivity() {
             setupToolbar() // Update title
         }
     }
+*/
 
     private fun setupSwipeRefresh() {
         binds.swipeRefreshLayout.apply {
@@ -153,5 +161,41 @@ class TransactionsView : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
+    }
+
+    private fun setupFilterButton() {
+        val filterIcon = findViewById<ImageView>(R.id.filterIcon)
+        filterIcon.setOnClickListener {
+            val dialogView = layoutInflater.inflate(R.layout.dialog_transaction_filter, null)
+
+            val filterGroup = dialogView.findViewById<RadioGroup>(R.id.filterRadioGroup)
+            val sortGroup = dialogView.findViewById<RadioGroup>(R.id.sortRadioGroup)
+
+            val dialog = AlertDialog.Builder(this)
+                .setTitle("Filter & Sort")
+                .setView(dialogView)
+                .setPositiveButton("Apply") { _, _ ->
+                    val filter = when (filterGroup.checkedRadioButtonId) {
+                        R.id.filterIncome -> FilterOption.INCOME
+                        R.id.filterExpense -> FilterOption.EXPENSE
+                        else -> FilterOption.ALL
+                    }
+                    val sort = when (sortGroup.checkedRadioButtonId) {
+                        R.id.sortOldest -> SortOption.OLDEST
+                        R.id.sortHighest -> SortOption.HIGHEST
+                        R.id.sortLowest -> SortOption.LOWEST
+                        else -> SortOption.NEWEST
+                    }
+                    model.applyFilterAndSort(filter, sort)
+                }
+                .setNeutralButton("Reset") { _, _ ->
+                    model.applyFilterAndSort(FilterOption.ALL, SortOption.NEWEST)
+                }
+                .setNegativeButton("Cancel", null)
+
+                .create()
+
+            dialog.show()
+        }
     }
 }

@@ -169,10 +169,32 @@ class AddTransactionActivity : AppCompatActivity() {
     }
 
     private fun setupCategoryDropdown() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        // Step 1: Observe your live category list (from categoryViewModel)
         categoryViewModel.categories.observe(this) { categories ->
-            updateCategoriesForType(currentTransactionType)
+            val uiCategoryNames = categories.map { it.name }
+
+            // Step 2: Fetch categoryBudgets from Firestore
+            db.collection("users").document(userId).collection("categoryBudgets").get()
+                .addOnSuccessListener { documents ->
+                    val budgetCategoryNames = documents.map { it.id }
+
+                    // Step 3: Combine both lists and remove duplicates
+                    val allCategoryNames = (uiCategoryNames + budgetCategoryNames).distinct().sorted()
+
+                    // Step 4: Apply to dropdown
+                    val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, allCategoryNames)
+                    binds.expenseForm.categoryInput.setAdapter(adapter)
+
+                    binds.expenseForm.categoryInput.setOnItemClickListener { _, _, position, _ ->
+                        selectedCategory = Category(name = allCategoryNames[position])
+                    }
+                }
         }
     }
+
+
 
     private fun updateCategoriesForType(type: TransactionType) {
         categoryViewModel.categories.value?.let { categories ->

@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.Category
-import vc.prog3c.poe.data.models.PresetCategories
+//import vc.prog3c.poe.data.models.PresetCategories
 
 class CategoryViewModel(
     private val authService: AuthService = AuthService(),
@@ -37,22 +37,26 @@ class CategoryViewModel(
     
     
     // --- Internals
-    
+
 
     private fun loadCategories() = viewModelScope.launch {
         try {
             val userId = authService.getCurrentUser()?.uid ?: return@launch
-            val userCategories =
-                dataService.collection("users").document(userId).collection("categories").get().await()
-                    .toObjects(Category::class.java)
 
-            // Combine preset categories with user categories
-            val allCategories = PresetCategories.allPresetCategories + userCategories
-            _categories.value = allCategories
+            val userCategories = dataService
+                .collection("users")
+                .document(userId)
+                .collection("categories")
+                .get()
+                .await()
+                .toObjects(Category::class.java)
+
+            _categories.value = userCategories // Presets are already included as editable
         } catch (e: Exception) {
             _error.value = "Failed to load categories: ${e.message}"
         }
     }
+
 
     fun addCategory(category: Category) = viewModelScope.launch {
         try {

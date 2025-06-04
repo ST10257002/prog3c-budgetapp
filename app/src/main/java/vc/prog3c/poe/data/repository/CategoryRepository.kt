@@ -2,6 +2,7 @@ package vc.prog3c.poe.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import vc.prog3c.poe.data.models.Category
 
 class CategoryRepository {
@@ -38,4 +39,16 @@ class CategoryRepository {
             }
             .addOnFailureListener { onComplete(null) }
     }
+
+    fun syncCategoryToBudget(category: Category) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val categoryBudgetRef = FirebaseFirestore.getInstance()
+            .collection("users").document(userId)
+            .collection("categoryBudgets").document(category.name)
+
+        val defaultGoals = mapOf("min" to 0.0, "max" to 0.0)
+
+        categoryBudgetRef.set(defaultGoals, SetOptions.merge())
+    }
+
 }

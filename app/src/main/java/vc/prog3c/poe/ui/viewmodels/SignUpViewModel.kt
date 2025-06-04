@@ -9,6 +9,7 @@ import kotlinx.coroutines.withTimeout
 import vc.prog3c.poe.core.models.SignUpCredentials
 import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.core.utils.Blogger
+import vc.prog3c.poe.core.utils.SeedData
 import vc.prog3c.poe.data.models.User
 import vc.prog3c.poe.data.services.FirestoreService
 
@@ -53,6 +54,11 @@ class SignUpViewModel(
         }.apply {
             onSuccess { user ->
                 linkUserToDatabase(user.uid, credentials)
+
+                // ✅ Seed data for new users
+                SeedData.seedTestData(user.uid)
+                // Convert to dialog option if you dont want all users to have seed data
+                // Add option in settings maybe
             }
 
             onFailure { throwable ->

@@ -2,7 +2,8 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -13,7 +14,8 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:titleTextColor="@color/white" />
+            app:titleTextColor="@color/white"
+            app:title="Spending Overview" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -34,118 +36,48 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Income vs Expenses Card -->
-                <com.google.android.material.card.MaterialCardView
+                <!-- Account Selector -->
+                <Spinner
+                    android:id="@+id/accountSpinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Time Range Dropdown -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Select Time Range"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/timeRangeSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:minHeight="48dp"
                     android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp">
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
+                <!-- Centerstage BarChart -->
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/barChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="400dp"
+                    android:layout_marginBottom="24dp" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Income vs Expenses"
-                            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6" />
-
-                        <com.github.mikephil.charting.charts.LineChart
-                            android:id="@+id/incomeExpenseLineChart"
-                            android:layout_width="match_parent"
-                            android:layout_height="300dp"
-                            android:layout_marginTop="16dp"/>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="16dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Income"
-                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
-
-                                <TextView
-                                    android:id="@+id/totalIncomeText"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="R 0.00"
-                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
-                                    android:textStyle="bold" />
-
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical"
-                                android:gravity="end">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Expenses"
-                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
-
-                                <TextView
-                                    android:id="@+id/totalExpensesText"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="R 0.00"
-                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
-                                    android:textStyle="bold" />
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="8dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Balance"
-                                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
-
-                            <TextView
-                                android:id="@+id/balanceText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="R 0.00"
-                                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
-                                android:textStyle="bold" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Other graph related content can be added here -->
+                <!-- Loading Spinner -->
+                <ProgressBar
+                    android:id="@+id/loadingProgressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
 
             </LinearLayout>
-
         </androidx.core.widget.NestedScrollView>
-
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -159,4 +91,4 @@
         app:menu="@menu/bottom_navigation_menu"
         app:labelVisibilityMode="labeled" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout> 
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

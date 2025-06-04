@@ -21,6 +21,8 @@
     <color name="green">#58bc82</color>
     <color name="red">#F44336</color>
     <color name="yellow">#FFC107</color>
+    <color name="gray_light">#F1F1F1</color>
+    <color name="blue">#FF3700B3</color>
 
     <!-- Card Colors -->
     <color name="card_background">#FFFFFF</color>

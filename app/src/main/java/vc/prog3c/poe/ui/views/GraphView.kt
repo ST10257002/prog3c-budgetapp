@@ -1,227 +1,227 @@
+// GraphView.kt
 package vc.prog3c.poe.ui.views
 
-import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import com.github.mikephil.charting.components.LimitLine
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.R
-import vc.prog3c.poe.databinding.ActivityGraphViewBinding
-import vc.prog3c.poe.ui.viewmodels.GraphViewModel // Correct import
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.concurrent.TimeUnit
+import vc.prog3c.poe.data.models.GraphBarEntry
+import vc.prog3c.poe.databinding.ActivityGraphBinding
+import vc.prog3c.poe.ui.viewmodels.GraphViewModel
 
 class GraphView : AppCompatActivity() {
-    private lateinit var binds: ActivityGraphViewBinding
-    private lateinit var model: GraphViewModel // Correct reference
+
+    private lateinit var binds: ActivityGraphBinding
+    private lateinit var model: GraphViewModel
+    private var selectedAccountId: String? = null
+
+    private val rangeOptions = listOf("24 Hours" to 1, "7 Days" to 7, "14 Days" to 14, "30 Days" to 30)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binds = ActivityGraphViewBinding.inflate(layoutInflater)
+        binds = ActivityGraphBinding.inflate(layoutInflater)
         setContentView(binds.root)
+
         ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        model = ViewModelProvider(this)[GraphViewModel::class.java] // Correct reference
+        model = ViewModelProvider(this)[GraphViewModel::class.java]
 
         setupToolbar()
-        setupBottomNavigation()
-        setupSwipeRefresh()
-        setupChart() // Setup the chart initially
+        setupTimeRangeSpinner()
+        setupAccountSpinner()
+        setupBarChart()
         observeViewModel()
-
-        // Initial data load
-        model.loadGraphData() // Call ViewModel function
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Graphs"
+        supportActionBar?.title = "Spending by Category"
     }
 
-    private fun setupBottomNavigation() {
-        binds.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_dashboard -> {
-                    startActivity(Intent(this, DashboardView::class.java))
-                    finish()
-                    true
-                }
-                R.id.nav_accounts -> {
-                    startActivity(Intent(this, AccountsView::class.java))
-                    finish()
-                    true
-                }
-                R.id.nav_graph -> {
-                    true // Stay on this screen
-                }
-                R.id.nav_profile -> {
-                    startActivity(Intent(this, ProfileActivity::class.java))
-                    finish()
-                    true
-                }
-                else -> false
-            }
-        }
-        binds.bottomNavigation.selectedItemId = R.id.nav_graph
-    }
+    private fun setupTimeRangeSpinner() {
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, rangeOptions.map { it.first })
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binds.timeRangeSpinner.adapter = adapter
+        binds.timeRangeSpinner.setSelection(1)
 
-    private fun setupSwipeRefresh() {
-        binds.swipeRefreshLayout.apply {
-            setColorSchemeResources(
-                R.color.primary,
-                R.color.green,
-                R.color.red
-            )
-            setOnRefreshListener {
-                refreshData()
+        binds.timeRangeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                selectedAccountId?.let {
+                    model.loadGraphData(it, rangeOptions[position].second)
+                }
             }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 
-    private fun refreshData() {
-        model.refreshGraphData() // Call ViewModel function
+    private fun setupAccountSpinner() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        FirebaseFirestore.getInstance().collection("users")
+            .document(userId)
+            .collection("accounts")
+            .get()
+            .addOnSuccessListener { documents ->
+                val accountList = documents.mapNotNull {
+                    val name = it.getString("name") ?: return@mapNotNull null
+                    it.id to name
+                }
+
+                val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, accountList.map { it.second })
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                binds.accountSpinner.adapter = adapter
+
+                binds.accountSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                        selectedAccountId = accountList[position].first
+                        val days = rangeOptions[binds.timeRangeSpinner.selectedItemPosition].second
+                        model.loadGraphData(selectedAccountId!!, days)
+                    }
+
+                    override fun onNothingSelected(parent: AdapterView<*>) {}
+                }
+
+                if (accountList.isNotEmpty()) {
+                    selectedAccountId = accountList.first().first
+                    model.loadGraphData(selectedAccountId!!, 7)
+                }
+            }
     }
 
-
-    private fun setupChart() {
-        binds.lineChart.apply { // Use binding.lineChart
+    private fun setupBarChart() {
+        binds.barChart.apply {
             description.isEnabled = false
-            setTouchEnabled(true)
+            axisRight.isEnabled = false
             setDrawGridBackground(false)
-            isDragEnabled = true
-            setScaleEnabled(true)
-            setPinchZoom(true)
-
-            // Configure X-axis
+            setFitBars(true)
+            animateY(1000)
+            legend.isEnabled = true
             xAxis.position = XAxis.XAxisPosition.BOTTOM
             xAxis.setDrawGridLines(false)
-            xAxis.setDrawAxisLine(true)
-            xAxis.textColor = Color.BLACK
-            xAxis.textSize = 10f
-            xAxis.setAvoidFirstLastClipping(true)
-
-            // Configure Y-axis (left)
-            axisLeft.setDrawGridLines(true)
-            axisLeft.setDrawAxisLine(true)
-            axisLeft.textColor = Color.BLACK
-            axisLeft.textSize = 10f
-
-            // Configure Y-axis (right) - disable or customize if needed
-            axisRight.isEnabled = false // Disable right Y-axis
-
-            legend.isEnabled = true // Enable legend if you have multiple datasets (e.g., Income vs Expense lines)
-            animateX(1000)
-
-            // Improve appearance
-            extraBottomOffset = 10f // Add some offset to prevent labels from being cut off
-            setExtraOffsets(10f, 10f, 10f, 10f) // Add extra space around the chart
+            xAxis.granularity = 1f
         }
     }
 
     private fun observeViewModel() {
-        model.incomeExpenseData.observe(this) { data ->
-            // Update the chart with the observed data
-            updateChart(data)
+        model.graphData.observe(this) { updateChart(it) }
+        model.isLoading.observe(this) {
+            binds.swipeRefreshLayout.isRefreshing = it
+            binds.loadingProgressBar.visibility = if (it) View.VISIBLE else View.GONE
         }
-
-        model.totalIncome.observe(this) { income ->
-            // Update UI elements for total income if they exist
-            // binding.totalIncomeTextView.text = formatCurrency(income) // Example
-        }
-
-        model.totalExpenses.observe(this) { expenses ->
-            // Update UI elements for total expenses if they exist
-            // binding.totalExpensesTextView.text = formatCurrency(expenses) // Example
-        }
-
-        model.isLoading.observe(this) { isLoading ->
-            binds.swipeRefreshLayout.isRefreshing = isLoading
-            binds.loadingProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE // Use binding.loadingProgressBar
-        }
-
-        model.error.observe(this) { error ->
-            error?.let {
-                showError(it)
-            }
+        model.error.observe(this) {
+            it?.let { msg -> Snackbar.make(binds.root, msg, Snackbar.LENGTH_LONG).show() }
         }
     }
 
-    private fun updateChart(data: Map<Long, Pair<Double, Double>>) {
-        if (data.isEmpty()) {
-            binds.lineChart.data = null // Use binding.lineChart
-            binds.lineChart.invalidate() // Use binding.lineChart
+    private fun updateChart(entries: List<GraphBarEntry>) {
+        if (entries.isEmpty()) {
+            binds.barChart.clear()
+            binds.barChart.invalidate()
             return
         }
 
-        // Example: Creating separate datasets for Income and Expense
-        val incomeEntries = ArrayList<Entry>()
-        val expenseEntries = ArrayList<Entry>()
+        val barEntries = mutableListOf<BarEntry>()
+        val labels = mutableListOf<String>()
+        val colors = mutableListOf<Int>()
 
-        data.forEach { (dateMillis, totals) ->
-            incomeEntries.add(Entry(dateMillis.toFloat(), totals.first.toFloat()))
-            expenseEntries.add(Entry(dateMillis.toFloat(), totals.second.toFloat()))
-        }
+        var maxY = 0f
 
-        val incomeDataSet = LineDataSet(incomeEntries, "Income").apply {
-            color = resources.getColor(R.color.green, null) // Define green color resource
-            valueTextColor = Color.BLACK
-            setCircleColor(resources.getColor(R.color.green, null))
-            setDrawValues(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            lineWidth = 2f
-        }
+        entries.forEachIndexed { index, entry -> // ✅ fixed name
+            val value = entry.totalSpent.toFloat()
+            barEntries.add(BarEntry(index.toFloat(), value))
+            labels.add(entry.category)
 
-        val expenseDataSet = LineDataSet(expenseEntries, "Expense").apply {
-            color = resources.getColor(R.color.red, null) // Define red color resource
-            valueTextColor = Color.BLACK
-            setCircleColor(resources.getColor(R.color.red, null))
-            setDrawValues(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            lineWidth = 2f
-        }
+            maxY = maxOf(maxY, value, entry.maxGoal.toFloat())
 
-
-        val lineData = LineData(incomeDataSet, expenseDataSet) // Add both datasets
-
-        binds.lineChart.data = lineData // Use binding.lineChart
-
-        // Format X-axis to show dates
-        val xAxis = binds.lineChart.xAxis // Use binding.lineChart.xAxis
-        xAxis.valueFormatter = object : IndexAxisValueFormatter() {
-            private val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
-            override fun getFormattedValue(value: Float): String {
-                return dateFormat.format(Date(value.toLong()))
+            val color = when {
+                value > entry.maxGoal -> getColor(R.color.red)
+                value > entry.minGoal -> getColor(R.color.yellow)
+                else -> getColor(R.color.green)
             }
+            colors.add(color)
         }
-        // Adjust label count and granularity based on your data range
-        xAxis.setLabelCount(data.size, true)
-        xAxis.granularity = TimeUnit.DAYS.toMillis(1).toFloat() // Example: labels every day
-        xAxis.labelRotationAngle = -45f
 
-        binds.lineChart.invalidate() // Use binding.lineChart
-        binds.lineChart.animateX(1000) // Use binding.lineChart
+        val dataSet = BarDataSet(barEntries, "Spent per Category").apply {
+            setColors(colors)
+            valueTextSize = 14f
+            valueTextColor = getColor(R.color.black)
+        }
+
+        val barData = BarData(dataSet).apply {
+            barWidth = 0.4f
+        }
+
+        binds.barChart.apply {
+            data = barData
+            xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+            xAxis.labelRotationAngle = -30f
+            xAxis.position = XAxis.XAxisPosition.BOTTOM
+            xAxis.setDrawGridLines(false)
+            xAxis.setDrawAxisLine(false)
+            xAxis.textSize = 12f
+
+            axisLeft.apply {
+                removeAllLimitLines()
+                textSize = 12f
+                setDrawGridLines(true)
+                axisMaximum = maxY * 1.2f
+
+                entries.forEachIndexed { index, entry -> // ✅ use renamed param
+                    if (entry.minGoal > 0) {
+                        val minLine = LimitLine(entry.minGoal.toFloat(), "Min: ${entry.minGoal}").apply {
+                            lineColor = getColor(R.color.blue)
+                            lineWidth = 1.5f
+                            enableDashedLine(10f, 5f, 0f)
+                            textColor = getColor(R.color.blue)
+                            textSize = 10f
+                        }
+                        addLimitLine(minLine)
+                    }
+
+                    if (entry.maxGoal > 0) {
+                        val maxLine = LimitLine(entry.maxGoal.toFloat(), "Max: ${entry.maxGoal}").apply {
+                            lineColor = getColor(R.color.red)
+                            lineWidth = 1.5f
+                            enableDashedLine(10f, 5f, 0f)
+                            textColor = getColor(R.color.red)
+                            textSize = 10f
+                        }
+                        addLimitLine(maxLine)
+                    }
+                }
+            }
+
+            axisRight.isEnabled = false
+            legend.isEnabled = false
+            description.isEnabled = false
+
+            animateY(1000)
+            invalidate()
+        }
     }
 
 
-    private fun showError(message: String) {
-        Snackbar.make(binds.root, message, Snackbar.LENGTH_LONG).show() // Use binding.root
-    }
+
+
 
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()

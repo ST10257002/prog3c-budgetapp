@@ -55,7 +55,7 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
     private fun observeViewModel() {
         model.currentUser.observe(this) { user ->
             user?.let {
-                binds.nameText.text = it.name
+                binds.nameText.text = it.getFullName()
                 binds.emailText.text = it.email
                 binds.addressText.text = it.address
 

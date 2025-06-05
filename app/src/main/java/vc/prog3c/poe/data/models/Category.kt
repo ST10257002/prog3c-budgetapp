@@ -10,7 +10,7 @@ data class Category(
     val color: String = "",
     val isEditable: Boolean = true,
     val description: String = "",
-    val budgetLimit: Double = 0.0,
+    //val budgetLimit: Double = 0.0,
     val minBudget: Double = 0.0,
     val maxBudget: Double = 0.0,
     val isActive: Boolean = true,

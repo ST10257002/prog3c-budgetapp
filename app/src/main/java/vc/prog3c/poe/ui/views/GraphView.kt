@@ -1,230 +1,160 @@
 package vc.prog3c.poe.ui.views
 
-import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
-import android.view.View
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.google.android.material.snackbar.Snackbar
+import com.github.mikephil.charting.utils.ColorTemplate
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import vc.prog3c.poe.R
-import vc.prog3c.poe.databinding.ActivityGraphViewBinding
-import vc.prog3c.poe.ui.viewmodels.GraphViewModel // Correct import
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.concurrent.TimeUnit
+import vc.prog3c.poe.data.models.Category
+import vc.prog3c.poe.data.models.Transaction
+import vc.prog3c.poe.data.models.TransactionType
+import java.util.*
 
 class GraphView : AppCompatActivity() {
-    private lateinit var binds: ActivityGraphViewBinding
-    private lateinit var model: GraphViewModel // Correct reference
+
+    private lateinit var chart: BarChart
+    private val db = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binds = ActivityGraphViewBinding.inflate(layoutInflater)
-        setContentView(binds.root)
-        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        Log.d("GRAPH_TEST", "onCreate started")
+        setContentView(R.layout.activity_graph)
+        //chart = findViewById(R.id.incomeExpenseLineChart)
+        chart = findViewById(R.id.categoryBudgetBarChart)
+
+        Log.d("GRAPH_TEST", "GraphView initialized")
+        loadGraphData()
+    }
+
+    private fun loadGraphData() = lifecycleScope.launch {
+        val userId = auth.currentUser?.uid ?: return@launch showError("Not logged in").also {
+            Log.e("GRAPH_TEST", "No user logged in")
         }
 
-        model = ViewModelProvider(this)[GraphViewModel::class.java] // Correct reference
+        try {
+            Log.d("GRAPH_TEST", "Loading data for userId: $userId")
+            val categories = fetchCategories(userId)
+            Log.d("GRAPH_TEST", "Fetched ${categories.size} categories")
 
-        setupToolbar()
-        setupBottomNavigation()
-        setupSwipeRefresh()
-        setupChart() // Setup the chart initially
-        observeViewModel()
+            val transactions = fetchTransactions(userId)
+            Log.d("GRAPH_TEST", "Fetched ${transactions.size} transactions")
 
-        // Initial data load
-        model.loadGraphData() // Call ViewModel function
-    }
+            val dateFiltered = filterByDate(transactions, daysBack = 30)
+            Log.d("GRAPH_TEST", "Filtered to ${dateFiltered.size} transactions in last 30 days")
 
-    private fun setupToolbar() {
-        setSupportActionBar(binds.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Graphs"
-    }
+            val groupedSpending = dateFiltered
+                .filter { it.type == TransactionType.EXPENSE }
+                .groupBy { it.category }
 
-    private fun setupBottomNavigation() {
-        binds.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_dashboard -> {
-                    startActivity(Intent(this, DashboardView::class.java))
-                    finish()
-                    true
-                }
-                R.id.nav_accounts -> {
-                    startActivity(Intent(this, AccountsView::class.java))
-                    finish()
-                    true
-                }
-                R.id.nav_graph -> {
-                    true // Stay on this screen
-                }
-                R.id.nav_profile -> {
-                    startActivity(Intent(this, ProfileActivity::class.java))
-                    finish()
-                    true
-                }
-                else -> false
+            val entriesActual = ArrayList<BarEntry>()
+            val entriesMin = ArrayList<BarEntry>()
+            val entriesMax = ArrayList<BarEntry>()
+            val labels = ArrayList<String>()
+
+            var index = 0f
+            for (category in categories) {
+                val totalSpent = groupedSpending[category.name]?.sumOf { it.amount } ?: 0.0
+                Log.d("GRAPH_TEST", "Category: ${category.name}, Spent: $totalSpent, Min: ${category.minBudget}, Max: ${category.maxBudget}")
+
+                entriesActual.add(BarEntry(index, totalSpent.toFloat()))
+                entriesMin.add(BarEntry(index, category.minBudget.toFloat()))
+                entriesMax.add(BarEntry(index, category.maxBudget.toFloat()))
+                labels.add(category.name)
+                index += 1f
             }
-        }
-        binds.bottomNavigation.selectedItemId = R.id.nav_graph
-    }
 
-    private fun setupSwipeRefresh() {
-        binds.swipeRefreshLayout.apply {
-            setColorSchemeResources(
-                R.color.primary,
-                R.color.green,
-                R.color.red
-            )
-            setOnRefreshListener {
-                refreshData()
+            val actualData = BarDataSet(entriesActual, "Actual Spending").apply {
+                color = ColorTemplate.MATERIAL_COLORS[0]
             }
-        }
-    }
-
-    private fun refreshData() {
-        model.refreshGraphData() // Call ViewModel function
-    }
-
-
-    private fun setupChart() {
-        binds.lineChart.apply { // Use binding.lineChart
-            description.isEnabled = false
-            setTouchEnabled(true)
-            setDrawGridBackground(false)
-            isDragEnabled = true
-            setScaleEnabled(true)
-            setPinchZoom(true)
-
-            // Configure X-axis
-            xAxis.position = XAxis.XAxisPosition.BOTTOM
-            xAxis.setDrawGridLines(false)
-            xAxis.setDrawAxisLine(true)
-            xAxis.textColor = Color.BLACK
-            xAxis.textSize = 10f
-            xAxis.setAvoidFirstLastClipping(true)
-
-            // Configure Y-axis (left)
-            axisLeft.setDrawGridLines(true)
-            axisLeft.setDrawAxisLine(true)
-            axisLeft.textColor = Color.BLACK
-            axisLeft.textSize = 10f
-
-            // Configure Y-axis (right) - disable or customize if needed
-            axisRight.isEnabled = false // Disable right Y-axis
-
-            legend.isEnabled = true // Enable legend if you have multiple datasets (e.g., Income vs Expense lines)
-            animateX(1000)
-
-            // Improve appearance
-            extraBottomOffset = 10f // Add some offset to prevent labels from being cut off
-            setExtraOffsets(10f, 10f, 10f, 10f) // Add extra space around the chart
-        }
-    }
-
-    private fun observeViewModel() {
-        model.incomeExpenseData.observe(this) { data ->
-            // Update the chart with the observed data
-            updateChart(data)
-        }
-
-        model.totalIncome.observe(this) { income ->
-            // Update UI elements for total income if they exist
-            // binding.totalIncomeTextView.text = formatCurrency(income) // Example
-        }
-
-        model.totalExpenses.observe(this) { expenses ->
-            // Update UI elements for total expenses if they exist
-            // binding.totalExpensesTextView.text = formatCurrency(expenses) // Example
-        }
-
-        model.isLoading.observe(this) { isLoading ->
-            binds.swipeRefreshLayout.isRefreshing = isLoading
-            binds.loadingProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE // Use binding.loadingProgressBar
-        }
-
-        model.error.observe(this) { error ->
-            error?.let {
-                showError(it)
+            val minData = BarDataSet(entriesMin, "Min Budget").apply {
+                color = ColorTemplate.MATERIAL_COLORS[1]
             }
-        }
-    }
-
-    private fun updateChart(data: Map<Long, Pair<Double, Double>>) {
-        if (data.isEmpty()) {
-            binds.lineChart.data = null // Use binding.lineChart
-            binds.lineChart.invalidate() // Use binding.lineChart
-            return
-        }
-
-        // Example: Creating separate datasets for Income and Expense
-        val incomeEntries = ArrayList<Entry>()
-        val expenseEntries = ArrayList<Entry>()
-
-        data.forEach { (dateMillis, totals) ->
-            incomeEntries.add(Entry(dateMillis.toFloat(), totals.first.toFloat()))
-            expenseEntries.add(Entry(dateMillis.toFloat(), totals.second.toFloat()))
-        }
-
-        val incomeDataSet = LineDataSet(incomeEntries, "Income").apply {
-            color = resources.getColor(R.color.green, null) // Define green color resource
-            valueTextColor = Color.BLACK
-            setCircleColor(resources.getColor(R.color.green, null))
-            setDrawValues(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            lineWidth = 2f
-        }
-
-        val expenseDataSet = LineDataSet(expenseEntries, "Expense").apply {
-            color = resources.getColor(R.color.red, null) // Define red color resource
-            valueTextColor = Color.BLACK
-            setCircleColor(resources.getColor(R.color.red, null))
-            setDrawValues(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            lineWidth = 2f
-        }
-
-
-        val lineData = LineData(incomeDataSet, expenseDataSet) // Add both datasets
-
-        binds.lineChart.data = lineData // Use binding.lineChart
-
-        // Format X-axis to show dates
-        val xAxis = binds.lineChart.xAxis // Use binding.lineChart.xAxis
-        xAxis.valueFormatter = object : IndexAxisValueFormatter() {
-            private val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
-            override fun getFormattedValue(value: Float): String {
-                return dateFormat.format(Date(value.toLong()))
+            val maxData = BarDataSet(entriesMax, "Max Budget").apply {
+                color = ColorTemplate.MATERIAL_COLORS[2]
             }
-        }
-        // Adjust label count and granularity based on your data range
-        xAxis.setLabelCount(data.size, true)
-        xAxis.granularity = TimeUnit.DAYS.toMillis(1).toFloat() // Example: labels every day
-        xAxis.labelRotationAngle = -45f
 
-        binds.lineChart.invalidate() // Use binding.lineChart
-        binds.lineChart.animateX(1000) // Use binding.lineChart
+            val barData = BarData(actualData, minData, maxData).apply {
+                barWidth = 0.2f
+            }
+
+            chart.data = barData
+            chart.description.isEnabled = false
+            chart.setVisibleXRangeMaximum(5f)
+            chart.groupBars(0f, 0.4f, 0.05f)
+
+            chart.xAxis.apply {
+                granularity = 1f
+                isGranularityEnabled = true
+                valueFormatter = IndexAxisValueFormatter(labels)
+                setCenterAxisLabels(true)
+                position = XAxis.XAxisPosition.BOTTOM
+            }
+
+            chart.axisLeft.axisMinimum = 0f
+            chart.axisRight.isEnabled = false
+            chart.legend.verticalAlignment = Legend.LegendVerticalAlignment.TOP
+
+            chart.invalidate()
+            Log.d("GRAPH_TEST", "Chart rendered successfully")
+
+        } catch (e: Exception) {
+            showError("Failed to load graph: ${e.message}")
+            Log.e("GRAPH_TEST", "Graph loading failed: ${e.message}", e)
+        }
     }
 
+    private suspend fun fetchTransactions(userId: String): List<Transaction> {
+        val accountsSnapshot = db.collection("users").document(userId).collection("accounts").get().await()
+        val transactions = mutableListOf<Transaction>()
+
+        for (doc in accountsSnapshot) {
+            val accountId = doc.id
+            val txSnapshot = db.collection("users")
+                .document(userId)
+                .collection("accounts")
+                .document(accountId)
+                .collection("transactions")
+                .get()
+                .await()
+
+            transactions.addAll(txSnapshot.toObjects(Transaction::class.java))
+        }
+
+        Log.d("GRAPH_TEST", "Total transactions fetched from all accounts: ${transactions.size}")
+        return transactions
+    }
+
+    private suspend fun fetchCategories(userId: String): List<Category> {
+        val snapshot: QuerySnapshot = db.collection("users")
+            .document(userId)
+            .collection("categories")
+            .get()
+            .await()
+        return snapshot.toObjects(Category::class.java)
+    }
+
+    private fun filterByDate(transactions: List<Transaction>, daysBack: Int): List<Transaction> {
+        val cutoff = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, -daysBack)
+        }.time
+
+        return transactions.filter { it.date.toDate().after(cutoff) }
+    }
 
     private fun showError(message: String) {
-        Snackbar.make(binds.root, message, Snackbar.LENGTH_LONG).show() // Use binding.root
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 }

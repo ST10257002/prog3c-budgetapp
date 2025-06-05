@@ -35,6 +35,112 @@
                 android:padding="16dp">
 
                 <!-- Income vs Expenses Card -->
+<!--                <com.google.android.material.card.MaterialCardView-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginBottom="16dp"-->
+<!--                    app:cardCornerRadius="16dp"-->
+<!--                    app:cardElevation="4dp">-->
+
+<!--                    <LinearLayout-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:orientation="vertical"-->
+<!--                        android:padding="16dp">-->
+
+<!--                        <TextView-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:text="Income vs Expenses"-->
+<!--                            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6" />-->
+
+<!--                        <com.github.mikephil.charting.charts.LineChart-->
+<!--                            android:id="@+id/incomeExpenseLineChart"-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="300dp"-->
+<!--                            android:layout_marginTop="16dp"/>-->
+
+<!--                        <LinearLayout-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:orientation="horizontal"-->
+<!--                            android:layout_marginTop="16dp">-->
+
+<!--                            <LinearLayout-->
+<!--                                android:layout_width="0dp"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_weight="1"-->
+<!--                                android:orientation="vertical">-->
+
+<!--                                <TextView-->
+<!--                                    android:layout_width="wrap_content"-->
+<!--                                    android:layout_height="wrap_content"-->
+<!--                                    android:text="Income"-->
+<!--                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />-->
+
+<!--                                <TextView-->
+<!--                                    android:id="@+id/totalIncomeText"-->
+<!--                                    android:layout_width="wrap_content"-->
+<!--                                    android:layout_height="wrap_content"-->
+<!--                                    android:text="R 0.00"-->
+<!--                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"-->
+<!--                                    android:textStyle="bold" />-->
+
+<!--                            </LinearLayout>-->
+
+<!--                            <LinearLayout-->
+<!--                                android:layout_width="0dp"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_weight="1"-->
+<!--                                android:orientation="vertical"-->
+<!--                                android:gravity="end">-->
+
+<!--                                <TextView-->
+<!--                                    android:layout_width="wrap_content"-->
+<!--                                    android:layout_height="wrap_content"-->
+<!--                                    android:text="Expenses"-->
+<!--                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />-->
+
+<!--                                <TextView-->
+<!--                                    android:id="@+id/totalExpensesText"-->
+<!--                                    android:layout_width="wrap_content"-->
+<!--                                    android:layout_height="wrap_content"-->
+<!--                                    android:text="R 0.00"-->
+<!--                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"-->
+<!--                                    android:textStyle="bold" />-->
+
+<!--                            </LinearLayout>-->
+
+<!--                        </LinearLayout>-->
+
+<!--                        <LinearLayout-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:orientation="horizontal"-->
+<!--                            android:layout_marginTop="8dp">-->
+
+<!--                            <TextView-->
+<!--                                android:layout_width="0dp"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_weight="1"-->
+<!--                                android:text="Balance"-->
+<!--                                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />-->
+
+<!--                            <TextView-->
+<!--                                android:id="@+id/balanceText"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:text="R 0.00"-->
+<!--                                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"-->
+<!--                                android:textStyle="bold" />-->
+
+<!--                        </LinearLayout>-->
+
+<!--                    </LinearLayout>-->
+
+<!--                </com.google.android.material.card.MaterialCardView>-->
+
+                <!-- Category Budget Comparison Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -51,90 +157,14 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Income vs Expenses"
+                            android:text="Category Budget Comparison"
                             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6" />
 
-                        <com.github.mikephil.charting.charts.LineChart
-                            android:id="@+id/incomeExpenseLineChart"
+                        <com.github.mikephil.charting.charts.BarChart
+                            android:id="@+id/categoryBudgetBarChart"
                             android:layout_width="match_parent"
                             android:layout_height="300dp"
-                            android:layout_marginTop="16dp"/>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="16dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Income"
-                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
-
-                                <TextView
-                                    android:id="@+id/totalIncomeText"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="R 0.00"
-                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
-                                    android:textStyle="bold" />
-
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical"
-                                android:gravity="end">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Expenses"
-                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
-
-                                <TextView
-                                    android:id="@+id/totalExpensesText"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="R 0.00"
-                                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
-                                    android:textStyle="bold" />
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="8dp">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Balance"
-                                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
-
-                            <TextView
-                                android:id="@+id/balanceText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="R 0.00"
-                                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
-                                android:textStyle="bold" />
-
-                        </LinearLayout>
+                            android:layout_marginTop="16dp" />
 
                     </LinearLayout>
 

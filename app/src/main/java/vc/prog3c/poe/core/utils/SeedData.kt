@@ -136,5 +136,75 @@ object SeedData {
                 }
             }
         }
+
+        // -------------------------------
+        // Seed Categories as user data
+        // -------------------------------
+
+        val seededCategories = listOf(
+            Category(
+                id = UUID.randomUUID().toString(),
+                name = "Savings",
+                type = CategoryType.SAVINGS,
+                icon = "ic_savings",
+                color = "#4CAF50",
+                isEditable = true,
+                description = "Regular savings account",
+                minBudget = 500.0,
+                maxBudget = 2000.0
+            ),
+            Category(
+                id = UUID.randomUUID().toString(),
+                name = "Utilities",
+                type = CategoryType.UTILITIES,
+                icon = "ic_utilities",
+                color = "#2196F3",
+                isEditable = true,
+                description = "Monthly utility bills",
+                minBudget = 800.0,
+                maxBudget = 1500.0
+            ),
+            Category(
+                id = UUID.randomUUID().toString(),
+                name = "Emergency Fund",
+                type = CategoryType.EMERGENCY,
+                icon = "ic_emergency",
+                color = "#F44336",
+                isEditable = true,
+                description = "Emergency fund for unexpected expenses",
+                minBudget = 300.0,
+                maxBudget = 1000.0
+            ),
+            Category(
+                id = UUID.randomUUID().toString(),
+                name = "Income",
+                type = CategoryType.INCOME,
+                icon = "ic_income",
+                color = "#4CAF50",
+                isEditable = true,
+                description = "Regular income sources",
+                minBudget = 0.0,
+                maxBudget = 0.0
+            ),
+            Category(
+                id = UUID.randomUUID().toString(),
+                name = "Expense",
+                type = CategoryType.EXPENSE,
+                icon = "ic_expense",
+                color = "#F44336",
+                isEditable = true,
+                description = "General expense tracking",
+                minBudget = 0.0,
+                maxBudget = 0.0
+            )
+        )
+
+        seededCategories.forEach { category ->
+            db.collection("users")
+                .document(userId)
+                .collection("categories")
+                .document(category.id)
+                .set(category)
+        }
     }
 }

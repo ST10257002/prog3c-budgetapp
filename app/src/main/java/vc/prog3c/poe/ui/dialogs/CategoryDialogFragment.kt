@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
+import android.widget.TextView
 import androidx.core.widget.doAfterTextChanged
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
@@ -23,7 +24,11 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
     private lateinit var nameInput: TextInputLayout
     private lateinit var descriptionInput: TextInputLayout
     private lateinit var typeInput: TextInputLayout
-    private lateinit var budgetLimitInput: TextInputLayout
+
+    // private lateinit var budgetLimitInput: TextInputLayout
+    private lateinit var minBudgetInput: TextInputLayout
+    private lateinit var maxBudgetInput: TextInputLayout
+
     private lateinit var iconChipGroup: com.google.android.material.chip.ChipGroup
     private lateinit var colorChipGroup: com.google.android.material.chip.ChipGroup
     private lateinit var activeSwitch: com.google.android.material.switchmaterial.SwitchMaterial
@@ -32,9 +37,7 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.dialog_add_category, container, false)
-    }
+    ): View? = inflater.inflate(R.layout.dialog_add_category, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -48,7 +51,9 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
         nameInput = view.findViewById(R.id.nameInput)
         descriptionInput = view.findViewById(R.id.descriptionInput)
         typeInput = view.findViewById(R.id.typeInput)
-        budgetLimitInput = view.findViewById(R.id.budgetLimitInput)
+        // budgetLimitInput = view.findViewById(R.id.budgetLimitInput)
+        minBudgetInput = view.findViewById(R.id.minBudgetInput)
+        maxBudgetInput = view.findViewById(R.id.maxBudgetInput)
         iconChipGroup = view.findViewById(R.id.iconChipGroup)
         colorChipGroup = view.findViewById(R.id.colorChipGroup)
         activeSwitch = view.findViewById(R.id.activeSwitch)
@@ -76,9 +81,14 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
             typeInput.error = if (it.isNullOrBlank()) "Type is required" else null
         }
 
-        budgetLimitInput.editText?.doAfterTextChanged {
+        minBudgetInput.editText?.doAfterTextChanged {
             val value = it.toString().toDoubleOrNull()
-            budgetLimitInput.error = if (value != null && value < 0) "Budget limit cannot be negative" else null
+            minBudgetInput.error = if (value != null && value < 0) "Min cannot be negative" else null
+        }
+
+        maxBudgetInput.editText?.doAfterTextChanged {
+            val value = it.toString().toDoubleOrNull()
+            maxBudgetInput.error = if (value != null && value < 0) "Max cannot be negative" else null
         }
     }
 
@@ -86,10 +96,11 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
         nameInput.editText?.setText(category.name)
         descriptionInput.editText?.setText(category.description)
         typeInput.editText?.setText(category.type.name)
-        budgetLimitInput.editText?.setText(category.budgetLimit.toString())
+        // budgetLimitInput.editText?.setText(category.budgetLimit.toString())
+        minBudgetInput.editText?.setText(category.minBudget.toString())
+        maxBudgetInput.editText?.setText(category.maxBudget.toString())
         activeSwitch.isChecked = category.isActive
 
-        // Select the appropriate icon chip
         val iconChip = when (category.icon) {
             "ic_category" -> R.id.iconCategory
             "ic_savings" -> R.id.iconSavings
@@ -101,7 +112,6 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
         }
         iconChipGroup.check(iconChip)
 
-        // Select the appropriate color chip
         val colorChip = when (category.color) {
             "colorGreen" -> R.id.colorGreen
             "colorBlue" -> R.id.colorBlue
@@ -117,12 +127,19 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
         val name = nameInput.editText?.text?.toString()
         val description = descriptionInput.editText?.text?.toString()
         val typeStr = typeInput.editText?.text?.toString()
-        val budgetLimit = budgetLimitInput.editText?.text?.toString()?.toDoubleOrNull() ?: 0.0
+        // val budgetLimit = budgetLimitInput.editText?.text?.toString()?.toDoubleOrNull() ?: 0.0
+        val minBudget = minBudgetInput.editText?.text?.toString()?.toDoubleOrNull() ?: 0.0
+        val maxBudget = maxBudgetInput.editText?.text?.toString()?.toDoubleOrNull() ?: 0.0
         val isActive = activeSwitch.isChecked
 
         if (name.isNullOrBlank() || typeStr.isNullOrBlank()) {
             nameInput.error = if (name.isNullOrBlank()) "Name is required" else null
             typeInput.error = if (typeStr.isNullOrBlank()) "Type is required" else null
+            return
+        }
+
+        if (minBudget > maxBudget) {
+            maxBudgetInput.error = "Max must be ≥ Min"
             return
         }
 
@@ -161,7 +178,9 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
             type = type,
             icon = icon,
             color = color,
-            budgetLimit = budgetLimit,
+            // budgetLimit = budgetLimit,
+            minBudget = minBudget,
+            maxBudget = maxBudget,
             isActive = isActive
         ) ?: Category(
             id = UUID.randomUUID().toString(),
@@ -170,7 +189,9 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
             type = type,
             icon = icon,
             color = color,
-            budgetLimit = budgetLimit,
+            // budgetLimit = budgetLimit,
+            minBudget = minBudget,
+            maxBudget = maxBudget,
             isActive = isActive,
             isEditable = true
         )
@@ -190,4 +211,4 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
             }
         }
     }
-} 
+}

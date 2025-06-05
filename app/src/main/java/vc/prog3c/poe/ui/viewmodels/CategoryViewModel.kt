@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.Category
-import vc.prog3c.poe.data.models.PresetCategories
+//import vc.prog3c.poe.data.models.PresetCategories
 
 class CategoryViewModel(
     private val authService: AuthService = AuthService(),
@@ -46,8 +46,8 @@ class CategoryViewModel(
                 dataService.collection("users").document(userId).collection("categories").get().await()
                     .toObjects(Category::class.java)
 
-            // Combine preset categories with user categories
-            val allCategories = PresetCategories.allPresetCategories + userCategories
+            // Seeded 'preset' as user categories
+            val allCategories = userCategories
             _categories.value = allCategories
         } catch (e: Exception) {
             _error.value = "Failed to load categories: ${e.message}"

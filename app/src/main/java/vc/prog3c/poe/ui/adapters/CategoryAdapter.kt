@@ -40,7 +40,11 @@ class CategoryAdapter(
         private val nameTextView: TextView = itemView.findViewById(R.id.categoryName)
         private val typeTextView: TextView = itemView.findViewById(R.id.categoryType)
         private val descriptionTextView: TextView = itemView.findViewById(R.id.categoryDescription)
-        private val budgetLimitTextView: TextView = itemView.findViewById(R.id.categoryBudgetLimit)
+
+        //private val budgetLimitTextView: TextView = itemView.findViewById(R.id.categoryBudgetLimit)
+        private val minBudgetTextView: TextView = itemView.findViewById(R.id.categoryMinBudget)
+        private val maxBudgetTextView: TextView = itemView.findViewById(R.id.categoryMaxBudget)
+
         private val iconImageView: ImageButton = itemView.findViewById(R.id.categoryIcon)
         private val editButton: ImageButton = itemView.findViewById(R.id.editButton)
         private val deleteButton: ImageButton = itemView.findViewById(R.id.deleteButton)
@@ -52,10 +56,17 @@ class CategoryAdapter(
             descriptionTextView.text = category.description
             descriptionTextView.visibility = if (category.description.isNullOrEmpty()) View.GONE else View.VISIBLE
             
-            // Format budget limit with currency
+//            // Format budget limit with currency
+//            val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+//            budgetLimitTextView.text = formatter.format(category.budgetLimit)
+//            budgetLimitTextView.visibility = if (category.budgetLimit > 0) View.VISIBLE else View.GONE
+
             val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
-            budgetLimitTextView.text = formatter.format(category.budgetLimit)
-            budgetLimitTextView.visibility = if (category.budgetLimit > 0) View.VISIBLE else View.GONE
+            minBudgetTextView.text = "Min: ${formatter.format(category.minBudget)}"
+            maxBudgetTextView.text = "Max: ${formatter.format(category.maxBudget)}"
+
+            minBudgetTextView.visibility = if (category.minBudget > 0) View.VISIBLE else View.GONE
+            maxBudgetTextView.visibility = if (category.maxBudget > 0) View.VISIBLE else View.GONE
 
             // Set icon and color
             val iconResId = when (category.icon) {

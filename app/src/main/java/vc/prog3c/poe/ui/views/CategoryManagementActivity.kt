@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -12,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputLayout
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.CategoryType
@@ -61,13 +63,16 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 
 
     // --- Internals
-    
+
 
     private fun showAddCategoryDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_category, null)
-        val nameInput = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.nameInput)
-        val typeInput = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.typeInput)
-        val typeDropdown = typeInput.editText as? com.google.android.material.textfield.MaterialAutoCompleteTextView
+
+        val nameInput = dialogView.findViewById<TextInputLayout>(R.id.nameInput)
+        val typeInput = dialogView.findViewById<TextInputLayout>(R.id.typeInput)
+        val typeDropdown = typeInput.editText as? AutoCompleteTextView
+        val minInput = dialogView.findViewById<TextInputLayout>(R.id.minBudgetInput)
+        val maxInput = dialogView.findViewById<TextInputLayout>(R.id.maxBudgetInput)
         val iconChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.iconChipGroup)
         val colorChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.colorChipGroup)
 
@@ -75,7 +80,6 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, types)
         typeDropdown?.setAdapter(adapter)
 
-        // Set default selections
         iconChipGroup.check(R.id.iconCategory)
         colorChipGroup.check(R.id.colorGreen)
 
@@ -85,6 +89,9 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
             .setPositiveButton("Add") { _, _ ->
                 val name = nameInput.editText?.text.toString()
                 val type = typeDropdown?.text.toString()
+                val min = minInput.editText?.text.toString().toDoubleOrNull() ?: 0.0
+                val max = maxInput.editText?.text.toString().toDoubleOrNull() ?: 0.0
+
                 val selectedIconChip = dialogView.findViewById<com.google.android.material.chip.Chip>(iconChipGroup.checkedChipId)
                 val selectedColorChip = dialogView.findViewById<com.google.android.material.chip.Chip>(colorChipGroup.checkedChipId)
 
@@ -97,6 +104,8 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
                             R.id.iconSavings -> "ic_savings"
                             R.id.iconUtilities -> "ic_utilities"
                             R.id.iconEmergency -> "ic_error"
+                            R.id.iconIncome -> "ic_income"
+                            R.id.iconExpense -> "ic_expense"
                             else -> "ic_category"
                         },
                         color = when (selectedColorChip.id) {
@@ -106,6 +115,8 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
                             R.id.colorOrange -> "#FF9800"
                             else -> "#4CAF50"
                         },
+                        minBudget = min,
+                        maxBudget = max,
                         isEditable = true
                     )
                     model.addCategory(newCategory)
@@ -114,7 +125,8 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
             .setNegativeButton("Cancel", null)
             .show()
     }
-    
+
+
 
     private fun showEditCategoryDialog(category: Category) {
         if (!category.isEditable) {

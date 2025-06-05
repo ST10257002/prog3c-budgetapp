@@ -57,7 +57,6 @@ class ProfileActivity : AppCompatActivity(), View.OnClickListener {
             user?.let {
                 binds.nameText.text = it.getFullName()
                 binds.emailText.text = it.email
-                binds.addressText.text = it.address
 
                 // Optionally load profile picture if using Coil/Glide
                 // Glide.with(this).load(it.profilePictureUrl).into(vBinds.profileImage)

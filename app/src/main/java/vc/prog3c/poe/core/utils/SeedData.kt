@@ -1,134 +1,66 @@
 package vc.prog3c.poe.core.utils
 
-import com.google.firebase.firestore.FirebaseFirestore
-import vc.prog3c.poe.data.models.Account
-import vc.prog3c.poe.data.models.Transaction
-import vc.prog3c.poe.data.models.TransactionType
 import com.google.firebase.Timestamp
-import vc.prog3c.poe.data.models.SavingsGoal
-import java.util.UUID
+import com.google.firebase.firestore.FirebaseFirestore
+import vc.prog3c.poe.data.models.*
 import java.util.Calendar
-import vc.prog3c.poe.data.models.Budget
+import java.util.UUID
 
 object SeedData {
 
-    fun daysAgo(days: Int): Timestamp {
+    private fun daysAgo(days: Int): Timestamp {
         val cal = Calendar.getInstance()
         cal.add(Calendar.DAY_OF_YEAR, -days)
         return Timestamp(cal.time)
     }
 
+    private fun calculateBalance(transactions: List<Transaction>): Double {
+        return transactions.sumOf { tx ->
+            when (tx.type) {
+                TransactionType.INCOME   -> tx.amount
+                TransactionType.EXPENSE  -> -tx.amount
+                TransactionType.EARNED,
+                TransactionType.REDEEMED -> 0.0
+            }
+        }
+    }
+
     fun seedTestData(userId: String) {
         val db = FirebaseFirestore.getInstance()
 
+        // Generate account IDs
         val checkingId = UUID.randomUUID().toString()
         val savingsId  = UUID.randomUUID().toString()
         val ccId       = UUID.randomUUID().toString()
 
-        // Define transactions for each account with spread-out dates
+        // -------------------------------
+        // Transactions
+        // -------------------------------
+
         val checkingTxs = listOf(
-            Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                accountId = checkingId,
-                type = TransactionType.INCOME,
-                amount = 2500.0,
-                category = "Salary deposit",
-                date = daysAgo(28), // 4 weeks ago
-                description = "Payday!"
-            ),
-            Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                accountId = checkingId,
-                type = TransactionType.EXPENSE,
-                amount = 120.0,
-                category = "Electric bill",
-                date = daysAgo(16), // just over 2 weeks ago
-                description = "Monthly bill"
-            ),
-            Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                accountId = checkingId,
-                type = TransactionType.EXPENSE,
-                amount = 15.0,
-                category = "Coffee shop",
-                date = daysAgo(2), // 2 days ago
-                description = "Morning coffee"
-            )
+            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.INCOME, 2500.0, "Salary deposit", daysAgo(28), "Payday!"),
+            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 120.0, "Electric bill", daysAgo(16), "Monthly bill"),
+            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 15.0, "Coffee shop", daysAgo(2), "Morning coffee")
         )
 
         val savingsTxs = listOf(
-            Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                accountId = savingsId,
-                type = TransactionType.INCOME,
-                amount = 1000.0,
-                category = "Transfer from checking",
-                date = daysAgo(60), // ~2 months ago
-                description = "Saving up"
-            ),
-            Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                accountId = savingsId,
-                type = TransactionType.INCOME,
-                amount = 50.0,
-                category = "Monthly interest",
-                date = daysAgo(29), // 1 month ago
-                description = "Interest payment"
-            ),
-            Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                accountId = savingsId,
-                type = TransactionType.INCOME,
-                amount = 2000.0,
-                category = "Gran's gift",
-                date = daysAgo(4), // recent
-                description = "Gift from gran"
-            )
+            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 1000.0, "Transfer from checking", daysAgo(60), "Saving up"),
+            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 50.0, "Monthly interest", daysAgo(29), "Interest payment"),
+            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 2000.0, "Gran's gift", daysAgo(4), "Gift from gran")
         )
 
         val ccTxs = listOf(
-            Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                accountId = ccId,
-                type = TransactionType.EXPENSE,
-                amount = 75.0,
-                category = "Online purchase",
-                date = daysAgo(90), // 3 months ago
-                description = "Bought some stuff"
-            ),
-            Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                accountId = ccId,
-                type = TransactionType.EXPENSE,
-                amount = 30.0,
-                category = "Streaming subscription",
-                date = daysAgo(35), // just over a month ago
-                description = "Netflix"
-            ),
-            Transaction(
-                id = UUID.randomUUID().toString(),
-                userId = userId,
-                accountId = ccId,
-                type = TransactionType.EXPENSE,
-                amount = 45.0,
-                category = "Restaurant dinner",
-                date = daysAgo(6), // almost a week ago
-                description = "Dinner with friends"
-            )
+            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 75.0, "Online purchase", daysAgo(90), "Bought some stuff"),
+            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 30.0, "Streaming subscription", daysAgo(35), "Netflix"),
+            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 45.0, "Restaurant dinner", daysAgo(6), "Dinner with friends")
         )
 
-        // --- SEED SAVINGS GOAL ---
+        // -------------------------------
+        // Savings Goal
+        // -------------------------------
+
         val goalId = UUID.randomUUID().toString()
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.MONTH, 3) // Target date 3 months from now
+        val calendar = Calendar.getInstance().apply { add(Calendar.MONTH, 3) }
 
         val savingsGoal = SavingsGoal(
             id = goalId,
@@ -142,25 +74,28 @@ object SeedData {
             monthlyBudget = 1500.0
         )
 
-        //db = FirebaseFirestore.getInstance()
         db.collection("users")
             .document(userId)
             .collection("savingsGoals")
             .document(goalId)
             .set(savingsGoal)
 
-        // --- SEED MONTHLY BUDGET (ALLOWANCE) ---
-        val cal = Calendar.getInstance()
-        val year = cal.get(Calendar.YEAR)
-        val month = cal.get(Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
+        // -------------------------------
+        // Monthly Budget
+        // -------------------------------
 
-        val budgetId = String.format("%04d%02d", year, month) // e.g., "202406"
+        val now = Calendar.getInstance()
+        val year = now.get(Calendar.YEAR)
+        val month = now.get(Calendar.MONTH) + 1 // 0-based
+
+        val budgetId = String.format("%04d%02d", year, month)
+
         val monthlyBudget = Budget(
             id = budgetId,
             userId = userId,
-            min = 1500.0,      // Example minimum
-            max = 3000.0,      // Example maximum (allowance for the month)
-            target = 2500.0,   // Optional, could be same as max or your target
+            min = 1500.0,
+            max = 3000.0,
+            target = 2500.0,
             month = month,
             year = year
         )
@@ -171,41 +106,30 @@ object SeedData {
             .document(budgetId)
             .set(monthlyBudget)
 
+        // -------------------------------
+        // Accounts + Transactions
+        // -------------------------------
 
-        // Helper function to calculate balance from transaction list
-         fun calculateBalance(transactions: List<Transaction>): Double {
-            return transactions.sumOf { transaction ->
-                when (transaction.type) {
-                    TransactionType.INCOME -> transaction.amount
-                    TransactionType.EXPENSE -> -transaction.amount
-                    TransactionType.EARNED -> 0.0
-                    TransactionType.REDEEMED -> 0.0
-                }
-            }
-        }
-
-        // Create account objects with dynamic balances
         val accounts = listOf(
-            Account(checkingId, userId, "Everyday Checking", "Debit",   calculateBalance(checkingTxs), checkingTxs.size),
-            Account(savingsId,  userId, "Rainy-Day Savings","Savings", calculateBalance(savingsTxs),   savingsTxs.size),
-            Account(ccId,       userId, "Visa Credit Card", "Credit",  calculateBalance(ccTxs),        ccTxs.size)
+            Account(checkingId, userId, "Everyday Checking", "Debit", calculateBalance(checkingTxs), checkingTxs.size),
+            Account(savingsId,  userId, "Rainy-Day Savings", "Savings", calculateBalance(savingsTxs), savingsTxs.size),
+            Account(ccId,       userId, "Visa Credit Card",  "Credit",  calculateBalance(ccTxs), ccTxs.size)
         )
 
         val txMap = mapOf(
             checkingId to checkingTxs,
-            savingsId to savingsTxs,
-            ccId to ccTxs
+            savingsId  to savingsTxs,
+            ccId       to ccTxs
         )
 
-        // Write each account and its transactions
-        accounts.forEach { acct ->
+        accounts.forEach { account ->
             val acctRef = db.collection("users")
                 .document(userId)
                 .collection("accounts")
-                .document(acct.id)
+                .document(account.id)
 
-            acctRef.set(acct).addOnSuccessListener {
-                txMap[acct.id]?.forEach { tx ->
+            acctRef.set(account).addOnSuccessListener {
+                txMap[account.id]?.forEach { tx ->
                     acctRef.collection("transactions")
                         .document(tx.id)
                         .set(tx)

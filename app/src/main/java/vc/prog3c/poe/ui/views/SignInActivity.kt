@@ -2,7 +2,11 @@ package vc.prog3c.poe.ui.views
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -10,11 +14,13 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
 import vc.prog3c.poe.core.models.BiometricUiHost
 import vc.prog3c.poe.core.models.SignInCredentials
 import vc.prog3c.poe.core.usecases.BiometricTransactionUseCase
 import vc.prog3c.poe.core.utils.Blogger
+import vc.prog3c.poe.core.utils.Notifier
 import vc.prog3c.poe.databinding.ActivitySignInBinding
 import vc.prog3c.poe.ui.viewmodels.SignInUiState
 import vc.prog3c.poe.ui.viewmodels.SignInViewModel
@@ -88,13 +94,18 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
         ).execute()
     }
 
-
     private fun navigateToNextScreen() {
-        startActivity(Intent(this, DashboardView::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        })
-        finish()
+        Notifier.bottomSnackbar(binds.root, "🎉 Login successful!", this)
+
+        // Delay navigation by ~1 second to show the snackbar
+        Handler(Looper.getMainLooper()).postDelayed({
+            startActivity(Intent(this, DashboardView::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
+            finish()
+        }, 1000)
     }
+
 
 
     // --- Event Handlers

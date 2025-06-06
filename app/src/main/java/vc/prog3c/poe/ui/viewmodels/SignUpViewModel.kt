@@ -71,7 +71,6 @@ class SignUpViewModel(
     ) {
         val user = User(
             id = userId,
-            username = credentials.username,
             email = credentials.usermail,
             name = credentials.name,
             surname = credentials.surname

@@ -38,21 +38,30 @@ object SeedData {
         // -------------------------------
 
         val checkingTxs = listOf(
-            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.INCOME, 2500.0, "Salary deposit", daysAgo(28), "Payday!"),
-            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 120.0, "Electric bill", daysAgo(16), "Monthly bill"),
-            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 15.0, "Coffee shop", daysAgo(2), "Morning coffee")
+            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.INCOME, 3200.0, "Income", daysAgo(27), "Monthly salary"),
+            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 100.0, "Utilities", daysAgo(20), "Water bill"),
+            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 75.0, "Groceries", daysAgo(14), "Grocery store purchase"),
+            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 45.0, "Expense", daysAgo(10), "Streaming subscription (Netflix & Spotify)"),
+            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 60.0, "Transport", daysAgo(5), "Fuel for car"),
+            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 25.0, "Utilities", daysAgo(3), "Mobile data recharge")
         )
 
         val savingsTxs = listOf(
-            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 1000.0, "Transfer from checking", daysAgo(60), "Saving up"),
-            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 50.0, "Monthly interest", daysAgo(29), "Interest payment"),
-            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 2000.0, "Gran's gift", daysAgo(4), "Gift from gran")
+            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 1000.0, "Savings", daysAgo(25), "Transfer from checking account"),
+            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 50.0, "Savings", daysAgo(18), "Monthly bank interest"),
+            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 200.0, "Income", daysAgo(15), "Freelance job payout"),
+            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.EXPENSE, 100.0, "Emergency", daysAgo(12), "Emergency car tire replacement"),
+            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 500.0, "Income", daysAgo(9), "Annual bonus received"),
+            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 300.0, "Income", daysAgo(6), "Gift from family")
         )
 
         val ccTxs = listOf(
-            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 75.0, "Online purchase", daysAgo(90), "Bought some stuff"),
-            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 30.0, "Streaming subscription", daysAgo(35), "Netflix"),
-            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 45.0, "Restaurant dinner", daysAgo(6), "Dinner with friends")
+            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 150.0, "Expense", daysAgo(30), "New headphones purchase"),
+            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 40.0, "Expense", daysAgo(24), "Online course payment"),
+            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 70.0, "Groceries", daysAgo(16), "Dinner at restaurant"),
+            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 35.0, "Emergency", daysAgo(13), "Pharmacy visit – medicine & vitamins"),
+            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 60.0, "Expense", daysAgo(7), "Gym membership fee"),
+            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 95.0, "Expense", daysAgo(2), "New shoes purchase")
         )
 
         // -------------------------------
@@ -142,61 +151,13 @@ object SeedData {
         // -------------------------------
 
         val seededCategories = listOf(
-            Category(
-                id = UUID.randomUUID().toString(),
-                name = "Savings",
-                type = CategoryType.SAVINGS,
-                icon = "ic_savings",
-                color = "#4CAF50",
-                isEditable = true,
-                description = "Regular savings account",
-                minBudget = 500.0,
-                maxBudget = 2000.0
-            ),
-            Category(
-                id = UUID.randomUUID().toString(),
-                name = "Utilities",
-                type = CategoryType.UTILITIES,
-                icon = "ic_utilities",
-                color = "#2196F3",
-                isEditable = true,
-                description = "Monthly utility bills",
-                minBudget = 800.0,
-                maxBudget = 1500.0
-            ),
-            Category(
-                id = UUID.randomUUID().toString(),
-                name = "Emergency Fund",
-                type = CategoryType.EMERGENCY,
-                icon = "ic_emergency",
-                color = "#F44336",
-                isEditable = true,
-                description = "Emergency fund for unexpected expenses",
-                minBudget = 300.0,
-                maxBudget = 1000.0
-            ),
-            Category(
-                id = UUID.randomUUID().toString(),
-                name = "Income",
-                type = CategoryType.INCOME,
-                icon = "ic_income",
-                color = "#4CAF50",
-                isEditable = true,
-                description = "Regular income sources",
-                minBudget = 0.0,
-                maxBudget = 0.0
-            ),
-            Category(
-                id = UUID.randomUUID().toString(),
-                name = "Expense",
-                type = CategoryType.EXPENSE,
-                icon = "ic_expense",
-                color = "#F44336",
-                isEditable = true,
-                description = "General expense tracking",
-                minBudget = 0.0,
-                maxBudget = 0.0
-            )
+            Category(UUID.randomUUID().toString(), "Savings", CategoryType.SAVINGS, "ic_savings", "#4CAF50", true, "Savings", 500.0, 2000.0),
+            Category(UUID.randomUUID().toString(), "Utilities", CategoryType.UTILITIES, "ic_utilities", "#2196F3", true, "Utilities", 800.0, 1500.0),
+            Category(UUID.randomUUID().toString(), "Emergency", CategoryType.EMERGENCY, "ic_emergency", "#F44336", true, "Emergency", 300.0, 1000.0),
+            Category(UUID.randomUUID().toString(), "Income", CategoryType.INCOME, "ic_income", "#4CAF50", true, "Income", 0.0, 0.0),
+            Category(UUID.randomUUID().toString(), "Expense", CategoryType.EXPENSE, "ic_expense", "#F44336", true, "Expense", 0.0, 0.0),
+            Category(UUID.randomUUID().toString(), "Groceries", CategoryType.EXPENSE, "ic_expense", "#FFA726", true, "Food and groceries", 500.0, 1200.0),
+            Category(UUID.randomUUID().toString(), "Transport", CategoryType.EXPENSE, "ic_expense", "#607D8B", true, "Fuel, Uber, etc", 200.0, 800.0)
         )
 
         seededCategories.forEach { category ->

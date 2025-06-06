@@ -71,6 +71,29 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
             ).show()
             finish()
         }
+        setupBottomNavigation()
+    }
+
+    private fun setupBottomNavigation() {
+        binds.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_dashboard -> {
+                    startActivity(Intent(this, DashboardView::class.java))
+                    true
+                }
+                R.id.nav_accounts -> true // you're already on this screen
+                R.id.nav_graph -> {
+                    startActivity(Intent(this, GraphView::class.java))
+                    true
+                }
+                R.id.nav_profile -> {
+                    startActivity(Intent(this, ProfileActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+        binds.bottomNavigation.selectedItemId = R.id.nav_accounts
     }
 
 
@@ -201,6 +224,11 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
             setPositiveButton("Delete") { _, _ ->
                 val accId = model.account.value?.id // <-- Here maybe?
                 if (accId != null) model.deleteAccount(accId)
+                
+                onSupportNavigateUp()
+                Toast.makeText( // Go back to previous screen
+                    this@AccountDetailsView, "Deletion successful", Toast.LENGTH_SHORT
+                ).show()
             }
             setNegativeButton("Cancel", null)
         }.show()

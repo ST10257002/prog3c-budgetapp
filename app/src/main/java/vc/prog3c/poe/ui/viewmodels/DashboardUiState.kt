@@ -1,3 +1,4 @@
+// DashboardUiState.kt
 package vc.prog3c.poe.ui.viewmodels
 
 import vc.prog3c.poe.data.models.Budget

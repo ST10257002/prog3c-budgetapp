@@ -4,7 +4,6 @@ data class User(
     val id: String = "", // Firestore doc ID = Firebase UID
     val uid: String = "",         // FirebaseAuth UID
     val name: String = "",
-    val username: String = "",
     val surname: String = "",
     val email: String = "",
     val phoneNumber: String = "",

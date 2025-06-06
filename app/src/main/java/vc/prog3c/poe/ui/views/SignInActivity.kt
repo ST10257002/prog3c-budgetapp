@@ -103,8 +103,15 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
     override fun onClick(view: View?) {
         when (view?.id) {
             binds.btSignIn.id -> tryAuthenticateWithCredentials()
-            binds.tvSignUp.id -> {
-                startActivity(Intent(this, SignUpActivity::class.java))
+            binds.tvSignUp.id -> startActivity(Intent(this, SignUpActivity::class.java))
+            binds.btIconFingerprint.id -> {
+                if (model.canAutoLoginUser()) {
+                    tryAuthenticateUsingBiometrics()
+                } else {
+                    Toast.makeText(
+                        this, "Sign in with your credentials first", Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
@@ -113,6 +120,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
     private fun setupClickListeners() {
         binds.btSignIn.setOnClickListener(this)
         binds.tvSignUp.setOnClickListener(this)
+        binds.btIconFingerprint.setOnClickListener(this)
     }
 
 

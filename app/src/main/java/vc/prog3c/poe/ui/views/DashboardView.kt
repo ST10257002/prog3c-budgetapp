@@ -1,3 +1,4 @@
+// DashboardView.kt
 package vc.prog3c.poe.ui.views
 
 import android.content.Intent
@@ -28,10 +29,6 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
     private lateinit var model: DashboardViewModel
     private lateinit var categoryAdapter: CategoryAdapter
 
-
-    // --- Lifecycle
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -45,17 +42,13 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         setupRecyclerView()
 
         observeViewModel()
+        model.refreshData()
     }
-
 
     override fun onResume() {
         super.onResume()
         model.refreshData()
     }
-
-
-    // --- ViewModel
-
 
     private fun observeViewModel() = model.uiState.observe(this) { state ->
         when (state) {
@@ -69,31 +62,24 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
             is DashboardUiState.Failure -> {
                 binds.swipeRefreshLayout.isRefreshing = false
-                Snackbar.make(
-                    binds.root, state.message, Snackbar.LENGTH_LONG
-                ).show()
+                Snackbar.make(binds.root, state.message, Snackbar.LENGTH_LONG).show()
             }
 
             is DashboardUiState.Updated -> {
-                state.breakdowns?.let {
-                    updateCategoryAdapter(it)
-                }
+                updateCategoryAdapter(state.categoryList ?: emptyList(), state.breakdowns ?: emptyMap())
 
                 state.savingsGoals?.let {
                     updateSavingsGoalUI(it)
-                    binds.swipeRefreshLayout.isRefreshing = false
                 }
 
                 if (state.statistics != null || state.budget != null) {
                     updateBudgetUI(state.budget, state.statistics)
                 }
+
+                binds.swipeRefreshLayout.isRefreshing = false
             }
         }
     }
-
-
-    // --- Internals
-
 
     private fun setupBottomNavigation() {
         binds.bottomNavigation.setOnItemSelectedListener { item ->
@@ -103,36 +89,31 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
                     startActivity(Intent(this, AccountsView::class.java))
                     true
                 }
-
                 R.id.nav_graph -> {
                     startActivity(Intent(this, GraphView::class.java))
                     true
                 }
-
                 R.id.nav_profile -> {
                     startActivity(Intent(this, ProfileActivity::class.java))
                     true
                 }
-
                 else -> false
             }
         }
-
         binds.bottomNavigation.selectedItemId = R.id.nav_dashboard
     }
 
-
     private fun setupRecyclerView() {
         categoryAdapter = CategoryAdapter(
-            onEditClick = { /* Handle edit if needed */ },
-            onDeleteClick = { /* Handle delete if needed */ })
+            onEditClick = { },
+            onDeleteClick = { }
+        )
         binds.categoriesRecyclerView.apply {
             adapter = categoryAdapter
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@DashboardView)
             setHasFixedSize(true)
         }
     }
-
 
     private fun updateSavingsGoalUI(goals: List<SavingsGoal>) {
         if (goals.isNotEmpty()) {
@@ -141,10 +122,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             val progress = if (goal.targetAmount > 0) goal.savedAmount / goal.targetAmount else 0.0
             val percent = (progress * 100).toInt().coerceIn(0, 100)
 
-            binds.savingsGoalText.text =
-                "${goal.name}: ${currencyFormat.format(goal.savedAmount)} / ${
-                    currencyFormat.format(goal.targetAmount)
-                }"
+            binds.savingsGoalText.text = "${goal.name}: ${currencyFormat.format(goal.savedAmount)} / ${currencyFormat.format(goal.targetAmount)}"
             binds.currentSavingsText.text = currencyFormat.format(goal.savedAmount)
             binds.maxSavingsText.text = currencyFormat.format(goal.targetAmount)
             binds.savingsPercentageText.text = "$percent%"
@@ -164,137 +142,84 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         }
     }
 
-
     private fun updateBudgetUI(budget: Budget?, stats: MonthlyStats?) {
         val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
         val spent = stats?.totalExpenses ?: 0.0
         val max = budget?.max ?: 1.0
         val min = budget?.min ?: 0.0
 
-        if (budget != null) {
-            binds.budgetAmountText.text = currencyFormat.format(budget.max)
-            val monthName = try {
-                java.time.Month.of(budget.month)
+        binds.budgetAmountText.text = currencyFormat.format(budget?.max ?: 0)
+        binds.budgetMonthText.text = budget?.let {
+            try {
+                val monthName = java.time.Month.of(it.month)
                     .getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())
+                "$monthName ${it.year}"
             } catch (e: Exception) {
                 ""
             }
-            binds.budgetMonthText.text = "$monthName ${budget.year}"
-        } else {
-            binds.budgetAmountText.text = currencyFormat.format(0)
-            binds.budgetMonthText.text = ""
-        }
+        } ?: ""
 
         binds.budgetSpentText.text = currencyFormat.format(spent)
         val percent = (spent / max * 100).toInt().coerceIn(0, 100)
         binds.budgetProgressBar.progress = percent
         binds.budgetProgressText.text = "$percent%"
 
-        when {
-            spent < min -> binds.budgetSpentText.setTextColor(
-                resources.getColor(
-                    R.color.teal_200, theme
-                )
-            )
-
-            spent <= max -> binds.budgetSpentText.setTextColor(
-                resources.getColor(
-                    R.color.white, theme
-                )
-            )
-
-            else -> binds.budgetSpentText.setTextColor(resources.getColor(R.color.red, theme))
+        val spentColor = when {
+            spent < min -> R.color.teal_200
+            spent <= max -> R.color.white
+            else -> R.color.red
         }
+        binds.budgetSpentText.setTextColor(resources.getColor(spentColor, theme))
     }
 
-
-    private fun updateCategoryAdapter(breakdown: Map<String, Double>?) {
-        val breakdownSafe = breakdown ?: emptyMap()
-
-        if (breakdownSafe.isEmpty()) {
+    private fun updateCategoryAdapter(
+        categories: List<Category>,
+        breakdown: Map<String, Double>
+    ) {
+        if (breakdown.isEmpty()) {
             binds.noCategoriesText.visibility = View.VISIBLE
             binds.categoriesRecyclerView.visibility = View.GONE
-        } else {
-            binds.noCategoriesText.visibility = View.GONE
-            binds.categoriesRecyclerView.visibility = View.VISIBLE
-
-            // Get all categories from the ViewModel and ensure preset categories are included
-            val existingCategories = model.categories.value ?: emptyList()
-            val allCategories = existingCategories.toMutableList()
-
-            // Add preset categories if they don't exist
-            if (existingCategories.none { category -> category.type == CategoryType.SAVINGS }) {
-                allCategories.add(
-                    Category(
-                        id = "savings",
-                        name = "Savings",
-                        type = CategoryType.SAVINGS,
-                        icon = "ic_savings",
-                        color = "#4CAF50",
-                        isEditable = false
-                    )
-                )
-            }
-            if (existingCategories.none { category -> category.type == CategoryType.EMERGENCY }) {
-                allCategories.add(
-                    Category(
-                        id = "emergency",
-                        name = "Emergency Fund",
-                        type = CategoryType.EMERGENCY,
-                        icon = "ic_error",
-                        color = "#F44336",
-                        isEditable = false
-                    )
-                )
-            }
-            if (existingCategories.none { category -> category.type == CategoryType.UTILITIES }) {
-                allCategories.add(
-                    Category(
-                        id = "utilities",
-                        name = "Utilities",
-                        type = CategoryType.UTILITIES,
-                        icon = "ic_utilities",
-                        color = "#2196F3",
-                        isEditable = false
-                    )
-                )
-            }
-
-            // Sort categories: preset categories first, then custom categories
-            val sortedCategories =
-                allCategories.sortedWith(compareBy<Category> { it.type != CategoryType.SAVINGS }.thenBy { it.type != CategoryType.EMERGENCY }
-                    .thenBy { it.type != CategoryType.UTILITIES }.thenBy { it.name })
-
-            categoryAdapter.submitList(sortedCategories)
-            categoryAdapter.updateCategoryTotals(breakdownSafe)
+            return
         }
+
+        binds.noCategoriesText.visibility = View.GONE
+        binds.categoriesRecyclerView.visibility = View.VISIBLE
+
+        val allCategories = categories.toMutableList()
+
+        if (allCategories.none { it.type == CategoryType.SAVINGS }) {
+            allCategories.add(Category("savings", "Savings", CategoryType.SAVINGS, "ic_savings", "#4CAF50", false))
+        }
+        if (allCategories.none { it.type == CategoryType.EMERGENCY }) {
+            allCategories.add(Category("emergency", "Emergency Fund", CategoryType.EMERGENCY, "ic_error", "#F44336", false))
+        }
+        if (allCategories.none { it.type == CategoryType.UTILITIES }) {
+            allCategories.add(Category("utilities", "Utilities", CategoryType.UTILITIES, "ic_utilities", "#2196F3", false))
+        }
+
+        val sortedCategories = allCategories.sortedWith(
+            compareBy<Category> { it.type != CategoryType.SAVINGS }
+                .thenBy { it.type != CategoryType.EMERGENCY }
+                .thenBy { it.type != CategoryType.UTILITIES }
+                .thenBy { it.name }
+        )
+
+        categoryAdapter.submitList(sortedCategories)
+        categoryAdapter.updateCategoryTotals(breakdown)
     }
-
-
-    // --- Event Handlers
-
 
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
     }
 
-
     override fun onClick(view: View?) {
         when (view?.id) {
             binds.profileImage.id -> startActivity(Intent(this, ProfileActivity::class.java))
-            binds.manageCategoriesButton.id -> {
-                val intent = Intent(this, CategoryManagementActivity::class.java)
-                startActivity(intent)
-            }
-
-            binds.manageGoalsButton.id -> {
-                val intent = Intent(this, ManageGoalsActivity::class.java)
-                startActivity(intent)
-            }
+            binds.manageCategoriesButton.id -> startActivity(Intent(this, CategoryManagementActivity::class.java))
+            binds.manageGoalsButton.id -> startActivity(Intent(this, ManageGoalsActivity::class.java))
         }
     }
-
 
     private fun setupClickListeners() {
         binds.profileImage.setOnClickListener(this)
@@ -302,16 +227,11 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         binds.manageGoalsButton.setOnClickListener(this)
     }
 
-
-    // --- UI Configuration
-
-
     private fun setupToolbar() {
         setSupportActionBar(binds.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
         supportActionBar?.title = "Dashboard"
     }
-
 
     private fun setupSwipeRefresh() {
         binds.swipeRefreshLayout.apply {
@@ -320,14 +240,9 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         }
     }
 
-
-    // --- UI Registrations
-
-
     private fun setupBindings() {
         binds = ActivityDashboardBinding.inflate(layoutInflater)
     }
-
 
     private fun setupLayoutUi() {
         setContentView(binds.root)
@@ -337,7 +252,6 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
         setupToolbar()
         setupSwipeRefresh()
     }

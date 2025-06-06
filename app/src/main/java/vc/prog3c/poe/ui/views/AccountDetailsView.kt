@@ -201,6 +201,11 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
             setPositiveButton("Delete") { _, _ ->
                 val accId = model.account.value?.id // <-- Here maybe?
                 if (accId != null) model.deleteAccount(accId)
+                
+                onSupportNavigateUp()
+                Toast.makeText( // Go back to previous screen
+                    this@AccountDetailsView, "Deletion successful", Toast.LENGTH_SHORT
+                ).show()
             }
             setNegativeButton("Cancel", null)
         }.show()

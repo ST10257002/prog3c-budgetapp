@@ -61,6 +61,8 @@ class TransactionsView : AppCompatActivity() {
         setupSwipeRefresh()
         setupAddTransactionButton()
         observeViewModel()
+        setupBottomNavigation()
+
 
         // Initial load
         model.loadTransactions(accountId)
@@ -87,28 +89,51 @@ class TransactionsView : AppCompatActivity() {
         }
     }
 
-/*
-    private fun setupFilterChips() {
-        binds.filterChipGroup.setOnCheckedChangeListener { group, checkedId ->
-            currentType = when (group.findViewById<Chip>(checkedId)?.id) {
-                R.id.allChip -> {
-                    model.loadTransactions(accountId)
-                    null
+    private fun setupBottomNavigation() {
+        binds.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_dashboard -> {
+                    startActivity(Intent(this, DashboardView::class.java))
+                    true
                 }
-                R.id.incomeChip -> {
-                    model.filterTransactionsByType(TransactionType.INCOME)
-                    TransactionType.INCOME
+                R.id.nav_accounts -> true // you're already on this screen
+                R.id.nav_graph -> {
+                    startActivity(Intent(this, GraphView::class.java))
+                    true
                 }
-                R.id.expenseChip -> {
-                    model.filterTransactionsByType(TransactionType.EXPENSE)
-                    TransactionType.EXPENSE
+                R.id.nav_profile -> {
+                    startActivity(Intent(this, ProfileActivity::class.java))
+                    true
                 }
-                else -> null
+                else -> false
             }
-            setupToolbar() // Update title
         }
+        binds.bottomNavigation.selectedItemId = R.id.nav_accounts
     }
-*/
+
+
+    /*
+        private fun setupFilterChips() {
+            binds.filterChipGroup.setOnCheckedChangeListener { group, checkedId ->
+                currentType = when (group.findViewById<Chip>(checkedId)?.id) {
+                    R.id.allChip -> {
+                        model.loadTransactions(accountId)
+                        null
+                    }
+                    R.id.incomeChip -> {
+                        model.filterTransactionsByType(TransactionType.INCOME)
+                        TransactionType.INCOME
+                    }
+                    R.id.expenseChip -> {
+                        model.filterTransactionsByType(TransactionType.EXPENSE)
+                        TransactionType.EXPENSE
+                    }
+                    else -> null
+                }
+                setupToolbar() // Update title
+            }
+        }
+    */
 
     private fun setupSwipeRefresh() {
         binds.swipeRefreshLayout.apply {

@@ -178,15 +178,16 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@color/white"
-        app:itemIconTint="@color/bottom_nav_icon_color"
-        app:itemTextColor="@color/bottom_nav_text_color"
         app:menu="@menu/bottom_navigation_menu"
-        app:labelVisibilityMode="labeled" />
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/bottom_nav_icon_color"
+        app:itemTextColor="@color/bottom_nav_text_color" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout> 

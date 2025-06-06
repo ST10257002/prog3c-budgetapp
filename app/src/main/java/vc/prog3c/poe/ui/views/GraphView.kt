@@ -1,5 +1,6 @@
 package vc.prog3c.poe.ui.views
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -11,6 +12,7 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
@@ -37,6 +39,7 @@ class GraphView : AppCompatActivity() {
 
         Log.d("GRAPH_TEST", "GraphView initialized")
         loadGraphData()
+        setupBottomNavigation()
     }
 
     private fun loadGraphData() = lifecycleScope.launch {
@@ -67,7 +70,10 @@ class GraphView : AppCompatActivity() {
             var index = 0f
             for (category in categories) {
                 val totalSpent = groupedSpending[category.name]?.sumOf { it.amount } ?: 0.0
-                Log.d("GRAPH_TEST", "Category: ${category.name}, Spent: $totalSpent, Min: ${category.minBudget}, Max: ${category.maxBudget}")
+                Log.d(
+                    "GRAPH_TEST",
+                    "Category: ${category.name}, Spent: $totalSpent, Min: ${category.minBudget}, Max: ${category.maxBudget}"
+                )
 
                 entriesActual.add(BarEntry(index, totalSpent.toFloat()))
                 entriesMin.add(BarEntry(index, category.minBudget.toFloat()))
@@ -117,7 +123,8 @@ class GraphView : AppCompatActivity() {
     }
 
     private suspend fun fetchTransactions(userId: String): List<Transaction> {
-        val accountsSnapshot = db.collection("users").document(userId).collection("accounts").get().await()
+        val accountsSnapshot =
+            db.collection("users").document(userId).collection("accounts").get().await()
         val transactions = mutableListOf<Transaction>()
 
         for (doc in accountsSnapshot) {
@@ -156,5 +163,28 @@ class GraphView : AppCompatActivity() {
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun setupBottomNavigation() {
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_dashboard -> {
+                    startActivity(Intent(this, DashboardView::class.java))
+                    true
+                }
+                R.id.nav_accounts -> {
+                    startActivity(Intent(this, AccountsView::class.java))
+                    true
+                }
+                R.id.nav_graph -> true // already on this screen
+                R.id.nav_profile -> {
+                    startActivity(Intent(this, ProfileActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+        bottomNav.selectedItemId = R.id.nav_graph
     }
 }

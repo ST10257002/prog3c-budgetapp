@@ -71,6 +71,29 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
             ).show()
             finish()
         }
+        setupBottomNavigation()
+    }
+
+    private fun setupBottomNavigation() {
+        binds.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_dashboard -> {
+                    startActivity(Intent(this, DashboardView::class.java))
+                    true
+                }
+                R.id.nav_accounts -> true // you're already on this screen
+                R.id.nav_graph -> {
+                    startActivity(Intent(this, GraphView::class.java))
+                    true
+                }
+                R.id.nav_profile -> {
+                    startActivity(Intent(this, ProfileActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+        binds.bottomNavigation.selectedItemId = R.id.nav_accounts
     }
 
 

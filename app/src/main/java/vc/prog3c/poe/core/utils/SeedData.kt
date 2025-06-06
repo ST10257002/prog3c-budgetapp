@@ -38,30 +38,192 @@ object SeedData {
         // -------------------------------
 
         val checkingTxs = listOf(
-            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.INCOME, 3200.0, "Income", daysAgo(27), "Monthly salary"),
-            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 100.0, "Utilities", daysAgo(20), "Water bill"),
-            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 75.0, "Groceries", daysAgo(14), "Grocery store purchase"),
-            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 45.0, "Expense", daysAgo(10), "Streaming subscription (Netflix & Spotify)"),
-            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 60.0, "Transport", daysAgo(5), "Fuel for car"),
-            Transaction(UUID.randomUUID().toString(), userId, checkingId, TransactionType.EXPENSE, 25.0, "Utilities", daysAgo(3), "Mobile data recharge")
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.INCOME,
+                amount = 3200.0,
+                description = "Monthly salary",
+                date = daysAgo(27),
+                category = "Income",
+                accountId = checkingId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 100.0,
+                description = "Water bill",
+                date = daysAgo(20),
+                category = "Utilities",
+                accountId = checkingId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 75.0,
+                description = "Grocery store purchase",
+                date = daysAgo(14),
+                category = "Groceries",
+                accountId = checkingId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 45.0,
+                description = "Streaming subscription (Netflix & Spotify)",
+                date = daysAgo(10),
+                category = "Expense",
+                accountId = checkingId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 60.0,
+                description = "Fuel for car",
+                date = daysAgo(5),
+                category = "Transport",
+                accountId = checkingId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 25.0,
+                description = "Mobile data recharge",
+                date = daysAgo(3),
+                category = "Utilities",
+                accountId = checkingId,
+                userId = userId
+            )
         )
 
         val savingsTxs = listOf(
-            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 1000.0, "Savings", daysAgo(25), "Transfer from checking account"),
-            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 50.0, "Savings", daysAgo(18), "Monthly bank interest"),
-            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 200.0, "Income", daysAgo(15), "Freelance job payout"),
-            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.EXPENSE, 100.0, "Emergency", daysAgo(12), "Emergency car tire replacement"),
-            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 500.0, "Income", daysAgo(9), "Annual bonus received"),
-            Transaction(UUID.randomUUID().toString(), userId, savingsId, TransactionType.INCOME, 300.0, "Income", daysAgo(6), "Gift from family")
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.INCOME,
+                amount = 1000.0,
+                description = "Transfer from checking account",
+                date = daysAgo(25),
+                category = "Savings",
+                accountId = savingsId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.INCOME,
+                amount = 50.0,
+                description = "Monthly bank interest",
+                date = daysAgo(18),
+                category = "Savings",
+                accountId = savingsId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.INCOME,
+                amount = 200.0,
+                description = "Freelance job payout",
+                date = daysAgo(15),
+                category = "Income",
+                accountId = savingsId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 100.0,
+                description = "Emergency car tire replacement",
+                date = daysAgo(12),
+                category = "Emergency",
+                accountId = savingsId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.INCOME,
+                amount = 500.0,
+                description = "Annual bonus received",
+                date = daysAgo(9),
+                category = "Income",
+                accountId = savingsId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.INCOME,
+                amount = 300.0,
+                description = "Gift from family",
+                date = daysAgo(6),
+                category = "Income",
+                accountId = savingsId,
+                userId = userId
+            )
         )
 
         val ccTxs = listOf(
-            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 150.0, "Expense", daysAgo(30), "New headphones purchase"),
-            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 40.0, "Expense", daysAgo(24), "Online course payment"),
-            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 70.0, "Groceries", daysAgo(16), "Dinner at restaurant"),
-            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 35.0, "Emergency", daysAgo(13), "Pharmacy visit – medicine & vitamins"),
-            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 60.0, "Expense", daysAgo(7), "Gym membership fee"),
-            Transaction(UUID.randomUUID().toString(), userId, ccId, TransactionType.EXPENSE, 95.0, "Expense", daysAgo(2), "New shoes purchase")
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 150.0,
+                description = "New headphones purchase",
+                date = daysAgo(30),
+                category = "Expense",
+                accountId = ccId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 40.0,
+                description = "Online course payment",
+                date = daysAgo(24),
+                category = "Expense",
+                accountId = ccId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 70.0,
+                description = "Dinner at restaurant",
+                date = daysAgo(16),
+                category = "Groceries",
+                accountId = ccId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 35.0,
+                description = "Pharmacy visit – medicine & vitamins",
+                date = daysAgo(13),
+                category = "Emergency",
+                accountId = ccId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 60.0,
+                description = "Gym membership fee",
+                date = daysAgo(7),
+                category = "Expense",
+                accountId = ccId,
+                userId = userId
+            ),
+            Transaction(
+                id = UUID.randomUUID().toString(),
+                type = TransactionType.EXPENSE,
+                amount = 95.0,
+                description = "New shoes purchase",
+                date = daysAgo(2),
+                category = "Expense",
+                accountId = ccId,
+                userId = userId
+            )
         )
 
         // -------------------------------

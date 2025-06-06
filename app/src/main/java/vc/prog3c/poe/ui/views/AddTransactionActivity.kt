@@ -28,7 +28,7 @@ import vc.prog3c.poe.ui.viewmodels.TransactionState
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
 import vc.prog3c.poe.ui.viewmodels.CategoryViewModel
 import vc.prog3c.poe.ui.viewmodels.DashboardViewModel
-import vc.prog3c.poe.adapters.PhotoAdapter
+import vc.prog3c.poe.ui.adapters.PhotoAdapter
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.UUID
@@ -148,9 +148,26 @@ class AddTransactionActivity : AppCompatActivity() {
     }
 
     private fun setupPhotoRecyclerView() {
-        photoAdapter = PhotoAdapter { uri ->
-            // Handle photo click if needed
+        photoAdapter = PhotoAdapter(
+            onPhotoClick = { uri ->
+                // Launch PhotoViewerActivity when a photo is clicked
+                val intent = Intent(this, PhotoViewerActivity::class.java).apply {
+                    putExtra(PhotoViewerActivity.EXTRA_PHOTO_URI, uri.toString())
+                }
+                startActivity(intent)
+            },
+            onRemoveClick = { uri ->
+                selectedPhotos.remove(uri)
+                photoAdapter.updatePhotos(selectedPhotos)
+            }
+        )
+        
+        // Set up photo RecyclerView for both forms
+        binds.incomeForm.photoRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@AddTransactionActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = photoAdapter
         }
+        
         binds.expenseForm.photoRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@AddTransactionActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = photoAdapter
@@ -181,6 +198,8 @@ class AddTransactionActivity : AppCompatActivity() {
         binds.incomeForm.root.visibility = View.VISIBLE
         binds.expenseForm.root.visibility = View.GONE
         updateCategoriesForType(TransactionType.INCOME)
+        // Update photo RecyclerView visibility
+        binds.incomeForm.photoRecyclerView.visibility = if (selectedPhotos.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun showExpenseForm() {
@@ -188,6 +207,8 @@ class AddTransactionActivity : AppCompatActivity() {
         binds.incomeForm.root.visibility = View.GONE
         binds.expenseForm.root.visibility = View.VISIBLE
         updateCategoriesForType(TransactionType.EXPENSE)
+        // Update photo RecyclerView visibility
+        binds.expenseForm.photoRecyclerView.visibility = if (selectedPhotos.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun setupCategoryDropdown() {
@@ -271,6 +292,19 @@ class AddTransactionActivity : AppCompatActivity() {
     }
 
     private fun setupPhotoHandling() {
+        // Set up photo buttons for both forms
+        binds.incomeForm.capturePhotoButton.setOnClickListener {
+            checkCameraPermission()
+        }
+        
+        binds.incomeForm.addPhotoButton.setOnClickListener {
+            showPhotoOptionsDialog()
+        }
+        
+        binds.expenseForm.capturePhotoButton.setOnClickListener {
+            checkCameraPermission()
+        }
+        
         binds.expenseForm.addPhotoButton.setOnClickListener {
             showPhotoOptionsDialog()
         }
@@ -336,8 +370,7 @@ class AddTransactionActivity : AppCompatActivity() {
                 "${packageName}.fileprovider",
                 it
             )
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+            cameraLauncher.launch(photoURI)
         }
     }
 

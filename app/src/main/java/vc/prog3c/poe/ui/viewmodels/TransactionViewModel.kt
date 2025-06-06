@@ -97,8 +97,8 @@ class TransactionViewModel : ViewModel() {
 
     private fun applyFilterAndSort() {
         var filteredTransactions = when (currentFilter) {
-            "Income" -> allTransactions.filter { it.amount > 0 }
-            "Expense" -> allTransactions.filter { it.amount < 0 }
+            "Income" -> allTransactions.filter { it.type == TransactionType.INCOME }
+            "Expense" -> allTransactions.filter { it.type == TransactionType.EXPENSE }
             else -> allTransactions
         }
 
@@ -239,28 +239,56 @@ class TransactionViewModel : ViewModel() {
         calculateTotals(filtered)
     }
 
-    fun getTransaction(accountId: String, transactionId: String) {
+    fun getTransaction(transactionId: String): LiveData<Transaction?> {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
                 _error.value = null
 
-                val doc = firestore.collection("users")
-                    .document(auth.currentUser?.uid ?: "")
-                    .collection("accounts")
-                    .document(accountId)
-                    .collection("transactions")
-                    .document(transactionId)
-                    .get()
-                    .await()
+                // First find the transaction in the current list
+                val transaction = allTransactions.find { it.id == transactionId }
+                if (transaction != null) {
+                    _singleTransaction.value = transaction
+                    _isLoading.value = false
+                    return@launch
+                }
 
-                _singleTransaction.value = doc.toObject(Transaction::class.java)
+                // If not found in current list, try to fetch from Firestore
+                val userId = auth.currentUser?.uid ?: ""
+                val accountsRef = firestore.collection("users")
+                    .document(userId)
+                    .collection("accounts")
+
+                // Get all accounts
+                val accounts = accountsRef.get().await().documents
+
+                // Search through each account's transactions
+                for (account in accounts) {
+                    val transactionDoc = account.reference
+                        .collection("transactions")
+                        .document(transactionId)
+                        .get()
+                        .await()
+
+                    if (transactionDoc.exists()) {
+                        val transaction = transactionDoc.toObject(Transaction::class.java)
+                        _singleTransaction.value = transaction
+                        _isLoading.value = false
+                        return@launch
+                    }
+                }
+
+                // If we get here, transaction was not found
+                _error.value = "Transaction not found"
+                _singleTransaction.value = null
             } catch (e: Exception) {
-                _error.value = "Failed to load transaction: ${e.message}"
+                _error.value = e.message ?: "Failed to load transaction"
+                _singleTransaction.value = null
             } finally {
                 _isLoading.value = false
             }
         }
+        return singleTransaction
     }
 
     fun getTransactions(accountId: String): LiveData<List<Transaction>> {
@@ -289,50 +317,6 @@ class TransactionViewModel : ViewModel() {
             }
         }
         return transactions
-    }
-
-    fun getTransaction(transactionId: String): LiveData<Transaction> {
-        _isLoading.value = true
-        viewModelScope.launch {
-            try {
-                transactionsCollection.document(transactionId)
-                    .addSnapshotListener { snapshot, e ->
-                        if (e != null) {
-                            _error.value = e.message
-                            _isLoading.value = false
-                            return@addSnapshotListener
-                        }
-
-                        val transaction = snapshot?.toObject(Transaction::class.java)
-                            ?.copy(id = snapshot.id)
-                        _transaction.value = transaction
-                        _isLoading.value = false
-                    }
-            } catch (e: Exception) {
-                _error.value = e.message
-                _isLoading.value = false
-            }
-        }
-        return transaction
-    }
-
-    fun addTransaction(transaction: Transaction) {
-        _isLoading.value = true
-        viewModelScope.launch {
-            try {
-                transactionsCollection.add(transaction)
-                    .addOnSuccessListener {
-                        _isLoading.value = false
-                    }
-                    .addOnFailureListener { e ->
-                        _error.value = e.message
-                        _isLoading.value = false
-                    }
-            } catch (e: Exception) {
-                _error.value = e.message
-                _isLoading.value = false
-            }
-        }
     }
 
     companion object {

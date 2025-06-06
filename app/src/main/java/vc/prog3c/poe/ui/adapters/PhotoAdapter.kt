@@ -11,7 +11,7 @@ import vc.prog3c.poe.databinding.ItemPhotoBinding
 
 class PhotoAdapter(
     private val onPhotoClick: (Uri) -> Unit,
-    private val onRemoveClick: (Uri) -> Unit
+    private val onRemoveClick: ((Uri) -> Unit)?
 ) : ListAdapter<Uri, PhotoAdapter.PhotoViewHolder>(PhotoDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
@@ -42,7 +42,7 @@ class PhotoAdapter(
                 .into(binding.photoImageView)
 
             binding.root.setOnClickListener { onPhotoClick(uri) }
-            binding.removeButton.setOnClickListener { onRemoveClick(uri) }
+            binding.removeButton.setOnClickListener { onRemoveClick?.invoke(uri) }
         }
     }
 

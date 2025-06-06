@@ -141,7 +141,7 @@
         <activity
                 android:name=".ui.views.PhotoViewerActivity"
                 android:exported="false"
-                android:theme="@style/Theme.BudgetApp.NoActionBar" />
+                android:theme="@style/Theme.AppCompat.NoActionBar" />
 
         <!-- Firebase Messaging Service -->
         <service

@@ -50,6 +50,7 @@ class TransactionsView @JvmOverloads constructor(
     private lateinit var viewModel: TransactionViewModel
     private lateinit var transactionAdapter: TransactionAdapter
     private var onAddTransactionClickListener: (() -> Unit)? = null
+    private var currentAccountId: String? = null
 
     init {
         setupRecyclerView()
@@ -58,7 +59,11 @@ class TransactionsView @JvmOverloads constructor(
 
     private fun setupRecyclerView() {
         transactionAdapter = TransactionAdapter { transaction ->
-            // Handle transaction click if needed
+            val intent = Intent(context, TransactionDetailsActivity::class.java).apply {
+                putExtra(TransactionDetailsActivity.EXTRA_TRANSACTION_ID, transaction.id)
+                currentAccountId?.let { putExtra("account_id", it) }
+            }
+            context.startActivity(intent)
         }
         binding.transactionsRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
@@ -108,6 +113,7 @@ class TransactionsView @JvmOverloads constructor(
 
     fun setViewModel(viewModel: TransactionViewModel, context: Context, accountId: String) {
         this.viewModel = viewModel
+        this.currentAccountId = accountId
         viewModel.transactions.observe(context as androidx.lifecycle.LifecycleOwner) { transactions ->
             transactionAdapter.submitList(transactions)
             updateTotals(transactions)
@@ -120,8 +126,8 @@ class TransactionsView @JvmOverloads constructor(
     }
 
     private fun updateTotals(transactions: List<Transaction>) {
-        val moneyIn = transactions.filter { it.amount > 0 }.sumOf { it.amount }
-        val moneyOut = transactions.filter { it.amount < 0 }.sumOf { it.amount }
+        val moneyIn = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount }
+        val moneyOut = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount }
 
         val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
         binding.moneyInTextView.text = formatter.format(moneyIn)

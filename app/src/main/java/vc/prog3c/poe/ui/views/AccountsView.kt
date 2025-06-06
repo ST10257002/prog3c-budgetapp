@@ -60,6 +60,12 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
     }
 
 
+    override fun onResume() {
+        super.onResume()
+        model.fetchAccounts()
+    }
+
+
     // --- ViewModel
 
 

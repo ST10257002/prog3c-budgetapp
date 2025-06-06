@@ -36,12 +36,12 @@
             android:paddingBottom="96dp">
 
         <!-- Profile Header -->
-            <com.google.android.material.card.MaterialCardView
+            <!--<com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                app:cardElevation="4dp">-->
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -63,7 +63,7 @@
                             android:scaleType="centerCrop"
                             android:contentDescription="Profile Picture" />
 
-                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        <!--<com.google.android.material.floatingactionbutton.FloatingActionButton
                             android:id="@+id/editProfileImageButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -71,7 +71,7 @@
                             android:layout_margin="4dp"
                             android:src="@drawable/ic_edit"
                             app:fabSize="mini"
-                            tools:ignore="SpeakableTextPresentCheck" />
+                            tools:ignore="SpeakableTextPresentCheck" />-->
 
                     </FrameLayout>
 
@@ -94,7 +94,7 @@
 
                 </LinearLayout>
 
-            </com.google.android.material.card.MaterialCardView>
+<!--            </com.google.android.material.card.MaterialCardView>-->
 
             <!-- Address Section -->
 

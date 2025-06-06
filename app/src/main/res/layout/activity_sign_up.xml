@@ -268,64 +268,12 @@
             android:padding="12dp" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Already have an account?"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Already have an account? Login instead"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:id="@+id/tv_sign_in" />
 
-        <Button
-            android:id="@+id/bt_sign_in"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Login"
-            android:textColor="#58bc82"
-            android:backgroundTint="#FFFFFF"
-            android:layout_gravity="center"
-            android:layout_marginTop="8dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="or register using"
-            android:textColor="#58bc82"
-            android:layout_gravity="center"
-            android:layout_marginTop="20dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:weightSum="3">
-
-            <ImageButton
-                android:id="@+id/githubIcon"
-                android:layout_width="0dp"
-                android:layout_height="69dp"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/app_name"
-                app:srcCompat="@drawable/github" />
-
-            <ImageButton
-                android:id="@+id/googleIcon"
-                android:layout_width="0dp"
-                android:layout_height="69dp"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/app_name"
-                app:srcCompat="@drawable/google"/>
-
-            <ImageButton
-                android:id="@+id/phoneIcon"
-                android:layout_width="0dp"
-                android:layout_height="69dp"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/app_name"
-                app:srcCompat="@drawable/smartphone" />
-        </LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

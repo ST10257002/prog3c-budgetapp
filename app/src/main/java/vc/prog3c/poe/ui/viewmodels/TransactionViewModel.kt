@@ -8,9 +8,12 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.data.models.FilterOption
+import java.text.NumberFormat
+import java.util.*
 import vc.prog3c.poe.data.models.SortOption
 
 /**
@@ -21,6 +24,7 @@ class TransactionViewModel : ViewModel() {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private val transactionsCollection = firestore.collection("transactions")
 
     private val _transactions = MutableLiveData<List<Transaction>>()
     val transactions: LiveData<List<Transaction>> = _transactions
@@ -40,6 +44,16 @@ class TransactionViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
+    private val _singleTransaction = MutableLiveData<Transaction?>()
+    val singleTransaction: LiveData<Transaction?> = _singleTransaction
+
+    private val _transaction = MutableLiveData<Transaction>()
+    val transaction: LiveData<Transaction> = _transaction
+
+    private var allTransactions = listOf<Transaction>()
+    private var currentFilter = "All"
+    private var currentSort = SortOption.DATE_DESC
+
     fun getCurrentUserId(): String = auth.currentUser?.uid ?: ""
 
     private var _fullTransactionList: List<Transaction> = emptyList()
@@ -47,76 +61,82 @@ class TransactionViewModel : ViewModel() {
     /**
      * Load all transactions for an account.
      */
-    fun loadTransactions(accountId: String?) {
-        val userId = auth.currentUser?.uid ?: return
-        if (accountId == null) return
-        _transactionState.value = TransactionState.Loading
-
+    fun loadTransactions(accountId: String) {
         viewModelScope.launch {
+            _transactionState.value = TransactionState.Loading
             try {
-                firestore.collection("users")
-                    .document(userId)
+                val transactionList = firestore.collection("users")
+                    .document(auth.currentUser?.uid ?: "")
                     .collection("accounts")
                     .document(accountId)
                     .collection("transactions")
-                    .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
                     .get()
-                    .addOnSuccessListener { documents ->
-                        val transactionList = documents.mapNotNull { it.toObject(Transaction::class.java) }
+                    .await()
+                    .toObjects(Transaction::class.java)
 
-                        // ✅ Store original list for repeated filtering
-                        _fullTransactionList = transactionList
-
-                        // ✅ Update visible list
-                        _transactions.value = transactionList
-
-                        // ✅ Update totals based on full list
-                        calculateTotals(transactionList)
-
-                        _transactionState.value = TransactionState.Success()
-                    }
-                    .addOnFailureListener { e ->
-                        _transactionState.value = TransactionState.Error(e.message ?: "Failed to load transactions")
-                    }
+                allTransactions = transactionList
+                applyFilterAndSort()
+                _transactionState.value = TransactionState.Success()
             } catch (e: Exception) {
-                _transactionState.value = TransactionState.Error(e.message ?: "An error occurred")
+                _transactionState.value = TransactionState.Error(e.message ?: "Failed to load transactions")
             }
         }
     }
 
+    fun refreshTransactions(accountId: String?) = loadTransactions(accountId ?: "")
 
-    fun refreshTransactions(accountId: String?) = loadTransactions(accountId)
+    fun filterTransactions(source: String) {
+        currentFilter = source
+        applyFilterAndSort()
+    }
 
-    fun filterTransactionsByType(type: TransactionType) {
-        val currentList = _transactions.value ?: return
-        _transactions.value = currentList.filter { it.type == type }
-        calculateTotals(currentList.filter { it.type == type })
+    fun sortTransactions(sortOption: SortOption) {
+        currentSort = sortOption
+        applyFilterAndSort()
+    }
+
+    private fun applyFilterAndSort() {
+        var filteredTransactions = when (currentFilter) {
+            "Income" -> allTransactions.filter { it.amount > 0 }
+            "Expense" -> allTransactions.filter { it.amount < 0 }
+            else -> allTransactions
+        }
+
+        filteredTransactions = when (currentSort) {
+            SortOption.DATE_DESC -> filteredTransactions.sortedByDescending { it.date }
+            SortOption.DATE_ASC -> filteredTransactions.sortedBy { it.date }
+            SortOption.AMOUNT_DESC -> filteredTransactions.sortedByDescending { it.amount }
+            SortOption.AMOUNT_ASC -> filteredTransactions.sortedBy { it.amount }
+        }
+
+        _transactions.value = filteredTransactions
+        calculateTotals(filteredTransactions)
     }
 
     /**
      * Add a new transaction (income or expense).
      */
-    fun addTransaction(transaction: Transaction): Task<Void> {
-        val userId = auth.currentUser?.uid ?: throw IllegalStateException("User not logged in")
-        val accountId = transaction.accountId
-        _isLoading.value = true
-        _error.value = null
-        _transactionState.value = TransactionState.Loading
+    fun addTransaction(accountId: String, transaction: Transaction) {
+        viewModelScope.launch {
+            _transactionState.value = TransactionState.Loading
+            try {
+                val transactionRef = firestore.collection("users")
+                    .document(auth.currentUser?.uid ?: "")
+                    .collection("accounts")
+                    .document(accountId)
+                    .collection("transactions")
+                    .document()
 
-        return firestore.collection("users")
-            .document(userId)
-            .collection("accounts")
-            .document(accountId)
-            .collection("transactions")
-            .document(transaction.id)
-            .set(transaction)
-            .addOnSuccessListener {
-                _transactionState.value = TransactionState.Success()
+                val transactionWithId = transaction.copy(id = transactionRef.id)
+                transactionRef.set(transactionWithId).await()
+
+                // Refresh transactions after adding a new one
                 loadTransactions(accountId)
-            }
-            .addOnFailureListener { e ->
+                _transactionState.value = TransactionState.Success("Transaction added successfully")
+            } catch (e: Exception) {
                 _transactionState.value = TransactionState.Error(e.message ?: "Failed to add transaction")
             }
+        }
     }
 
     /**
@@ -192,24 +212,136 @@ class TransactionViewModel : ViewModel() {
             .sumOf { it.amount }
     }
 
-    fun applyFilterAndSort(filter: FilterOption, sort: SortOption) {
+    fun filterByDateRange(startDate: Date, endDate: Date) {
         val fullList = _fullTransactionList
-
-        val filtered = when (filter) {
-            FilterOption.INCOME -> fullList.filter { it.type == TransactionType.INCOME }
-            FilterOption.EXPENSE -> fullList.filter { it.type == TransactionType.EXPENSE }
-            FilterOption.ALL -> fullList
+        val filtered = fullList.filter { transaction ->
+            val transactionDate = transaction.date.toDate()
+            transactionDate in startDate..endDate
         }
-
-        val sorted = when (sort) {
-            SortOption.NEWEST -> filtered.sortedByDescending { it.date }
-            SortOption.OLDEST -> filtered.sortedBy { it.date }
-            SortOption.HIGHEST -> filtered.sortedByDescending { it.amount }
-            SortOption.LOWEST -> filtered.sortedBy { it.amount }
-        }
-
-        _transactions.value = sorted
+        _transactions.value = filtered
         calculateTotals(filtered)
     }
 
+    fun filterByCategory(category: String) {
+        val fullList = _fullTransactionList
+        val filtered = fullList.filter { it.category == category }
+        _transactions.value = filtered
+        calculateTotals(filtered)
+    }
+
+    fun searchTransactions(query: String) {
+        val fullList = _fullTransactionList
+        val filtered = fullList.filter { transaction ->
+            transaction.description?.contains(query, ignoreCase = true) == true ||
+            transaction.category.contains(query, ignoreCase = true)
+        }
+        _transactions.value = filtered
+        calculateTotals(filtered)
+    }
+
+    fun getTransaction(accountId: String, transactionId: String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
+
+                val doc = firestore.collection("users")
+                    .document(auth.currentUser?.uid ?: "")
+                    .collection("accounts")
+                    .document(accountId)
+                    .collection("transactions")
+                    .document(transactionId)
+                    .get()
+                    .await()
+
+                _singleTransaction.value = doc.toObject(Transaction::class.java)
+            } catch (e: Exception) {
+                _error.value = "Failed to load transaction: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun getTransactions(accountId: String): LiveData<List<Transaction>> {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                transactionsCollection
+                    .whereEqualTo("accountId", accountId)
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            _error.value = e.message
+                            _isLoading.value = false
+                            return@addSnapshotListener
+                        }
+
+                        val transactions = snapshot?.documents?.mapNotNull { doc ->
+                            doc.toObject(Transaction::class.java)?.copy(id = doc.id)
+                        } ?: emptyList()
+
+                        _transactions.value = transactions
+                        _isLoading.value = false
+                    }
+            } catch (e: Exception) {
+                _error.value = e.message
+                _isLoading.value = false
+            }
+        }
+        return transactions
+    }
+
+    fun getTransaction(transactionId: String): LiveData<Transaction> {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                transactionsCollection.document(transactionId)
+                    .addSnapshotListener { snapshot, e ->
+                        if (e != null) {
+                            _error.value = e.message
+                            _isLoading.value = false
+                            return@addSnapshotListener
+                        }
+
+                        val transaction = snapshot?.toObject(Transaction::class.java)
+                            ?.copy(id = snapshot.id)
+                        _transaction.value = transaction
+                        _isLoading.value = false
+                    }
+            } catch (e: Exception) {
+                _error.value = e.message
+                _isLoading.value = false
+            }
+        }
+        return transaction
+    }
+
+    fun addTransaction(transaction: Transaction) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                transactionsCollection.add(transaction)
+                    .addOnSuccessListener {
+                        _isLoading.value = false
+                    }
+                    .addOnFailureListener { e ->
+                        _error.value = e.message
+                        _isLoading.value = false
+                    }
+            } catch (e: Exception) {
+                _error.value = e.message
+                _isLoading.value = false
+            }
+        }
+    }
+
+    companion object {
+        fun formatCurrency(amount: Double): String {
+            val format = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
+            return format.format(amount)
+        }
+
+        const val ACCOUNT_ID = "account_id"
+        const val CATEGORY = "category"
+    }
 }

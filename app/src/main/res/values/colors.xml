@@ -52,4 +52,8 @@
     <color name="colorOrange">#FF9800</color>
     <color name="status_success">#4CAF50</color>
     <color name="status_error">#F44336</color>
+
+    <!-- Income and Expense Colors -->
+    <color name="income_green">#4CAF50</color>
+    <color name="expense_red">#F44336</color>
 </resources>

@@ -42,6 +42,20 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import vc.prog3c.poe.utils.ImageUtils
 import java.io.File
+import android.content.Intent
+import android.provider.MediaStore
+import android.widget.ImageView
+import android.widget.Button
+import android.widget.EditText
+import android.widget.RadioGroup
+import android.app.AlertDialog
+import com.google.android.material.datepicker.MaterialDatePicker
+import androidx.core.content.FileProvider
+import androidx.core.app.ActivityCompat
+import com.google.android.gms.tasks.OnSuccessListener
+import android.os.Environment
+import android.util.Log
+import java.io.IOException
 
 class AddTransactionActivity : AppCompatActivity() {
     private lateinit var binds: ActivityAddTransactionBinding
@@ -55,46 +69,44 @@ class AddTransactionActivity : AppCompatActivity() {
     private lateinit var photoAdapter: PhotoAdapter
     private var currentPhotoFile: File? = null
     private val db = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
+    private lateinit var storage: FirebaseStorage
+    private var selectedPhotos = mutableListOf<Uri>()
+    private var photoURI: Uri? = null
+    private var currentPhotoPath: String = ""
 
-    // TODO: REPLACE WITH SERVICE
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        when {
-            permissions[Manifest.permission.CAMERA] == true -> {
-                launchCamera()
-            }
-            permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true -> {
-                launchImagePicker()
-            }
-            else -> {
-                Toast.makeText(this, "Permissions required to add photos", Toast.LENGTH_SHORT).show()
-            }
+    private val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+    private val REQUEST_IMAGE_CAPTURE = 1
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            launchCamera()
+        } else {
+            showPermissionDeniedDialog()
         }
     }
 
-    // TODO: REPLACE WITH SERVICE
-    private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK) {
-            result.data?.data?.let { uri ->
-                photoAdapter.addPhoto(uri)
-            }
+    private val galleryLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            selectedPhotos.add(it)
+            photoAdapter.updatePhotos(selectedPhotos)
         }
     }
 
-    // TODO: REPLACE WITH SERVICE
     private val cameraLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK) {
-            currentPhotoFile?.let { file ->
-                val uri = ImageUtils.getUriFromFile(this, file)
-                photoAdapter.addPhoto(uri)
-            }
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            // The photo was taken successfully
+            // The URI is already added to selectedPhotos when launching the camera
         }
+    }
+
+    companion object {
+        private const val TAG = "AddTransactionActivity"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -137,7 +149,7 @@ class AddTransactionActivity : AppCompatActivity() {
 
     private fun setupPhotoRecyclerView() {
         photoAdapter = PhotoAdapter { uri ->
-            // Handle photo click - you can implement photo preview here
+            // Handle photo click if needed
         }
         binds.expenseForm.photoRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@AddTransactionActivity, LinearLayoutManager.HORIZONTAL, false)
@@ -151,6 +163,12 @@ class AddTransactionActivity : AppCompatActivity() {
         binds.transactionTypeDropdown.setAdapter(adapter)
 
         binds.transactionTypeDropdown.setOnItemClickListener { _, _, position, _ ->
+            currentTransactionType = when (position) {
+                0 -> TransactionType.INCOME
+                1 -> TransactionType.EXPENSE
+                else -> TransactionType.EXPENSE
+            }
+            updateCategoriesForType(currentTransactionType)
             when (position) {
                 0 -> showIncomeForm()
                 1 -> showExpenseForm()
@@ -159,13 +177,17 @@ class AddTransactionActivity : AppCompatActivity() {
     }
 
     private fun showIncomeForm() {
+        currentTransactionType = TransactionType.INCOME
         binds.incomeForm.root.visibility = View.VISIBLE
         binds.expenseForm.root.visibility = View.GONE
+        updateCategoriesForType(TransactionType.INCOME)
     }
 
     private fun showExpenseForm() {
+        currentTransactionType = TransactionType.EXPENSE
         binds.incomeForm.root.visibility = View.GONE
         binds.expenseForm.root.visibility = View.VISIBLE
+        updateCategoriesForType(TransactionType.EXPENSE)
     }
 
     private fun setupCategoryDropdown() {
@@ -186,6 +208,12 @@ class AddTransactionActivity : AppCompatActivity() {
             val categoryNames = filteredCategories.map { it.name }
             val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, categoryNames)
             
+            // Update both income source and expense category dropdowns
+            binds.incomeForm.sourceInput.setAdapter(adapter)
+            binds.incomeForm.sourceInput.setOnItemClickListener { _, _, position, _ ->
+                selectedCategory = filteredCategories[position]
+            }
+
             binds.expenseForm.categoryInput.setAdapter(adapter)
             binds.expenseForm.categoryInput.setOnItemClickListener { _, _, position, _ ->
                 selectedCategory = filteredCategories[position]
@@ -196,9 +224,7 @@ class AddTransactionActivity : AppCompatActivity() {
     private fun setupDatePickers() {
         // Income form date picker
         binds.incomeForm.dateInput.setOnClickListener {
-            showDatePicker { date ->
-                binds.incomeForm.dateInput.setText(date.formatToString())
-            }
+            showDatePicker()
         }
 
         // Expense form time pickers
@@ -215,18 +241,18 @@ class AddTransactionActivity : AppCompatActivity() {
         }
     }
 
-    private fun showDatePicker(onDateSelected: (Date) -> Unit) {
-        val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            this,
-            { _, year, month, day ->
-                calendar.set(year, month, day)
-                onDateSelected(calendar.time)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
+    private fun showDatePicker() {
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText("Select Date")
+            .setSelection(selectedDate.time)
+            .build()
+
+        datePicker.addOnPositiveButtonClickListener { timestamp ->
+            selectedDate = Date(timestamp)
+            updateDateDisplay()
+        }
+
+        datePicker.show(supportFragmentManager, "date_picker")
     }
 
     private fun showTimePicker(onTimeSelected: (Date) -> Unit) {
@@ -246,11 +272,93 @@ class AddTransactionActivity : AppCompatActivity() {
 
     private fun setupPhotoHandling() {
         binds.expenseForm.addPhotoButton.setOnClickListener {
-            checkPermissionAndLaunchImagePicker()
+            showPhotoOptionsDialog()
         }
+    }
 
-        binds.expenseForm.capturePhotoButton.setOnClickListener {
-            checkPermissionAndLaunchCamera()
+    private fun showPhotoOptionsDialog() {
+        val options = arrayOf("Take Photo", "Choose from Gallery")
+        AlertDialog.Builder(this)
+            .setTitle("Add Photo")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> checkCameraPermission()
+                    1 -> openGallery()
+                }
+            }
+            .show()
+    }
+
+    private fun checkCameraPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                launchCamera()
+            }
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.CAMERA
+            ) -> {
+                showPermissionRationaleDialog()
+            }
+            else -> {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    private fun showPermissionRationaleDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Camera Permission Required")
+            .setMessage("This app needs camera permission to take photos for transactions.")
+            .setPositiveButton("Grant Permission") { _, _ ->
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showPermissionDeniedDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Permission Denied")
+            .setMessage("Camera permission is required to take photos. Please grant it in Settings.")
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
+    private fun launchCamera() {
+        val photoFile = createImageFile()
+        photoFile?.let {
+            photoURI = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                it
+            )
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+        }
+    }
+
+    private fun openGallery() {
+        galleryLauncher.launch("image/*")
+    }
+
+    private fun createImageFile(): File? {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return try {
+            File.createTempFile(
+                "JPEG_${timeStamp}_",
+                ".jpg",
+                storageDir
+            ).apply {
+                currentPhotoPath = absolutePath
+            }
+        } catch (ex: IOException) {
+            Log.e(TAG, "Error creating image file", ex)
+            null
         }
     }
 
@@ -271,246 +379,226 @@ class AddTransactionActivity : AppCompatActivity() {
     }
 
     private fun validateIncomeForm(): Boolean {
-        var isValid = true
-        
-        with(binds.incomeForm) {
-            // Validate amount
-            if (amountInput.text.isNullOrEmpty()) {
-                amountLayout.error = "Amount is required"
-                isValid = false
-            }
+        val amount = binds.incomeForm.amountInput.text.toString().toDoubleOrNull()
+        val description = binds.incomeForm.descriptionInput.text.toString()
+        val category = selectedCategory
 
-            // Validate source
-            if (sourceInput.text.isNullOrEmpty()) {
-                sourceLayout.error = "Source is required"
-                isValid = false
+        when {
+            amount == null || amount <= 0 -> {
+                showErrorMessage("Please enter a valid amount")
+                return false
             }
-
-            // Validate date
-            if (dateInput.text.isNullOrEmpty()) {
-                dateLayout.error = "Date is required"
-                isValid = false
+            description.isBlank() -> {
+                showErrorMessage("Please enter a description")
+                return false
+            }
+            category == null -> {
+                showErrorMessage("Please select a category")
+                return false
             }
         }
-
-        return isValid
+        return true
     }
 
     private fun validateExpenseForm(): Boolean {
-        var isValid = true
-        
-        with(binds.expenseForm) {
-            // Validate amount
-            if (amountInput.text.isNullOrEmpty()) {
-                amountLayout.error = "Amount is required"
-                isValid = false
-            }
+        val amount = binds.expenseForm.amountInput.text.toString().toDoubleOrNull()
+        val description = binds.expenseForm.descriptionInput.text.toString()
+        val category = selectedCategory
+        val startTime = binds.expenseForm.startTimeInput.text.toString()
+        val endTime = binds.expenseForm.endTimeInput.text.toString()
 
-            // Validate category
-            if (categoryInput.text.isNullOrEmpty()) {
-                categoryLayout.error = "Category is required"
-                isValid = false
+        when {
+            amount == null || amount <= 0 -> {
+                showErrorMessage("Please enter a valid amount")
+                return false
             }
-
-            // Validate times
-            if (startTimeInput.text.isNullOrEmpty()) {
-                startTimeLayout.error = "Start time is required"
-                isValid = false
+            description.isBlank() -> {
+                showErrorMessage("Please enter a description")
+                return false
             }
-
-            if (endTimeInput.text.isNullOrEmpty()) {
-                endTimeLayout.error = "End time is required"
-                isValid = false
+            category == null -> {
+                showErrorMessage("Please select a category")
+                return false
+            }
+            startTime.isBlank() -> {
+                showErrorMessage("Please select start time")
+                return false
+            }
+            endTime.isBlank() -> {
+                showErrorMessage("Please select end time")
+                return false
             }
         }
-
-        return isValid
+        return true
     }
 
     private fun submitIncomeTransaction() {
+        if (!validateIncomeForm()) return
+
         val transaction = Transaction(
             id = UUID.randomUUID().toString(),
             type = TransactionType.INCOME,
             amount = binds.incomeForm.amountInput.text.toString().toDoubleOrNull() ?: 0.0,
             description = binds.incomeForm.descriptionInput.text.toString(),
-            date = Timestamp(parseDate(binds.incomeForm.dateInput.text.toString())),
+            date = Timestamp(selectedDate),
             category = selectedCategory?.name ?: "",
             accountId = accountId ?: "",
-            userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+            userId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
+            photoUrls = emptyList()
         )
 
-        model.addTransaction(transaction)
-            .addOnSuccessListener {
-                showSuccessMessage("Income transaction added successfully")
-                finish()
-            }
-            .addOnFailureListener { e ->
-                showErrorMessage("Failed to add income transaction: ${e.message}")
-            }
+        if (selectedPhotos.isNotEmpty()) {
+            uploadPhotosAndSaveTransaction(transaction)
+        } else {
+            model.addTransaction(accountId ?: "", transaction)
+        }
     }
 
     private fun submitExpenseTransaction() {
-        // First upload photos if any
+        if (!validateExpenseForm()) return
+
+        val transaction = Transaction(
+            id = UUID.randomUUID().toString(),
+            type = TransactionType.EXPENSE,
+            amount = binds.expenseForm.amountInput.text.toString().toDoubleOrNull() ?: 0.0,
+            description = binds.expenseForm.descriptionInput.text.toString(),
+            date = Timestamp(selectedDate),
+            category = selectedCategory?.name ?: "",
+            accountId = accountId ?: "",
+            userId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
+            photoUrls = emptyList()
+        )
+
+        if (selectedPhotos.isNotEmpty()) {
+            uploadPhotosAndSaveTransaction(transaction)
+        } else {
+            model.addTransaction(accountId ?: "", transaction)
+        }
+    }
+
+    private fun uploadPhotosAndSaveTransaction(transaction: Transaction) {
+        val transactionId = transaction.id
         val photoUrls = mutableListOf<String>()
-        val uploadTasks = photoAdapter.getPhotos().map { uri ->
-            uploadPhoto(uri)
+        val uploadTasks = selectedPhotos.map { uri ->
+            val photoRef = storage.reference.child("transactions/$transactionId/${UUID.randomUUID()}")
+            photoRef.putFile(uri).continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    task.exception?.let { throw it }
+                }
+                photoRef.downloadUrl
+            }
         }
 
         Tasks.whenAll(uploadTasks)
             .addOnSuccessListener {
-                // Get photo URLs
-                val downloadUrls = uploadTasks.mapNotNull { uploadTask ->
-                    try {
-                        uploadTask.result.toString()
-                    } catch (e: Exception) {
-                        null
-                    }
-                }
-                photoUrls.addAll(downloadUrls)
+                val downloadUrls = uploadTasks.mapNotNull { it.result }
+                photoUrls.addAll(downloadUrls.map { it.toString() })
                 
-                // Create and submit transaction
-                val transaction = Transaction(
-                    id = UUID.randomUUID().toString(),
-                    type = TransactionType.EXPENSE,
-                    amount = binds.expenseForm.amountInput.text.toString().toDoubleOrNull() ?: 0.0,
-                    description = binds.expenseForm.descriptionInput.text.toString(),
-                    date = Timestamp(Date()),
-                    category = selectedCategory?.name ?: "",
-                    accountId = accountId ?: "",
-                    userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-                )
-
-                model.addTransaction(transaction)
-                    .addOnSuccessListener {
-                        showSuccessMessage("Expense transaction added successfully")
-                        finish()
-                    }
-                    .addOnFailureListener { e ->
-                        showErrorMessage("Failed to add expense transaction: ${e.message}")
-                    }
+                // Now save transaction with photo URLs
+                val transactionWithPhotos = transaction.copy(photoUrls = photoUrls)
+                model.addTransaction(accountId ?: "", transactionWithPhotos)
             }
             .addOnFailureListener { e ->
-                showErrorMessage("Failed to upload photos: ${e.message}")
+                showErrorMessage("Error uploading photos: ${e.message}")
             }
     }
 
-    
-    private fun uploadPhoto(uri: Uri): Task<Uri> {
-        return storage.reference
-            .child("transactions/${UUID.randomUUID()}")
-            .putFile(uri)
-            .continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let { throw it }
-                }
-                task.result.storage.downloadUrl
-            }
-    }
-
-    
     // Helper functions for date/time formatting and parsing
     private fun Date.formatToString(): String {
         return SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(this)
     }
 
-    
     private fun parseDate(dateStr: String): Date {
         return SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(dateStr) ?: Date()
     }
 
-    
     private fun parseTime(timeStr: String): Date {
         return SimpleDateFormat("HH:mm", Locale.getDefault()).parse(timeStr) ?: Date()
     }
 
-    
     private fun showSuccessMessage(message: String) {
         Snackbar.make(binds.root, message, Snackbar.LENGTH_SHORT).show()
     }
-    
 
     private fun showErrorMessage(message: String) {
         Snackbar.make(binds.root, message, Snackbar.LENGTH_LONG).show()
     }
 
-    
     private fun observeViewModels() {
         model.transactionState.observe(this) { state ->
             when (state) {
                 is TransactionState.Success -> {
                     binds.loadingOverlay.visibility = View.GONE
-                    Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
+                    showSuccessMessage(state.message)
                     setResult(RESULT_OK)
                     finish()
                 }
-
                 is TransactionState.Error -> {
                     binds.loadingOverlay.visibility = View.GONE
-                    Snackbar.make(binds.root, state.message, Snackbar.LENGTH_LONG).show()
+                    showErrorMessage(state.message)
                 }
-
                 TransactionState.Loading -> {
                     binds.loadingOverlay.visibility = View.VISIBLE
                 }
             }
         }
-    }
 
-    
-    // TODO: REPLACE WITH SERVICE
-    private fun checkPermissionAndLaunchImagePicker() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                launchImagePicker()
-            }
-            else -> {
-                requestPermissionLauncher.launch(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
-            }
+        categoryViewModel.categories.observe(this) { categories ->
+            updateCategoriesForType(currentTransactionType)
         }
     }
 
-    
-    // TODO: REPLACE WITH SERVICE
-    private fun checkPermissionAndLaunchCamera() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                launchCamera()
-            }
-            else -> {
-                requestPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
-            }
-        }
-    }
-    
-
-    // TODO: REPLACE WITH SERVICE
-    private fun launchImagePicker() {
-        imagePickerLauncher.launch(ImageUtils.getImagePickerIntent())
-    }
-    
-
-    // TODO: REPLACE WITH SERVICE
-    private fun launchCamera() {
-        currentPhotoFile = ImageUtils.createImageFile(this)
-        currentPhotoFile?.let { file ->
-            cameraLauncher.launch(ImageUtils.getCameraIntent(this, file))
-        }
+    private fun updateDateDisplay() {
+        val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+        binds.incomeForm.dateInput.setText(dateFormat.format(selectedDate))
     }
 
-    
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
-                onBackPressed()
-                true
+    private fun saveTransaction(transaction: Transaction) {
+        val transactionRef = db.collection("transactions").document()
+        val transactionId = transactionRef.id
+
+        // First upload photos if any
+        if (selectedPhotos.isNotEmpty()) {
+            val photoUrls = mutableListOf<String>()
+            val uploadTasks = selectedPhotos.map { uri ->
+                val photoRef = storage.reference.child("transactions/$transactionId/${UUID.randomUUID()}")
+                photoRef.putFile(uri).continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        task.exception?.let { throw it }
+                    }
+                    photoRef.downloadUrl
+                }
             }
-            else -> super.onOptionsItemSelected(item)
+
+            Tasks.whenAll(uploadTasks)
+                .addOnSuccessListener {
+                    val downloadUrls = uploadTasks.mapNotNull { it.result }
+                    photoUrls.addAll(downloadUrls.map { it.toString() })
+                    
+                    // Now save transaction with photo URLs
+                    val transactionWithPhotos = transaction.copy(photoUrls = photoUrls)
+                    transactionRef.set(transactionWithPhotos)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Transaction saved successfully", Toast.LENGTH_SHORT).show()
+                            finish()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(this, "Error saving transaction: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Error uploading photos: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } else {
+            // Save transaction without photos
+            transactionRef.set(transaction)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Transaction saved successfully", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Error saving transaction: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
         }
     }
 } 

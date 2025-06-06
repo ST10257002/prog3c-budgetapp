@@ -25,177 +25,110 @@ import vc.prog3c.poe.ui.adapters.TransactionAdapter
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import android.widget.EditText
+import android.app.DatePickerDialog
+import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.util.Date
+import android.content.Context
+import android.util.AttributeSet
+import android.view.LayoutInflater
+import android.widget.LinearLayout
+import androidx.lifecycle.LifecycleOwner
+import androidx.recyclerview.widget.RecyclerView
+import vc.prog3c.poe.data.models.Transaction
+import vc.prog3c.poe.databinding.ViewTransactionsBinding
+import android.widget.ArrayAdapter
 
-class TransactionsView : AppCompatActivity() {
-    private lateinit var binds: ActivityTransactionsBinding
-    private lateinit var model: TransactionViewModel
-    private lateinit var adapter: TransactionAdapter
-    private var accountId: String? = null
-    private var currentType: TransactionType? = null // Track current filter
+class TransactionsView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayout(context, attrs, defStyleAttr) {
 
-    private val addTransactionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            // Instead of extracting the transaction, just reload from database
-            model.loadTransactions(accountId)
-            Toast.makeText(this, "Transaction added", Toast.LENGTH_SHORT).show()
-        }
-    }
+    private val binding = ViewTransactionsBinding.inflate(LayoutInflater.from(context), this, true)
+    private lateinit var viewModel: TransactionViewModel
+    private lateinit var transactionAdapter: TransactionAdapter
+    private var onAddTransactionClickListener: (() -> Unit)? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binds = ActivityTransactionsBinding.inflate(layoutInflater)
-        setContentView(binds.root)
-        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
-        model = ViewModelProvider(this)[TransactionViewModel::class.java]
-        accountId = intent.getStringExtra("account_id")
-
-        setupToolbar()
+    init {
         setupRecyclerView()
-        //setupFilterChips()
-        setupFilterButton()
-        setupSwipeRefresh()
-        setupAddTransactionButton()
-        observeViewModel()
-
-        // Initial load
-        model.loadTransactions(accountId)
-    }
-
-    private fun setupToolbar() {
-        setSupportActionBar(binds.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = when (currentType) {
-            TransactionType.INCOME -> "Income"
-            TransactionType.EXPENSE -> "Expenses"
-            else -> "Transactions"
-        }
+        setupButtons()
     }
 
     private fun setupRecyclerView() {
-        adapter = TransactionAdapter()
-        binds.transactionsRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@TransactionsView)
-            adapter = this@TransactionsView.adapter
-            layoutAnimation = AnimationUtils.loadLayoutAnimation(
-                context, R.anim.layout_animation_fall_down
-            )
+        transactionAdapter = TransactionAdapter { transaction ->
+            // Handle transaction click if needed
+        }
+        binding.transactionsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = transactionAdapter
         }
     }
 
-/*
-    private fun setupFilterChips() {
-        binds.filterChipGroup.setOnCheckedChangeListener { group, checkedId ->
-            currentType = when (group.findViewById<Chip>(checkedId)?.id) {
-                R.id.allChip -> {
-                    model.loadTransactions(accountId)
-                    null
-                }
-                R.id.incomeChip -> {
-                    model.filterTransactionsByType(TransactionType.INCOME)
-                    TransactionType.INCOME
-                }
-                R.id.expenseChip -> {
-                    model.filterTransactionsByType(TransactionType.EXPENSE)
-                    TransactionType.EXPENSE
-                }
-                else -> null
+    private fun setupButtons() {
+        binding.btnAddTransaction.setOnClickListener {
+            onAddTransactionClickListener?.invoke()
+        }
+
+        binding.btnFilter.setOnClickListener {
+            showFilterDialog()
+        }
+
+        binding.btnSort.setOnClickListener {
+            showSortDialog()
+        }
+    }
+
+    private fun showFilterDialog() {
+        val options = arrayOf("All", "Income", "Expense")
+        android.app.AlertDialog.Builder(context)
+            .setTitle("Filter Transactions")
+            .setItems(options) { _, which ->
+                val selectedFilter = options[which]
+                viewModel.filterTransactions(selectedFilter)
             }
-            setupToolbar() // Update title
-        }
-    }
-*/
-
-    private fun setupSwipeRefresh() {
-        binds.swipeRefreshLayout.apply {
-            setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
-            setOnRefreshListener { model.loadTransactions(accountId) }
-        }
+            .show()
     }
 
-    private fun setupAddTransactionButton() {
-        binds.addTransactionButton.setOnClickListener {
-            if (accountId == null) {
-                Toast.makeText(this, "Account ID missing", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val intent = Intent(this, AddTransactionActivity::class.java).apply {
-                putExtra("account_id", accountId)
-            }
-            addTransactionLauncher.launch(intent)
-        }
-    }
-
-    private fun observeViewModel() {
-        model.transactions.observe(this) { list ->
-            adapter.submitList(list)
-            binds.transactionsRecyclerView.scheduleLayoutAnimation()
-        }
-        model.totalIncome.observe(this) { income ->
-            binds.moneyInTextView.text = formatCurrency(income)
-        }
-        model.totalExpenses.observe(this) { expense ->
-            binds.moneyOutTextView.text = formatCurrency(expense)
-        }
-        model.isLoading.observe(this) { loading ->
-            binds.swipeRefreshLayout.isRefreshing = loading
-            binds.loadingProgressBar.visibility =
-                if (loading) View.VISIBLE else View.GONE
-        }
-        model.error.observe(this) { msg ->
-            msg?.let {
-                Snackbar.make(binds.root, it, Snackbar.LENGTH_LONG)
-                    .setAction("Retry") { model.loadTransactions(accountId) }
-                    .show()
-            }
-        }
-    }
-
-    private fun formatCurrency(amount: Double): String =
-        NumberFormat.getCurrencyInstance(Locale.getDefault()).format(amount)
-
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
-    }
-
-    private fun setupFilterButton() {
-        val filterIcon = findViewById<ImageView>(R.id.filterIcon)
-        filterIcon.setOnClickListener {
-            val dialogView = layoutInflater.inflate(R.layout.dialog_transaction_filter, null)
-
-            val filterGroup = dialogView.findViewById<RadioGroup>(R.id.filterRadioGroup)
-            val sortGroup = dialogView.findViewById<RadioGroup>(R.id.sortRadioGroup)
-
-            val dialog = AlertDialog.Builder(this)
-                .setTitle("Filter & Sort")
-                .setView(dialogView)
-                .setPositiveButton("Apply") { _, _ ->
-                    val filter = when (filterGroup.checkedRadioButtonId) {
-                        R.id.filterIncome -> FilterOption.INCOME
-                        R.id.filterExpense -> FilterOption.EXPENSE
-                        else -> FilterOption.ALL
-                    }
-                    val sort = when (sortGroup.checkedRadioButtonId) {
-                        R.id.sortOldest -> SortOption.OLDEST
-                        R.id.sortHighest -> SortOption.HIGHEST
-                        R.id.sortLowest -> SortOption.LOWEST
-                        else -> SortOption.NEWEST
-                    }
-                    model.applyFilterAndSort(filter, sort)
+    private fun showSortDialog() {
+        val options = arrayOf("Date (Newest)", "Date (Oldest)", "Amount (High to Low)", "Amount (Low to High)")
+        android.app.AlertDialog.Builder(context)
+            .setTitle("Sort Transactions")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> viewModel.sortTransactions(SortOption.DATE_DESC)
+                    1 -> viewModel.sortTransactions(SortOption.DATE_ASC)
+                    2 -> viewModel.sortTransactions(SortOption.AMOUNT_DESC)
+                    3 -> viewModel.sortTransactions(SortOption.AMOUNT_ASC)
                 }
-                .setNeutralButton("Reset") { _, _ ->
-                    model.applyFilterAndSort(FilterOption.ALL, SortOption.NEWEST)
-                }
-                .setNegativeButton("Cancel", null)
+            }
+            .show()
+    }
 
-                .create()
-
-            dialog.show()
+    fun setViewModel(viewModel: TransactionViewModel, context: Context, accountId: String) {
+        this.viewModel = viewModel
+        viewModel.transactions.observe(context as androidx.lifecycle.LifecycleOwner) { transactions ->
+            transactionAdapter.submitList(transactions)
+            updateTotals(transactions)
         }
+        viewModel.loadTransactions(accountId)
+    }
+
+    fun setOnAddTransactionClickListener(listener: () -> Unit) {
+        onAddTransactionClickListener = listener
+    }
+
+    private fun updateTotals(transactions: List<Transaction>) {
+        val moneyIn = transactions.filter { it.amount > 0 }.sumOf { it.amount }
+        val moneyOut = transactions.filter { it.amount < 0 }.sumOf { it.amount }
+
+        val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+        binding.moneyInTextView.text = formatter.format(moneyIn)
+        binding.moneyOutTextView.text = formatter.format(moneyOut)
+    }
+
+    companion object {
+        private const val TAG = "TransactionsView"
     }
 }

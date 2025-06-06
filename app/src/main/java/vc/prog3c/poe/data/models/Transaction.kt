@@ -17,7 +17,8 @@ data class Transaction(
     var amount: Double = 0.0,
     var category: String = "",
     val date: Timestamp = Timestamp.now(),
-    var description: String? = null
+    var description: String? = null,
+    var photoUrls: List<String> = emptyList()
 )
 
 

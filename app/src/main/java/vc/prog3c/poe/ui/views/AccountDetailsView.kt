@@ -219,10 +219,10 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
     override fun onClick(view: View?) {
         when (view?.id) {
             binds.viewTransactionsButton.id -> {
-                Intent(this, TransactionsView::class.java).apply {
+                val intent = Intent(this, TransactionsActivity::class.java).apply {
                     putExtra("account_id", model.account.value?.id)
-                    startActivity(this)
                 }
+                startActivity(intent)
             }
 
             binds.deleteAccountButton.id -> {

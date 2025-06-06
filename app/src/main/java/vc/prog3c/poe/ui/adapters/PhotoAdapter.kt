@@ -2,48 +2,57 @@ package vc.prog3c.poe.ui.adapters
 
 import android.net.Uri
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import vc.prog3c.poe.R
+import com.bumptech.glide.Glide
+import vc.prog3c.poe.databinding.ItemPhotoBinding
 
-class PhotoAdapter : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
-    private val photos = mutableListOf<Uri>()
-
-    fun addPhoto(uri: Uri) {
-        photos.add(uri)
-        notifyItemInserted(photos.size - 1)
-    }
-
-    fun removePhoto(position: Int) {
-        photos.removeAt(position)
-        notifyItemRemoved(position)
-    }
-
-    fun getPhotos(): List<Uri> = photos.toList()
+class PhotoAdapter(
+    private val onPhotoClick: (Uri) -> Unit,
+    private val onRemoveClick: (Uri) -> Unit
+) : ListAdapter<Uri, PhotoAdapter.PhotoViewHolder>(PhotoDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_photo, parent, false)
-        return PhotoViewHolder(view)
+        val binding = ItemPhotoBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return PhotoViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
-        holder.bind(photos[position])
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = photos.size
+    fun updatePhotos(photos: List<Uri>) {
+        submitList(photos)
+    }
 
-    class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val photoImageView: ImageView = itemView.findViewById(R.id.photoImageView)
-        private val removeButton: ImageView = itemView.findViewById(R.id.removeButton)
+    inner class PhotoViewHolder(
+        private val binding: ItemPhotoBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(uri: Uri) {
-            photoImageView.setImageURI(uri)
-            removeButton.setOnClickListener {
-                // TODO: Implement remove functionality
-            }
+            Glide.with(binding.root)
+                .load(uri)
+                .centerCrop()
+                .into(binding.photoImageView)
+
+            binding.root.setOnClickListener { onPhotoClick(uri) }
+            binding.removeButton.setOnClickListener { onRemoveClick(uri) }
+        }
+    }
+
+    private class PhotoDiffCallback : DiffUtil.ItemCallback<Uri>() {
+        override fun areItemsTheSame(oldItem: Uri, newItem: Uri): Boolean {
+            return oldItem == newItem
+        }
+
+        override fun areContentsTheSame(oldItem: Uri, newItem: Uri): Boolean {
+            return oldItem == newItem
         }
     }
 } 

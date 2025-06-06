@@ -26,6 +26,12 @@ class PhotoAdapter(private val onPhotoClick: (Uri) -> Unit) : RecyclerView.Adapt
 
     fun getPhotos(): List<Uri> = photos.toList()
 
+    fun updatePhotos(newPhotos: List<Uri>) {
+        photos.clear()
+        photos.addAll(newPhotos)
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_photo, parent, false)

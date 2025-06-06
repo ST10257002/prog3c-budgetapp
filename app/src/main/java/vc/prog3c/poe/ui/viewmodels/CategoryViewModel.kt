@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.Category
+import vc.prog3c.poe.data.models.CategoryType
 //import vc.prog3c.poe.data.models.PresetCategories
 
 class CategoryViewModel(
@@ -17,28 +18,78 @@ class CategoryViewModel(
 ) : ViewModel() {
     companion object {
         private const val TAG = "CategoryViewModel"
+        
+        private val PRESET_CATEGORIES = listOf(
+            // Income categories
+            Category(
+                id = "income_salary",
+                name = "Salary",
+                type = CategoryType.SAVINGS,
+                isEditable = false
+            ),
+            Category(
+                id = "income_bonus",
+                name = "Bonus",
+                type = CategoryType.SAVINGS,
+                isEditable = false
+            ),
+            Category(
+                id = "income_investment",
+                name = "Investment",
+                type = CategoryType.SAVINGS,
+                isEditable = false
+            ),
+            Category(
+                id = "income_other",
+                name = "Other Income",
+                type = CategoryType.SAVINGS,
+                isEditable = false
+            ),
+            
+            // Expense categories
+            Category(
+                id = "expense_utilities",
+                name = "Utilities",
+                type = CategoryType.UTILITIES,
+                isEditable = false
+            ),
+            Category(
+                id = "expense_rent",
+                name = "Rent",
+                type = CategoryType.UTILITIES,
+                isEditable = false
+            ),
+            Category(
+                id = "expense_groceries",
+                name = "Groceries",
+                type = CategoryType.UTILITIES,
+                isEditable = false
+            ),
+            Category(
+                id = "expense_transport",
+                name = "Transport",
+                type = CategoryType.UTILITIES,
+                isEditable = false
+            ),
+            Category(
+                id = "expense_other",
+                name = "Other Expense",
+                type = CategoryType.UTILITIES,
+                isEditable = false
+            )
+        )
     }
     
-    
-    // --- Fields
-    
-
     private val _categories = MutableLiveData<List<Category>>()
     val categories: LiveData<List<Category>> = _categories
-
     
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
-
     
     init {
         loadCategories()
     }
     
-    
-    // --- Internals
-    
-
     private fun loadCategories() = viewModelScope.launch {
         try {
             val userId = authService.getCurrentUser()?.uid ?: return@launch
@@ -46,8 +97,8 @@ class CategoryViewModel(
                 dataService.collection("users").document(userId).collection("categories").get().await()
                     .toObjects(Category::class.java)
 
-            // Seeded 'preset' as user categories
-            val allCategories = userCategories
+            // Combine preset categories with user categories
+            val allCategories = PRESET_CATEGORIES + userCategories
             _categories.value = allCategories
         } catch (e: Exception) {
             _error.value = "Failed to load categories: ${e.message}"

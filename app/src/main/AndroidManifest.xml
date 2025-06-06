@@ -93,8 +93,10 @@
                 android:theme="@style/Theme.BudgetApp.NoActionBar" />
 
         <activity
-                android:name=".ui.views.TransactionsView"
-                android:exported="false" />
+                android:name=".ui.views.TransactionsActivity"
+                android:exported="false"
+                android:label="Transactions"
+                android:parentActivityName=".ui.views.AccountDetailsActivity" />
 
         <activity
                 android:name=".ui.views.ProfileActivity"
@@ -118,6 +120,10 @@
                 android:theme="@style/Theme.BudgetApp.NoActionBar" />
 
         <activity
+                android:name=".ui.views.TransactionDetailsActivity"
+                android:exported="false" />
+
+        <activity
                 android:name=".ui.views.ManageGoalsActivity"
                 android:exported="false"
                 android:theme="@style/Theme.BudgetApp.NoActionBar" />
@@ -132,6 +138,11 @@
                 android:label="Manage Categories"
                 android:parentActivityName=".ui.views.DashboardView" />
 
+        <activity
+                android:name=".ui.views.PhotoViewerActivity"
+                android:exported="false"
+                android:theme="@style/Theme.BudgetApp.NoActionBar" />
+
         <!-- Firebase Messaging Service -->
         <service
                 android:name=".services.FirebaseMessagingService"
@@ -140,6 +151,16 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <provider
+                android:name="androidx.core.content.FileProvider"
+                android:authorities="${applicationId}.fileprovider"
+                android:exported="false"
+                android:grantUriPermissions="true">
+            <meta-data
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 

@@ -69,7 +69,6 @@ class SignUpActivity : AppCompatActivity(), View.OnClickListener {
             name = binds.etNameFirst.text.toString().trim(),
             surname = binds.etNameFinal.text.toString().trim(),
             usermail = binds.etUserMail.text.toString().trim(),
-            username = binds.etUsername.text.toString().trim(),
             defaultPassword = binds.etDefaultPassword.text.toString().trim(),
             confirmPassword = binds.etConfirmPassword.text.toString().trim()
         )

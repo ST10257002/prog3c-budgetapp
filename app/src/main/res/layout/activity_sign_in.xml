@@ -37,7 +37,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:hint="Username or Email"
+                android:hint="Email Address"
                 app:boxStrokeColor="#58bc82"
                 app:hintTextColor="#58bc82"
                 app:boxStrokeWidth="2dp"

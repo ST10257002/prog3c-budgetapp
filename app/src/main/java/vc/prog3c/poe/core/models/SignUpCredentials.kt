@@ -6,7 +6,6 @@ import vc.prog3c.poe.core.utils.AuthValidator
  * Data transfer object for registering a user.
  */
 data class SignUpCredentials(
-    val username: String,
     val defaultPassword: String,
     val confirmPassword: String,
     val usermail: String,
@@ -15,7 +14,7 @@ data class SignUpCredentials(
 ) {
     fun hasBlankFields(): Boolean {
         return listOf( // Check if any fields are empty or contains only spaces
-            username, defaultPassword, confirmPassword, usermail, name, surname
+            defaultPassword, confirmPassword, usermail, name, surname
         ).any { it.isBlank() }
     }
     

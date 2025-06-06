@@ -21,6 +21,7 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.PercentFormatter
+import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
@@ -187,18 +188,26 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
             return
         }
 
+        val baseColors = listOf(
+            getColor(R.color.colorBlue),     // 1st account
+            getColor(R.color.green),       // 2nd account
+            getColor(R.color.red)          // 3rd account
+        )
+
+        val fallbackColors = ColorTemplate.MATERIAL_COLORS.toList()
+
+        val fullColorList = List(entries.size) { index ->
+            if (index < baseColors.size) baseColors[index]
+            else fallbackColors[index % fallbackColors.size]
+        }
+
         val ds = PieDataSet(entries, "Account Distribution").apply {
             valueTextColor = Color.BLACK
             valueTextSize = 12f
             valueFormatter = PercentFormatter(binds.netWorthPieChart)
-            colors = listOf(
-                resources.getColor(R.color.primary, null),
-                resources.getColor(R.color.green, null),
-                resources.getColor(R.color.red, null),
-                "#FF9800".toColorInt(),
-                "#9C27B0".toColorInt()
-            )
+            colors = fullColorList
         }
+
 
         binds.netWorthPieChart.data = PieData(ds)
         binds.netWorthPieChart.invalidate()

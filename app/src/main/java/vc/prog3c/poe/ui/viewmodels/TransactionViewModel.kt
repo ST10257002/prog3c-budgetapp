@@ -15,6 +15,7 @@ import vc.prog3c.poe.data.models.FilterOption
 import java.text.NumberFormat
 import java.util.*
 import vc.prog3c.poe.data.models.SortOption
+import vc.prog3c.poe.utils.CurrencyFormatter
 
 /**
  * Unified ViewModel for both income and expense transactions.
@@ -321,8 +322,7 @@ class TransactionViewModel : ViewModel() {
 
     companion object {
         fun formatCurrency(amount: Double): String {
-            val format = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
-            return format.format(amount)
+            return CurrencyFormatter.format(amount)
         }
 
         const val ACCOUNT_ID = "account_id"

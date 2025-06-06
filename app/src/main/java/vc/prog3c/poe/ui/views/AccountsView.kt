@@ -35,6 +35,7 @@ import vc.prog3c.poe.ui.viewmodels.AccountsViewModel
 import java.text.NumberFormat
 import java.util.Locale
 import java.util.UUID
+import vc.prog3c.poe.utils.CurrencyFormatter
 
 class AccountsView : AppCompatActivity(), View.OnClickListener {
 
@@ -54,6 +55,7 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
         setupClickListeners()
 
         model = ViewModelProvider(this)[AccountsViewModel::class.java]
+        setupAccountsRecyclerView()
 
         observeViewModel()
 
@@ -89,9 +91,7 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
                 }
 
                 state.netWorth?.let {
-                    binds.netWorthAmount.text = NumberFormat.getCurrencyInstance(
-                        Locale.getDefault()
-                    ).format(it)
+                    binds.netWorthAmount.text = CurrencyFormatter.format(it)
                 }
             }
 
@@ -269,15 +269,16 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
 
 
     private fun setupAccountsRecyclerView() {
-        accountAdapter = AccountAdapter()
+        accountAdapter = AccountAdapter { account ->
+            val intent = Intent(this, AccountDetailsView::class.java).apply {
+                putExtra("account_id", account.id)
+            }
+            startActivity(intent)
+        }
         binds.accountsRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@AccountsView)
             adapter = accountAdapter
-        }
-        accountAdapter.setOnItemClickListener { account ->
-            val intent = Intent(this, AccountDetailsView::class.java)
-            intent.putExtra("account_id", account.id)
-            startActivity(intent)
+            setHasFixedSize(true)
         }
     }
 

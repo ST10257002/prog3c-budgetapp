@@ -15,7 +15,11 @@ class AccountRepository {
 
     // pull in aggregates via getAccountsWithDetails
     fun getAllAccounts(onComplete: (List<Account>) -> Unit) {
-        val userId = uid ?: return onComplete(emptyList())
+        val userId = uid ?: run {
+            Log.e("AccountRepository", "User not authenticated")
+            return onComplete(emptyList())
+        }
+        Log.d("AccountRepository", "Fetching accounts for user: $userId")
         getAccountsWithDetails(userId, onComplete)
     }
 
@@ -92,10 +96,12 @@ class AccountRepository {
             .document(userId)
             .collection("accounts")
 
+        Log.d("AccountRepository", "Querying accounts collection")
         accountsRef.orderBy("name")
             .get()
             .addOnSuccessListener { snap ->
                 val accounts = snap.documents.mapNotNull { it.toObject(Account::class.java) }
+                Log.d("AccountRepository", "Found ${accounts.size} accounts")
 
                 // For each account, fetch its transactions sub-collection
                 val detailTasks = accounts.map { account ->
@@ -111,19 +117,23 @@ class AccountRepository {
                                 // make sure your field name matches; default to 0.0
                                 doc.getDouble("amount") ?: 0.0
                             }
+                            Log.d("AccountRepository", "Account ${account.name}: ${account.transactionsCount} transactions, balance ${account.balance}")
                         }
                 }
 
                 // When *all* per-account tasks complete…
                 Tasks.whenAll(detailTasks)
-                    .addOnSuccessListener { onComplete(accounts) }
+                    .addOnSuccessListener { 
+                        Log.d("AccountRepository", "Successfully loaded all account details")
+                        onComplete(accounts) 
+                    }
                     .addOnFailureListener {
-                        Log.e("AcctRepo", "failed to load details", it)
+                        Log.e("AccountRepository", "Failed to load account details", it)
                         onComplete(accounts)
                     }
             }
             .addOnFailureListener {
-                Log.e("AcctRepo", "failed to load accounts", it)
+                Log.e("AccountRepository", "Failed to load accounts", it)
                 onComplete(emptyList())
             }
     }

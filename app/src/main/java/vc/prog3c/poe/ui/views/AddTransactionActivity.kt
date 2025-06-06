@@ -363,9 +363,15 @@ class AddTransactionActivity : AppCompatActivity() {
     }
 
     private fun launchCamera() {
-        val photoFile = createImageFile()
-        photoFile?.let {
-            photoURI = FileProvider.getUriForFile(
+        val photoFile = try {
+            createImageFile()
+        } catch (ex: IOException) {
+            Log.e(TAG, "Error creating image file", ex)
+            null
+        }
+
+        photoFile?.also {
+            val photoURI: Uri = FileProvider.getUriForFile(
                 this,
                 "${packageName}.fileprovider",
                 it
@@ -378,20 +384,15 @@ class AddTransactionActivity : AppCompatActivity() {
         galleryLauncher.launch("image/*")
     }
 
-    private fun createImageFile(): File? {
+    private fun createImageFile(): File {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return try {
-            File.createTempFile(
-                "JPEG_${timeStamp}_",
-                ".jpg",
-                storageDir
-            ).apply {
-                currentPhotoPath = absolutePath
-            }
-        } catch (ex: IOException) {
-            Log.e(TAG, "Error creating image file", ex)
-            null
+        return File.createTempFile(
+            "JPEG_${timeStamp}_",
+            ".jpg",
+            storageDir
+        ).apply {
+            currentPhotoPath = absolutePath
         }
     }
 

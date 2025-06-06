@@ -17,17 +17,6 @@
             android:layout_height="?attr/actionBarSize"
             android:theme="@style/ThemeOverlay.AppCompat.Light">
 
-            <androidx.appcompat.widget.SearchView
-                android:id="@+id/searchView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:background="@android:color/white"
-                android:iconifiedByDefault="false"
-                android:queryHint="Search transactions..."
-                app:iconTint="@color/text_primary"
-                app:queryBackground="@android:color/transparent" />
-
             <ImageView
                 android:id="@+id/profileImage"
                 android:layout_width="40dp"

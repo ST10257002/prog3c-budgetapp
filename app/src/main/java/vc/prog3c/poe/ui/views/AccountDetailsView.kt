@@ -27,6 +27,7 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import vc.prog3c.poe.utils.CurrencyFormatter
 
 class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
 
@@ -107,8 +108,7 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
                 binds.accountTypeTextView.text = it.type
 
                 model.calculatedBalance.observe(this) { balance ->
-                    val za = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
-                    binds.accountBalanceAmount.text = za.format(balance)
+                    binds.accountBalanceAmount.text = CurrencyFormatter.format(balance)
                 }
 
                 val icon = when (it.type.lowercase(Locale.getDefault())) {

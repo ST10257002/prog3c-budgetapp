@@ -4,8 +4,12 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowInsets
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
@@ -50,10 +54,29 @@ class GraphView : AppCompatActivity() {
         binding = ActivityGraphBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        enableEdgeToEdge()
+        setupSystemInsets()
         setupCharts()
         setupTimePeriodChips()
         setupBottomNavigation()
         loadGraphData()
+    }
+
+    private fun enableEdgeToEdge() {
+        // Implementation of enableEdgeToEdge method
+    }
+
+    private fun setupSystemInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                insets.left,
+                insets.top,
+                insets.right,
+                insets.bottom
+            )
+            windowInsets
+        }
     }
 
     private fun setupCharts() {

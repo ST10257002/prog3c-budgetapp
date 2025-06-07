@@ -376,7 +376,7 @@ class AddTransactionActivity : AppCompatActivity() {
                 "${packageName}.fileprovider",
                 it
             )
-            cameraLauncher.launch(photoURI)
+            //cameraLauncher.launch(photoURI)
         }
     }
 
@@ -533,7 +533,7 @@ class AddTransactionActivity : AppCompatActivity() {
                 model.addTransaction(accountId ?: "", transactionWithPhotos)
             }
             .addOnFailureListener { e ->
-                showErrorMessage("Error uploading photos: ${e.message}")
+                showErrorMessage("Failure uploading photos: ${e.message}")
             }
     }
 
@@ -617,11 +617,11 @@ class AddTransactionActivity : AppCompatActivity() {
                             finish()
                         }
                         .addOnFailureListener { e ->
-                            Toast.makeText(this, "Error saving transaction: ${e.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "Failure saving transaction: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this, "Error uploading photos: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failure uploading photos: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         } else {
             // Save transaction without photos
@@ -631,7 +631,7 @@ class AddTransactionActivity : AppCompatActivity() {
                     finish()
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this, "Error saving transaction: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failure saving transaction: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
         }
     }

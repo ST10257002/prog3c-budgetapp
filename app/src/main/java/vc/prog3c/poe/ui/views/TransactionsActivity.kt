@@ -6,6 +6,7 @@ import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.databinding.ActivityTransactionsBinding
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
 
@@ -55,8 +56,8 @@ class TransactionsActivity : AppCompatActivity() {
     private fun setupTransactionsView() {
         binding.transactionsView.apply {
             setViewModel(viewModel, this@TransactionsActivity, accountId ?: "")
-            setOnAddTransactionClickListener {
-                val intent = Intent(this@TransactionsActivity, AddTransactionActivity::class.java).apply {
+            setOnAddTransactionClickListener {                
+                val intent = Intent(this@TransactionsActivity, TransactionUpsertActivity::class.java).apply {
                     putExtra("account_id", accountId)
                 }
                 addTransactionLauncher.launch(intent)

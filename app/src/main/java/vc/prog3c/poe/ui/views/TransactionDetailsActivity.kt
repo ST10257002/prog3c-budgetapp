@@ -105,7 +105,7 @@ class TransactionDetailsActivity : AppCompatActivity() {
                     .error(R.drawable.ic_photo_placeholder)
 
                 Glide.with(this@TransactionDetailsActivity)
-                    .load(transaction.photoUrls.first())
+                    .load(android.net.Uri.parse(transaction.photoUrls.first()))
                     .apply(requestOptions)
                     .into(photoImageView)
             } else {

@@ -119,7 +119,7 @@
                         <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/et_date"
                                 android:hint="Date"
-                                android:inputType="date"
+                                android:inputType="none"
                                 android:layout_height="wrap_content"
                                 android:layout_width="match_parent"
                                 tools:ignore="HardcodedText" />

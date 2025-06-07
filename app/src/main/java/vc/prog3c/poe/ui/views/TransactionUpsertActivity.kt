@@ -11,6 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.permissionx.guolindev.request.ExplainScope
 import com.permissionx.guolindev.request.ForwardScope
 import vc.prog3c.poe.R
@@ -23,6 +24,8 @@ import vc.prog3c.poe.core.services.DeviceGalleryService
 import vc.prog3c.poe.databinding.ActivityTransactionUpsertBinding
 import vc.prog3c.poe.ui.viewmodels.TransactionUpsertViewModel
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, ConsentUiHost {
     companion object {
@@ -83,7 +86,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
 
 
     private fun observeViewModel() {
-        // TODO
+        // TODO: If needed fuck idk
     }
 
 
@@ -91,7 +94,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
 
 
     private fun submitTransaction() {
-        // TODO
+        // TODO: Validate inputs and pass to ViewModel to be saved
     }
 
 
@@ -100,6 +103,8 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         Glide.with(binds.ivImage.context).apply {
             load(uri).into(binds.ivImage)
         }
+        
+        // TODO: Here you can retrieve the image uri or whatever to pass to DB
     }
 
 
@@ -138,6 +143,32 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
             )
         )
     }
+    
+    
+    // --- Dialog
+    
+    
+    private fun showDateSelectorDialog() {
+        val dialog = MaterialDatePicker.Builder.datePicker().apply {
+            setTitle("When did the transaction happen?")
+            // setSelection() TODO: Use and set to current actual stored value
+        }.build()
+        
+        dialog.apply { 
+            addOnPositiveButtonClickListener { date ->
+                // TODO: Store selected date to give to DB entity
+                
+                /*binds.etDate.setText(
+                    SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(date) 
+                    // TODO: Use and pass actual value instead of format(<date>)
+                )*/
+            }
+        }
+        
+        dialog.show(
+            supportFragmentManager, "date_picker"
+        )
+    }
 
 
     // --- Event Handlers (Capture)
@@ -148,7 +179,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
             when (result) {
                 is ImageResult.Success -> loadImageInView(result.fileUri.toString())
                 else -> {
-                    // TODO: There are two events that can optionally be accounted for (see: core/models/ImageResult)
+                    // TODO: There are two events that can OPTIONALLY be accounted for (see: core/models/ImageResult)
                 }
             }
         }
@@ -160,7 +191,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
             when (result) {
                 is ImageResult.Success -> loadImageInView(result.fileUri.toString())
                 else -> {
-                    // TODO: There are two events that can optionally be accounted for (see: core/models/ImageResult)
+                    // TODO: There are two events that can OPTIONALLY be accounted for (see: core/models/ImageResult)
                 }
             }
         }
@@ -218,6 +249,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         when (view?.id) {
             binds.btImageCapture.id -> captureService.launchCamera()
             binds.btImageGallery.id -> galleryService.launchPicker()
+            binds.etDate.id -> showDateSelectorDialog()
             binds.btSave.id -> submitTransaction()
         }
     }
@@ -227,6 +259,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         binds.btImageCapture.setOnClickListener(this)
         binds.btImageGallery.setOnClickListener(this)
         binds.btSave.setOnClickListener(this)
+        binds.etDate.setOnClickListener(this)
     }
 
 

@@ -258,7 +258,14 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        setupStatusBar()
         setupToolbar()
         setupSwipeRefresh()
+    }
+
+    private fun setupStatusBar() {
+        window.statusBarColor = getColor(R.color.primary)
+        window.decorView.systemUiVisibility = window.decorView.systemUiVisibility and 
+            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
     }
 }

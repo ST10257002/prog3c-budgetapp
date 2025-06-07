@@ -56,6 +56,7 @@ class GraphView : AppCompatActivity() {
         
         enableEdgeToEdge()
         setupSystemInsets()
+        setupStatusBar()
         setupCharts()
         setupTimePeriodChips()
         setupBottomNavigation()
@@ -77,6 +78,12 @@ class GraphView : AppCompatActivity() {
             )
             windowInsets
         }
+    }
+
+    private fun setupStatusBar() {
+        window.statusBarColor = getColor(R.color.primary)
+        window.decorView.systemUiVisibility = window.decorView.systemUiVisibility and 
+            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
     }
 
     private fun setupCharts() {

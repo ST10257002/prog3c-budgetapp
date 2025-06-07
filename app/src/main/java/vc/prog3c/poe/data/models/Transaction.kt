@@ -20,7 +20,7 @@ data class Transaction(
     val category: String = "",
     val accountId: String = "",
     val userId: String = "",
-    val photoUrls: List<String> = emptyList()
+    val imageUri: String = ""
 ) : Parcelable {
     // Empty constructor for Firestore
     constructor() : this(
@@ -32,7 +32,7 @@ data class Transaction(
         category = "",
         accountId = "",
         userId = "",
-        photoUrls = emptyList()
+        imageUri = ""
     )
 }
 

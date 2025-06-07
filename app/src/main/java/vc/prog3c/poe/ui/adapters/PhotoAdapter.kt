@@ -39,7 +39,7 @@ class PhotoAdapter(
             Glide.with(binding.root)
                 .load(uri)
                 .centerCrop()
-                .into(binding.photoImageView)
+                .into(binding.ivImage)
 
             binding.root.setOnClickListener { onPhotoClick(uri) }
             binding.removeButton.setOnClickListener { onRemoveClick?.invoke(uri) }

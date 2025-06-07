@@ -26,7 +26,7 @@ class TransactionUpsertViewModel(
 
     val accountName = MutableLiveData<String>()
     val categories = MutableLiveData<List<Category>>()
-    val state = MutableLiveData<TransactionUpsertUiState>()
+    val uiState = MutableLiveData<TransactionUpsertUiState>()
 
     private var selectedPhotoUri: String? = null
 
@@ -53,13 +53,13 @@ class TransactionUpsertViewModel(
     ) {
         val userId = authService.getCurrentUser()?.uid
         if (userId == null) {
-            state.value = TransactionUpsertUiState.Failure("User not authenticated")
+            uiState.value = TransactionUpsertUiState.Failure("User not authenticated")
             return
         }
 
         val amount = amountStr.toDoubleOrNull()
         if (amount == null || amount <= 0) {
-            state.value = TransactionUpsertUiState.Failure("Invalid amount")
+            uiState.value = TransactionUpsertUiState.Failure("Invalid amount")
             return
         }
 
@@ -87,11 +87,12 @@ class TransactionUpsertViewModel(
             date = parsedDate,
             accountId = accountId,
             userId = userId,
-            photoUrls = selectedPhotoUri?.let { listOf(it) } ?: emptyList())
+            imageUri = selectedPhotoUri ?: ""
+        )
 
-        state.value = Loading
+        uiState.value = Loading
         firestoreService.transaction.addTransaction(transaction) { success ->
-            state.value = if (success) {
+            uiState.value = if (success) {
                 Success("Transaction saved!")
             } else {
                 Failure("Failed to save transaction")

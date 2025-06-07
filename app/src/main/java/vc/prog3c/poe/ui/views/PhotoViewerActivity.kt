@@ -23,7 +23,7 @@ class PhotoViewerActivity : AppCompatActivity() {
         photoUri?.let { uri ->
             Glide.with(this)
                 .load(uri)
-                .into(binding.photoImageView)
+                .into(binding.ivImage)
         }
     }
 

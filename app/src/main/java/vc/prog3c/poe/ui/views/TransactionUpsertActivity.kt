@@ -82,7 +82,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
     // --- ViewModel
 
 
-    private fun observeViewModelState() = model.state.observe(this) { state ->
+    private fun observeViewModelState() = model.uiState.observe(this) { state ->
         when (state) {
             is TransactionUpsertUiState.Success -> {
                 Toast.makeText(

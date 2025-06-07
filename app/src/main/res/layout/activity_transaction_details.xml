@@ -44,14 +44,14 @@
                     android:padding="16dp">
 
                     <TextView
-                        android:id="@+id/amountTextView"
+                        android:id="@+id/tv_cost"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="24sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/typeTextView"
+                        android:id="@+id/tv_type"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
@@ -146,7 +146,7 @@
                         android:textStyle="bold" />
 
                     <ImageView
-                        android:id="@+id/photoImageView"
+                        android:id="@+id/iv_image"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:layout_marginTop="8dp"

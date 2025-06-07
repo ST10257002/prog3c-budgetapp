@@ -28,7 +28,7 @@ class TransactionAdapter(
 
     inner class TransactionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val descriptionTextView: TextView = itemView.findViewById(R.id.descriptionTextView)
-        private val amountTextView: TextView = itemView.findViewById(R.id.amountTextView)
+        private val amountTextView: TextView = itemView.findViewById(R.id.tv_cost)
         private val dateTextView: TextView = itemView.findViewById(R.id.dateTextView)
         private val categoryTextView: TextView = itemView.findViewById(R.id.categoryTextView)
 

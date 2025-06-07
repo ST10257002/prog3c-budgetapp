@@ -23,6 +23,7 @@ import vc.prog3c.poe.databinding.ActivityTransactionsBinding
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.ui.adapters.TransactionAdapter
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
+import vc.prog3c.poe.ui.viewmodels.TransactionState
 import java.text.NumberFormat
 import java.util.Locale
 import android.widget.EditText
@@ -55,6 +56,7 @@ class TransactionsView @JvmOverloads constructor(
     init {
         setupRecyclerView()
         setupButtons()
+        setupSwipeRefresh()
     }
 
     private fun setupRecyclerView() {
@@ -82,6 +84,15 @@ class TransactionsView @JvmOverloads constructor(
 
         binding.btnSort.setOnClickListener {
             showSortDialog()
+        }
+    }
+
+    private fun setupSwipeRefresh() {
+        binding.swipeRefreshLayout.apply {
+            setColorSchemeResources(R.color.primary, R.color.green, R.color.red)
+            setOnRefreshListener {
+                currentAccountId?.let { viewModel.loadTransactions(it) }
+            }
         }
     }
 
@@ -117,6 +128,24 @@ class TransactionsView @JvmOverloads constructor(
         viewModel.transactions.observe(context as androidx.lifecycle.LifecycleOwner) { transactions ->
             transactionAdapter.submitList(transactions)
             updateTotals(transactions)
+            binding.swipeRefreshLayout.isRefreshing = false
+        }
+        viewModel.transactionState.observe(context) { state ->
+            when (state) {
+                is TransactionState.Loading -> {
+                    binding.swipeRefreshLayout.isRefreshing = true
+                }
+                is TransactionState.Success -> {
+                    binding.swipeRefreshLayout.isRefreshing = false
+                }
+                is TransactionState.Error -> {
+                    binding.swipeRefreshLayout.isRefreshing = false
+                    Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                }
+                else -> {
+                    binding.swipeRefreshLayout.isRefreshing = false
+                }
+            }
         }
         viewModel.loadTransactions(accountId)
     }

@@ -16,8 +16,7 @@ class AuthService(
             else -> return result.user!!
         }
     }
-
-
+    
     suspend fun signInAsync(
         usermail: String, password: String
     ): FirebaseUser {
@@ -27,11 +26,19 @@ class AuthService(
             else -> return result.user!!
         }
     }
-
-
+    
     // --- Extensions
-
-
+    
+    suspend fun sendPasswordResetEmailAsync(email: String) {
+        try {
+            auth.sendPasswordResetEmail(email).await()
+        } catch (e: Exception) {
+            throw IllegalStateException(
+                "Failed to send password reset email", e
+            )
+        }
+    }
+    
     suspend fun deleteCurrentUserAsync() {
         val user = auth.currentUser
         when (user) {
@@ -39,14 +46,11 @@ class AuthService(
             else -> user.delete().await()
         }
     }
-
-
+    
     fun isUserSignedIn(): Boolean = (auth.currentUser != null)
-
-
+    
     fun getCurrentUser(): FirebaseUser? = auth.currentUser
-
-
+    
     fun logout() {
         auth.signOut()
     }

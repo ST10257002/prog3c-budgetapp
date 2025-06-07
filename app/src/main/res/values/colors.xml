@@ -1,5 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary Colors -->
+    <color name="primary">#58bc82</color>
+    <color name="primary_dark">#4CAF50</color>
+    <color name="primary_light">#E8F5E9</color>
+    <color name="accent">#58bc82</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#000000</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#000000</color>
+
+    <!-- Background Colors -->
+    <color name="background">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="divider">#EEEEEE</color>
+    <color name="progress_background">#E0E0E0</color>
+
+    <!-- Status Colors -->
+    <color name="green">#58bc82</color>
+    <color name="red">#F44336</color>
+    <color name="yellow">#FFC107</color>
+
+    <!-- Card Colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_stroke">#58bc82</color>
+
+    <!-- Password Strength Colors -->
+    <color name="password_strength_unknown">#757575</color>
+    <color name="password_strength_weak">#F44336</color>
+    <color name="password_strength_medium">#FFC107</color>
+    <color name="password_strength_strong">#58bc82</color>
+
+    <!-- Bottom Navigation Colors -->
+    <color name="bottom_nav_icon_color">@color/primary</color>
+    <color name="bottom_nav_text_color">@color/primary</color>
+
+    <!-- Standard Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- New status colors -->
+    <color name="colorPrimary">#FF6200EE</color>
+    <color name="colorPrimaryDark">#FF3700B3</color>
+    <color name="colorAccent">#FF03DAC5</color>
+    <color name="colorGreen">#4CAF50</color>
+    <color name="colorBlue">#2196F3</color>
+    <color name="colorRed">#F44336</color>
+    <color name="colorPurple">#9C27B0</color>
+    <color name="colorOrange">#FF9800</color>
+    <color name="status_success">#4CAF50</color>
+    <color name="status_error">#F44336</color>
+
+    <!-- Income and Expense Colors -->
+    <color name="income_green">#4CAF50</color>
+    <color name="expense_red">#F44336</color>
 </resources>

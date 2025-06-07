@@ -18,18 +18,14 @@ class SignInViewModel(
     companion object {
         private const val TAG = "SignInViewModel"
     }
-
-
+    
     // --- Fields
-
-
+    
     private val _uiState = MutableLiveData<SignInUiState>()
     val uiState: LiveData<SignInUiState> = _uiState
-
-
+    
     // --- Activity Functions
-
-
+    
     /**
      * Uses the [AuthService] to authenticate the returning user.
      */
@@ -44,7 +40,7 @@ class SignInViewModel(
         _uiState.value = SignInUiState.Loading
 
         runCatching {
-            withTimeout(10000) {
+            withTimeout(5000) {
                 authService.signInAsync(credentials.identity, credentials.password)
             }
         }.apply {
@@ -59,10 +55,8 @@ class SignInViewModel(
             }
         }
     }
-
-
-    fun canAutoLoginUser(): Boolean = authService.isUserSignedIn()
     
+    fun canAutoLoginUser(): Boolean = authService.isUserSignedIn()
     
     fun tryAutoLoginUser() {
         when (canAutoLoginUser()) {

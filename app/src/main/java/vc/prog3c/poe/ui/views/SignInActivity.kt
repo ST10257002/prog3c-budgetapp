@@ -124,6 +124,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
                     ).show()
                 }
             }
+            binds.tvForgotPassword.id -> startActivity(Intent(this, ForgotPasswordActivity::class.java))
         }
     }
 
@@ -132,6 +133,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
         binds.btSignIn.setOnClickListener(this)
         binds.tvSignUp.setOnClickListener(this)
         binds.btIconFingerprint.setOnClickListener(this)
+        binds.tvForgotPassword.setOnClickListener(this)
     }
 
 

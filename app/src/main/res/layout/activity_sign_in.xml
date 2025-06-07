@@ -81,6 +81,16 @@
                     android:padding="16dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <TextView
+            android:id="@+id/tv_forgot_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp"
+            android:text="Forgot Password?"
+            android:textColor="#58bc82"
+            android:textSize="14sp" />
+
         <ProgressBar
                 android:id="@+id/loadingIndicator"
                 android:layout_width="wrap_content"
@@ -103,15 +113,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="Don't have an account? Register"
-                android:textColor="#58bc82"
-                android:layout_gravity="center" />
-
-        <TextView
-                android:id="@+id/forgotPasswordTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Forgot Password?"
                 android:textColor="#58bc82"
                 android:layout_gravity="center" />
 

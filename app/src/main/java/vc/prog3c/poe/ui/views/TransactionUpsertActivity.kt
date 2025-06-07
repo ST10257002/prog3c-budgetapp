@@ -286,10 +286,17 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
     private fun setupLayoutUi() {
         enableEdgeToEdge()
         setContentView(binds.root)
-        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        
+        // Handle system insets
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                insets.left,
+                view.paddingTop,
+                insets.right,
+                insets.bottom
+            )
+            windowInsets
         }
 
         binds.btImageCapture.isEnabled = false

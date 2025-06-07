@@ -44,7 +44,7 @@ class BudgetViewModel : ViewModel() {
         }
 
         // Load stats (expenses + income)
-        transactionRepo.getMonthlyStats(year, month) { stats ->
+        budgetRepo.getMonthlyStats(year, month) { stats ->
             _monthlyStats.postValue(stats)
         }
     }
@@ -67,7 +67,7 @@ class BudgetViewModel : ViewModel() {
             _budget.postValue(bud)
         }
 
-        transactionRepo.getMonthlyStats(year, month) { stats ->
+        budgetRepo.getMonthlyStats(year, month) { stats ->
             _monthlyStats.postValue(stats)
         }
     }

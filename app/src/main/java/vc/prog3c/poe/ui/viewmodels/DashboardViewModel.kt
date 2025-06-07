@@ -89,7 +89,7 @@ class DashboardViewModel(
     }
 
     private fun loadMonthlyStats(year: Int, month: Int) {
-        FirestoreService.transaction.getMonthlyStats(year, month) { stats ->
+        FirestoreService.budget.getMonthlyStats(year, month) { stats ->
             _statistics = stats
             emitUpdatedState()
         }

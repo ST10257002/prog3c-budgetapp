@@ -10,10 +10,12 @@ import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.permissionx.guolindev.request.ExplainScope
 import com.permissionx.guolindev.request.ForwardScope
+import kotlinx.coroutines.launch
 import vc.prog3c.poe.R
 import vc.prog3c.poe.core.coordinators.ConsentCoordinator
 import vc.prog3c.poe.core.models.ConsentBundle
@@ -21,10 +23,12 @@ import vc.prog3c.poe.core.models.ConsentUiHost
 import vc.prog3c.poe.core.models.ImageResult
 import vc.prog3c.poe.core.services.DeviceCaptureService
 import vc.prog3c.poe.core.services.DeviceGalleryService
+import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.databinding.ActivityTransactionUpsertBinding
+import vc.prog3c.poe.ui.viewmodels.TransactionUpsertState
 import vc.prog3c.poe.ui.viewmodels.TransactionUpsertViewModel
-import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, ConsentUiHost {
@@ -37,16 +41,13 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
 
     private lateinit var captureService: DeviceCaptureService
     private lateinit var galleryService: DeviceGalleryService
+    private var selectedPhotoUri: String? = null
 
-    private var accountId: String? = null // TODO: Should be in ViewModel
-
+    private var accountId: String? = null
 
     // --- Lifecycle
 
-
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setupBindings()
@@ -60,68 +61,91 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         setupClickListeners()
         configureCaptureEventHandler()
         configureGalleryEventHandler()
-        loadOptionsForCategoryDropdown()
         loadOptionsForVariantsDropdown()
 
         accountId = intent.getStringExtra("account_id")
         if (accountId == null) {
-            Toast.makeText(
-                this, "Account ID is required", Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, "Account ID is required", Toast.LENGTH_SHORT).show()
             finish()
-        }
-        
-        // Set action bar subtitle to account name
-        val name = model.getAccountName(accountId)
-        if (name.isNotBlank()) { // TODO: The account repo isn't fetching the account name
-            supportActionBar?.subtitle = name
+        } else {
+            model.loadAccountName(accountId!!)
+            model.loadCategories()
         }
 
         requestPermissions()
         observeViewModel()
     }
 
-
     // --- ViewModel
 
-
     private fun observeViewModel() {
-        // TODO: If needed fuck idk
+        model.accountName.observe(this) { name ->
+            if (!name.isNullOrBlank()) {
+                supportActionBar?.subtitle = name
+            }
+        }
+
+        model.categories.observe(this) { list ->
+            binds.opCategory.setAdapter(
+                ArrayAdapter(
+                    this,
+                    android.R.layout.simple_dropdown_item_1line,
+                    list.map { it.name }
+                )
+            )
+        }
+
+        model.state.observe(this) { state ->
+            when (state) {
+                is TransactionUpsertState.Success -> {
+                    Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
+
+                    // auto refresh list
+                    setResult(RESULT_OK)
+                    finish()
+                }
+                is TransactionUpsertState.Error -> {
+                    Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
+                }
+                TransactionUpsertState.Loading -> {
+                    // Show loading overlay if added
+                }
+            }
+        }
     }
 
+    fun setPhotoPath(path: String) {
+        selectedPhotoUri = path
+    }
 
     // --- Internals
 
-
     private fun submitTransaction() {
-        // TODO: Validate inputs and pass to ViewModel to be saved
-    }
+        val amountStr = binds.etCost.text.toString()
+        val description = binds.etDescription.text.toString()
+        val dateText = binds.etDate.text.toString()
+        val category = binds.opCategory.text.toString()
+        val variant = binds.opVariants.text.toString()
 
+        lifecycleScope.launch {
+            model.saveTransaction(
+                amountStr = amountStr,
+                description = description,
+                category = category,
+                variant = variant,
+                dateText = dateText,
+                accountId = accountId!!,
+                photoPath = null // pass URI?
+            )
+        }
+    }
 
     private fun loadImageInView(path: String) {
         val uri = path.toUri()
         Glide.with(binds.ivImage.context).apply {
             load(uri).into(binds.ivImage)
         }
-        
-        // TODO: Here you can retrieve the image uri or whatever to pass to DB
     }
-
-
-    private fun loadOptionsForCategoryDropdown() {
-        val options = model.fetchCategories()
-        binds.opCategory.setAdapter(
-            ArrayAdapter(
-                this, android.R.layout.simple_dropdown_item_1line, options.map {
-                    it.name
-                })
-        )
-
-        // TODO: Currently loading nothing idk (?)
-        // TODO: Add method in viewmodel to pull from DB
-        // TODO: On-click pass index to save transaction
-    }
-
 
     private fun loadOptionsForVariantsDropdown() {
         val options = arrayOf("Income", "Expense")
@@ -130,11 +154,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
                 this, android.R.layout.simple_dropdown_item_1line, options
             )
         )
-
-        // TODO: Literally just income or expense
-        // TODO: This is loading, but I have no idea if the model expects an enum etc.
     }
-
 
     private fun requestPermissions() {
         ConsentCoordinator.requestConsent(
@@ -143,63 +163,39 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
             )
         )
     }
-    
-    
+
     // --- Dialog
-    
-    
+
     private fun showDateSelectorDialog() {
         val dialog = MaterialDatePicker.Builder.datePicker().apply {
-            setTitle("When did the transaction happen?")
-            // setSelection() TODO: Use and set to current actual stored value
+            setTitleText("When did the transaction happen?")
         }.build()
-        
-        dialog.apply { 
-            addOnPositiveButtonClickListener { date ->
-                // TODO: Store selected date to give to DB entity
-                
-                /*binds.etDate.setText(
-                    SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(date) 
-                    // TODO: Use and pass actual value instead of format(<date>)
-                )*/
-            }
+
+        dialog.addOnPositiveButtonClickListener { date ->
+            val formatted = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(date))
+            binds.etDate.setText(formatted)
         }
-        
+
         dialog.show(
             supportFragmentManager, "date_picker"
         )
     }
 
-
     // --- Event Handlers (Capture)
-
 
     private fun configureCaptureEventHandler() {
         captureService.registerForLauncherResult { result ->
-            when (result) {
-                is ImageResult.Success -> loadImageInView(result.fileUri.toString())
-                else -> {
-                    // TODO: There are two events that can OPTIONALLY be accounted for (see: core/models/ImageResult)
-                }
-            }
+            if (result is ImageResult.Success) loadImageInView(result.fileUri.toString())
         }
     }
-
 
     private fun configureGalleryEventHandler() {
         galleryService.registerForLauncherResult { result ->
-            when (result) {
-                is ImageResult.Success -> loadImageInView(result.fileUri.toString())
-                else -> {
-                    // TODO: There are two events that can OPTIONALLY be accounted for (see: core/models/ImageResult)
-                }
-            }
+            if (result is ImageResult.Success) loadImageInView(result.fileUri.toString())
         }
     }
 
-
     // --- Event Handlers (Consent)
-
 
     override fun onShowInitialConsentUi(
         scope: ExplainScope, declinedTemporarily: List<String>
@@ -212,7 +208,6 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         )
     }
 
-
     override fun onShowWarningConsentUi(
         scope: ForwardScope, declinedPermanently: List<String>
     ) {
@@ -224,26 +219,18 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         )
     }
 
-
     override fun onConsentsAccepted(accepted: List<String>) {
         binds.btImageCapture.isEnabled = true
         binds.btImageGallery.isEnabled = true
-        Toast.makeText(
-            this, "Granted", Toast.LENGTH_SHORT
-        ).show()
+        Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show()
     }
 
-
     override fun onConsentsDeclined(declined: List<String>) {
-        Toast.makeText(
-            this, "Some features require permissions", Toast.LENGTH_SHORT
-        ).show()
+        Toast.makeText(this, "Some features require permissions", Toast.LENGTH_SHORT).show()
         finish()
     }
 
-
     // --- Event Handlers (Layouts)
-
 
     override fun onClick(view: View?) {
         when (view?.id) {
@@ -254,7 +241,6 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         }
     }
 
-
     private fun setupClickListeners() {
         binds.btImageCapture.setOnClickListener(this)
         binds.btImageGallery.setOnClickListener(this)
@@ -262,9 +248,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         binds.etDate.setOnClickListener(this)
     }
 
-
     // --- UI Configuration
-
 
     private fun setupToolbar() {
         setSupportActionBar(binds.toolbar)
@@ -273,14 +257,11 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         supportActionBar?.title = "Create Transaction"
     }
 
-
     // --- UI Registration
-
 
     private fun setupBindings() {
         binds = ActivityTransactionUpsertBinding.inflate(layoutInflater)
     }
-
 
     private fun setupLayoutUi() {
         enableEdgeToEdge()

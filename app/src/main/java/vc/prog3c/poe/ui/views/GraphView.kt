@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.components.XAxis
@@ -22,6 +23,7 @@ import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
+import vc.prog3c.poe.ui.adapters.AccountAdapter
 import java.util.*
 
 class GraphView : AppCompatActivity() {
@@ -37,6 +39,7 @@ class GraphView : AppCompatActivity() {
         //chart = findViewById(R.id.incomeExpenseLineChart)
         chart = findViewById(R.id.categoryBudgetBarChart)
 
+        setupToolbar()
         Log.d("GRAPH_TEST", "GraphView initialized")
         loadGraphData()
         setupBottomNavigation()
@@ -98,7 +101,8 @@ class GraphView : AppCompatActivity() {
 
             chart.data = barData
             chart.description.isEnabled = false
-            chart.setVisibleXRangeMaximum(5f)
+            chart.setVisibleXRangeMaximum(6f)
+            chart.zoomOut()
             chart.groupBars(0f, 0.4f, 0.05f)
 
             chart.xAxis.apply {
@@ -186,5 +190,30 @@ class GraphView : AppCompatActivity() {
             }
         }
         bottomNav.selectedItemId = R.id.nav_graph
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+
+    override fun onBackPressed() {
+        if (isTaskRoot) {
+            // If there's nothing to go back to, launch Dashboard
+            startActivity(Intent(this, DashboardView::class.java))
+            finish()
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    // --- UI Configuration
+
+
+    private fun setupToolbar() {
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Graph"
     }
 }

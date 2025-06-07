@@ -243,6 +243,15 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
         return true
     }
 
+    override fun onBackPressed() {
+        if (isTaskRoot) {
+            // If there's nothing to go back to, launch Dashboard
+            startActivity(Intent(this, DashboardView::class.java))
+            finish()
+        } else {
+            super.onBackPressed()
+        }
+    }
 
     override fun onClick(view: View?) {
         when (view?.id) {
@@ -308,4 +317,7 @@ class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
         setupLineChart()
         setupTimePeriodChips()
     }
+
+
+
 }

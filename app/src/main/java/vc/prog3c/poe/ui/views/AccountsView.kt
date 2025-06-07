@@ -229,6 +229,20 @@ class AccountsView : AppCompatActivity(), View.OnClickListener {
         binds.addAccountButton.setOnClickListener(this)
     }
 
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+
+    override fun onBackPressed() {
+        if (isTaskRoot) {
+            // If there's nothing to go back to, launch Dashboard
+            startActivity(Intent(this, DashboardView::class.java))
+            finish()
+        } else {
+            super.onBackPressed()
+        }
+    }
 
     // --- UI Configuration
 

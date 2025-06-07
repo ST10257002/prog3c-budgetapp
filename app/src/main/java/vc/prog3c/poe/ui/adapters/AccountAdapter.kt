@@ -9,17 +9,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import vc.prog3c.poe.R
-import vc.prog3c.poe.data.models.Account // Correct import
-import java.text.NumberFormat
-import java.util.Locale
+import vc.prog3c.poe.data.models.Account
+import vc.prog3c.poe.utils.CurrencyFormatter
 
-class AccountAdapter : ListAdapter<Account, AccountAdapter.AccountViewHolder>(AccountDiffCallback()) {
-
-    private var onItemClickListener: ((Account) -> Unit)? = null
-
-    fun setOnItemClickListener(listener: (Account) -> Unit) {
-        onItemClickListener = listener
-    }
+class AccountAdapter(
+    private val onItemClick: (Account) -> Unit
+) : ListAdapter<Account, AccountAdapter.AccountViewHolder>(AccountDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AccountViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -28,26 +23,30 @@ class AccountAdapter : ListAdapter<Account, AccountAdapter.AccountViewHolder>(Ac
     }
 
     override fun onBindViewHolder(holder: AccountViewHolder, position: Int) {
-        val account = getItem(position)
-        holder.bind(account)
-
-        holder.itemView.setOnClickListener {
-            onItemClickListener?.invoke(account)
-        }
+        holder.bind(getItem(position))
     }
 
-    class AccountViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class AccountViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val accountNameTextView: TextView = itemView.findViewById(R.id.accountNameTextView)
         private val accountTransactionsTextView: TextView = itemView.findViewById(R.id.accountTransactionsTextView)
         private val accountBalanceTextView: TextView = itemView.findViewById(R.id.accountBalanceTextView)
         private val accountIconImageView: ImageView = itemView.findViewById(R.id.accountIcon)
 
+        init {
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemClick(getItem(position))
+                }
+            }
+        }
+
         fun bind(account: Account) {
             accountNameTextView.text = account.name
             accountTransactionsTextView.text = "${account.transactionsCount} transactions"
-            accountBalanceTextView.text = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(account.balance)
+            accountBalanceTextView.text = CurrencyFormatter.format(account.balance)
 
-            val iconResId = when (account.type.lowercase()) { // Use lowercase()
+            val iconResId = when (account.type.lowercase()) {
                 "credit" -> R.drawable.ic_credit_card
                 "savings" -> R.drawable.ic_savings
                 else -> R.drawable.ic_account_balance

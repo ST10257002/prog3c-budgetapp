@@ -4,6 +4,7 @@ package vc.prog3c.poe.ui.views
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -20,6 +21,7 @@ import vc.prog3c.poe.databinding.ActivityDashboardBinding
 import vc.prog3c.poe.ui.adapters.CategoryAdapter
 import vc.prog3c.poe.ui.viewmodels.DashboardUiState
 import vc.prog3c.poe.ui.viewmodels.DashboardViewModel
+import vc.prog3c.poe.utils.CurrencyFormatter
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -105,8 +107,14 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
     private fun setupRecyclerView() {
         categoryAdapter = CategoryAdapter(
-            onEditClick = { },
-            onDeleteClick = { }
+            onEditClick = { category ->
+                // TODO: Implement category editing
+                Toast.makeText(this, "Edit category: ${category.name}", Toast.LENGTH_SHORT).show()
+            },
+            onDeleteClick = { category ->
+                // TODO: Implement category deletion
+                Toast.makeText(this, "Delete category: ${category.name}", Toast.LENGTH_SHORT).show()
+            }
         )
         binds.categoriesRecyclerView.apply {
             adapter = categoryAdapter
@@ -118,13 +126,12 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
     private fun updateSavingsGoalUI(goals: List<SavingsGoal>) {
         if (goals.isNotEmpty()) {
             val goal = goals[0]
-            val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
             val progress = if (goal.targetAmount > 0) goal.savedAmount / goal.targetAmount else 0.0
             val percent = (progress * 100).toInt().coerceIn(0, 100)
 
-            binds.savingsGoalText.text = "${goal.name}: ${currencyFormat.format(goal.savedAmount)} / ${currencyFormat.format(goal.targetAmount)}"
-            binds.currentSavingsText.text = currencyFormat.format(goal.savedAmount)
-            binds.maxSavingsText.text = currencyFormat.format(goal.targetAmount)
+            binds.savingsGoalText.text = "${goal.name}: ${CurrencyFormatter.format(goal.savedAmount)} / ${CurrencyFormatter.format(goal.targetAmount)}"
+            binds.currentSavingsText.text = CurrencyFormatter.format(goal.savedAmount)
+            binds.maxSavingsText.text = CurrencyFormatter.format(goal.targetAmount)
             binds.savingsPercentageText.text = "$percent%"
             binds.savingsProgressBar.progress = percent
 
@@ -134,8 +141,8 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             } ?: ""
         } else {
             binds.savingsGoalText.text = getString(R.string.no_savings_goals)
-            binds.currentSavingsText.text = "R0"
-            binds.maxSavingsText.text = "R0"
+            binds.currentSavingsText.text = CurrencyFormatter.format(0)
+            binds.maxSavingsText.text = CurrencyFormatter.format(0)
             binds.savingsPercentageText.text = "0%"
             binds.savingsProgressBar.progress = 0
             binds.savingsGoalDate.text = ""
@@ -143,12 +150,11 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun updateBudgetUI(budget: Budget?, stats: MonthlyStats?) {
-        val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
         val spent = stats?.totalExpenses ?: 0.0
         val max = budget?.max ?: 1.0
         val min = budget?.min ?: 0.0
 
-        binds.budgetAmountText.text = currencyFormat.format(budget?.max ?: 0)
+        binds.budgetAmountText.text = CurrencyFormatter.format(budget?.max ?: 0.0)
         binds.budgetMonthText.text = budget?.let {
             try {
                 val monthName = java.time.Month.of(it.month)
@@ -159,7 +165,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             }
         } ?: ""
 
-        binds.budgetSpentText.text = currencyFormat.format(spent)
+        binds.budgetSpentText.text = CurrencyFormatter.format(spent)
         val percent = (spent / max * 100).toInt().coerceIn(0, 100)
         binds.budgetProgressBar.progress = percent
         binds.budgetProgressText.text = "$percent%"

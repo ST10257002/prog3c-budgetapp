@@ -18,6 +18,7 @@ import vc.prog3c.poe.data.models.BoosterBucks
 import vc.prog3c.poe.databinding.ActivityAchievementsBinding
 import vc.prog3c.poe.ui.adapters.AchievementAdapter
 import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
+import vc.prog3c.poe.utils.CurrencyFormatter
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -68,9 +69,8 @@ class AchievementsActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun updateBoosterBucksDisplay(boosterBucks: BoosterBucks) {
-        val formatter = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
         binds.boosterBucksBalance.text = boosterBucks.availableBalance.toString()
-        binds.boosterBucksValue.text = formatter.format(
+        binds.boosterBucksValue.text = CurrencyFormatter.format(
             boosterBucks.availableBalance * BoosterBucks.CONVERSION_RATE
         )
     }

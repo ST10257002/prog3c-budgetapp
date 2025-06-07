@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Category
-import java.text.NumberFormat
+import vc.prog3c.poe.utils.CurrencyFormatter
 import java.util.Locale
 
 class CategoryAdapter(
@@ -61,9 +61,8 @@ class CategoryAdapter(
 //            budgetLimitTextView.text = formatter.format(category.budgetLimit)
 //            budgetLimitTextView.visibility = if (category.budgetLimit > 0) View.VISIBLE else View.GONE
 
-            val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
-            minBudgetTextView.text = "Min: ${formatter.format(category.minBudget)}"
-            maxBudgetTextView.text = "Max: ${formatter.format(category.maxBudget)}"
+            minBudgetTextView.text = "Min: ${CurrencyFormatter.format(category.minBudget)}"
+            maxBudgetTextView.text = "Max: ${CurrencyFormatter.format(category.maxBudget)}"
 
             minBudgetTextView.visibility = if (category.minBudget > 0) View.VISIBLE else View.GONE
             maxBudgetTextView.visibility = if (category.maxBudget > 0) View.VISIBLE else View.GONE

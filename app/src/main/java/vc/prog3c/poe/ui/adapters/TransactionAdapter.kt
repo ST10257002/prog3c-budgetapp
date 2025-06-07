@@ -10,8 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
-import java.text.NumberFormat
-import java.util.Locale
+import vc.prog3c.poe.utils.CurrencyFormatter
 
 class TransactionAdapter(
     private val onItemClick: (Transaction) -> Unit
@@ -44,7 +43,7 @@ class TransactionAdapter(
 
         fun bind(transaction: Transaction) {
             descriptionTextView.text = transaction.description ?: ""
-            amountTextView.text = formatAmount(transaction.amount)
+            amountTextView.text = CurrencyFormatter.format(transaction.amount)
             dateTextView.text = transaction.date.toDate().toString()
             categoryTextView.text = transaction.category
 
@@ -54,11 +53,6 @@ class TransactionAdapter(
                 TransactionType.EXPENSE, TransactionType.REDEEMED -> R.color.expense_red
             }
             amountTextView.setTextColor(itemView.context.getColor(colorRes))
-        }
-
-        private fun formatAmount(amount: Double): String {
-            val format = NumberFormat.getCurrencyInstance(Locale("en", "ZA"))
-            return format.format(amount)
         }
     }
 

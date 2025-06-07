@@ -23,15 +23,10 @@ import vc.prog3c.poe.core.utils.Blogger
 class DeviceCaptureService(
     caller: FragmentActivity
 ) : DeviceImageService(caller) {
-// <editor-fold desc="Fields">
 
 
     private lateinit var captureLauncher: ActivityResultLauncher<Uri>
     private var imageUri: Uri? = null
-
-
-// </editor-fold>
-// <editor-fold desc="Service Methods">
 
 
     /**
@@ -102,10 +97,6 @@ class DeviceCaptureService(
     }
 
 
-// </editor-fold>
-// <editor-fold desc="Constants">
-
-
     private companion object {
         const val TAG = "DeviceCaptureService"
         const val BLOCKED_MESSAGE = "Image capture was cancelled"
@@ -113,6 +104,5 @@ class DeviceCaptureService(
         const val REGISTER_FAILURE_MESSAGE = "Something went wrong with the camera"
     }
 
-
-// </editor-fold>
+    
 }

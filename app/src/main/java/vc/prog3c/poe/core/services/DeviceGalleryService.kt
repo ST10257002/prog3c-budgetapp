@@ -27,14 +27,9 @@ import vc.prog3c.poe.core.utils.ImageFileUtil
 class DeviceGalleryService(
     caller: FragmentActivity
 ) : DeviceImageService(caller) {
-// <editor-fold desc="Fields">
 
 
     private lateinit var galleryLauncher: ActivityResultLauncher<String>
-
-
-// </editor-fold>
-// <editor-fold desc="Service Methods">
 
 
     /**
@@ -89,17 +84,10 @@ class DeviceGalleryService(
     }
 
 
-// </editor-fold>
-// <editor-fold desc="Constants">
-
-
     private companion object {
         const val TAG = "DeviceGalleryService"
         const val BLOCKED_MESSAGE = "No image was selected"
         const val FAILURE_MESSAGE = "Failed to copy image to directory"
         const val MULTIMEDIA_TYPE = "image/*"
     }
-
-
-// </editor-fold>
 }

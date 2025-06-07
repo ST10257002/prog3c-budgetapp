@@ -370,7 +370,7 @@ class AddTransactionActivity : AppCompatActivity() {
                 "${packageName}.fileprovider",
                 it
             )
-            cameraLauncher.launch(photoURI)
+            //cameraLauncher.launch(photoURI)
         }
     }
 

@@ -83,6 +83,7 @@ dependencies {
     // Image Loading
     implementation("io.coil-kt:coil:2.5.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.androidx.activity)
     kapt("com.github.bumptech.glide:compiler:4.16.0")
 
     // Charts

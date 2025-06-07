@@ -139,9 +139,10 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
     private fun loadImageInView(path: String) {
         setPhotoPath(path)
         val uri = path.toUri()
-        Glide.with(binds.ivImage.context).apply {
-            load(uri).into(binds.ivImage)
-        }
+        Glide.with(binds.ivImage.context)
+            .load(uri)
+            .centerCrop()
+            .into(binds.ivImage)
     }
 
     private fun loadOptionsForCategoryDropdown(options: List<Category>) {

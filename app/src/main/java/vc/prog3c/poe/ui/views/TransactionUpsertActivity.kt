@@ -23,15 +23,16 @@ import vc.prog3c.poe.core.models.ConsentUiHost
 import vc.prog3c.poe.core.models.ImageResult
 import vc.prog3c.poe.core.services.DeviceCaptureService
 import vc.prog3c.poe.core.services.DeviceGalleryService
-import vc.prog3c.poe.data.models.TransactionType
+import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.databinding.ActivityTransactionUpsertBinding
-import vc.prog3c.poe.ui.viewmodels.TransactionUpsertState
+import vc.prog3c.poe.ui.viewmodels.TransactionUpsertUiState
 import vc.prog3c.poe.ui.viewmodels.TransactionUpsertViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, ConsentUiHost {
+class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
+    View.OnLongClickListener, ConsentUiHost {
     companion object {
         private const val TAG = "TransactionUpsertActivity"
     }
@@ -42,7 +43,6 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
     private lateinit var captureService: DeviceCaptureService
     private lateinit var galleryService: DeviceGalleryService
     private var selectedPhotoUri: String? = null
-
     private var accountId: String? = null
 
     // --- Lifecycle
@@ -65,7 +65,9 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
 
         accountId = intent.getStringExtra("account_id")
         if (accountId == null) {
-            Toast.makeText(this, "Account ID is required", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this, "Account ID is required", Toast.LENGTH_SHORT
+            ).show()
             finish()
         } else {
             model.loadAccountName(accountId!!)
@@ -73,78 +75,80 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         }
 
         requestPermissions()
-        observeViewModel()
+        observeViewModelState()
+        observeViewModelValue()
     }
 
     // --- ViewModel
 
-    private fun observeViewModel() {
-        model.accountName.observe(this) { name ->
-            if (!name.isNullOrBlank()) {
-                supportActionBar?.subtitle = name
+
+    private fun observeViewModelState() = model.state.observe(this) { state ->
+        when (state) {
+            is TransactionUpsertUiState.Success -> {
+                Toast.makeText(
+                    this, state.message, Toast.LENGTH_SHORT
+                ).show()
+                setResult(RESULT_OK) // Contract to refresh view
+                finish()
             }
+
+            is TransactionUpsertUiState.Failure -> {
+                Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
+            }
+
+            TransactionUpsertUiState.Loading -> {}
+        }
+    }
+
+    private fun observeViewModelValue() {
+        model.accountName.observe(this) { name ->
+            supportActionBar?.subtitle = name ?: ""
         }
 
         model.categories.observe(this) { list ->
-            binds.opCategory.setAdapter(
-                ArrayAdapter(
-                    this,
-                    android.R.layout.simple_dropdown_item_1line,
-                    list.map { it.name }
-                )
-            )
-        }
-
-        model.state.observe(this) { state ->
-            when (state) {
-                is TransactionUpsertState.Success -> {
-                    Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
-
-                    // auto refresh list
-                    setResult(RESULT_OK)
-                    finish()
-                }
-                is TransactionUpsertState.Error -> {
-                    Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
-                }
-                TransactionUpsertState.Loading -> {
-                    // Show loading overlay if added
-                }
-            }
+            loadOptionsForCategoryDropdown(list)
         }
     }
+
+    // --- Internals
 
     fun setPhotoPath(path: String) {
         selectedPhotoUri = path
     }
-
-    // --- Internals
 
     private fun submitTransaction() {
         val amountStr = binds.etCost.text.toString()
         val description = binds.etDescription.text.toString()
         val dateText = binds.etDate.text.toString()
         val category = binds.opCategory.text.toString()
-        val variant = binds.opVariants.text.toString()
+        val variants = binds.opVariants.text.toString()
 
         lifecycleScope.launch {
             model.saveTransaction(
                 amountStr = amountStr,
                 description = description,
                 category = category,
-                variant = variant,
+                variant = variants,
                 dateText = dateText,
                 accountId = accountId!!,
-                photoPath = null // pass URI?
+                photoPath = selectedPhotoUri
             )
         }
     }
 
     private fun loadImageInView(path: String) {
+        setPhotoPath(path)
         val uri = path.toUri()
         Glide.with(binds.ivImage.context).apply {
             load(uri).into(binds.ivImage)
         }
+    }
+
+    private fun loadOptionsForCategoryDropdown(options: List<Category>) {
+        binds.opCategory.setAdapter(
+            ArrayAdapter(
+                this, android.R.layout.simple_dropdown_item_1line, options.map { it.name })
+        )
     }
 
     private fun loadOptionsForVariantsDropdown() {
@@ -241,7 +245,22 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener, Con
         }
     }
 
+    override fun onLongClick(view: View?): Boolean {
+        when (view?.id) {
+            binds.ivImage.id -> {
+                selectedPhotoUri = null
+                binds.ivImage.setImageDrawable(null)
+                Toast.makeText(
+                    this, "Deselected image", Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        return true
+    }
+
     private fun setupClickListeners() {
+        binds.ivImage.setOnLongClickListener(this)
         binds.btImageCapture.setOnClickListener(this)
         binds.btImageGallery.setOnClickListener(this)
         binds.btSave.setOnClickListener(this)

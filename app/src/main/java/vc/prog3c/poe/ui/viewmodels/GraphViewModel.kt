@@ -62,7 +62,7 @@ class GraphViewModel : ViewModel() {
 
             } catch (e: Exception) {
                 _error.value = e.message
-                Log.e("GRAPH_TEST", "Error loading graph data: ${e.message}", e)
+                Log.e("GRAPH_TEST", "Failure loading graph data: ${e.message}", e)
             } finally {
                 _isLoading.value = false
             }

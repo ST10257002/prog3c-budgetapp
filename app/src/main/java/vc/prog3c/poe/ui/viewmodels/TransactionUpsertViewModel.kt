@@ -1,28 +1,32 @@
 package vc.prog3c.poe.ui.viewmodels
 
-import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.Timestamp
 import vc.prog3c.poe.core.services.AuthService
+import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
-import vc.prog3c.poe.data.repository.TransactionRepository
 import vc.prog3c.poe.data.services.FirestoreService
-import vc.prog3c.poe.ui.viewmodels.TransactionUpsertState
-import java.net.URL
+import vc.prog3c.poe.ui.viewmodels.TransactionUpsertUiState.Failure
+import vc.prog3c.poe.ui.viewmodels.TransactionUpsertUiState.Loading
+import vc.prog3c.poe.ui.viewmodels.TransactionUpsertUiState.Success
+import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.UUID
 
 class TransactionUpsertViewModel(
     private val authService: AuthService = AuthService(),
     private val firestoreService: FirestoreService = FirestoreService
 ) : ViewModel() {
+    companion object {
+        private const val TAG = "TransactionUpsertViewModel"
+    }
 
     val accountName = MutableLiveData<String>()
     val categories = MutableLiveData<List<Category>>()
-    val state = MutableLiveData<TransactionUpsertState>()
+    val state = MutableLiveData<TransactionUpsertUiState>()
 
     private var selectedPhotoUri: String? = null
 
@@ -49,19 +53,30 @@ class TransactionUpsertViewModel(
     ) {
         val userId = authService.getCurrentUser()?.uid
         if (userId == null) {
-            state.value = TransactionUpsertState.Error("User not authenticated")
+            state.value = TransactionUpsertUiState.Failure("User not authenticated")
             return
         }
 
         val amount = amountStr.toDoubleOrNull()
         if (amount == null || amount <= 0) {
-            state.value = TransactionUpsertState.Error("Invalid amount")
+            state.value = TransactionUpsertUiState.Failure("Invalid amount")
             return
         }
 
         selectedPhotoUri = photoPath
-        Log.d("PHOTO","$selectedPhotoUri")
-        Log.d("PHOTO","$photoPath")
+
+        Blogger.i(
+            TAG, "Storing photo with URI: $selectedPhotoUri"
+        )
+
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val parsedDate = try {
+            dateFormat.parse(dateText)?.let {
+                Timestamp(it)
+            } ?: Timestamp.now()
+        } catch (_: Exception) {
+            Timestamp.now() // Fallback to current date if parsing fails
+        }
 
         val transaction = Transaction(
             id = UUID.randomUUID().toString(),
@@ -69,18 +84,17 @@ class TransactionUpsertViewModel(
             amount = amount,
             description = description,
             category = category,
-            date = Timestamp.now(), // You can parse dateText here if needed
+            date = parsedDate,
             accountId = accountId,
             userId = userId,
-            photoUrls = selectedPhotoUri?.let { listOf(it) } ?: emptyList()
-        )
+            photoUrls = selectedPhotoUri?.let { listOf(it) } ?: emptyList())
 
-        state.value = TransactionUpsertState.Loading
+        state.value = Loading
         firestoreService.transaction.addTransaction(transaction) { success ->
             state.value = if (success) {
-                TransactionUpsertState.Success("Transaction saved!")
+                Success("Transaction saved!")
             } else {
-                TransactionUpsertState.Error("Failed to save transaction")
+                Failure("Failed to save transaction")
             }
         }
     }

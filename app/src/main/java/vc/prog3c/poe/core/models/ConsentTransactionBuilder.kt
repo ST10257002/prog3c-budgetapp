@@ -29,15 +29,11 @@ import vc.prog3c.poe.core.utils.ConsentBundleTranslator
 class ConsentTransactionBuilder(
     private val caller: FragmentActivity
 ) {
-// <editor-fold desc="Attributes">
-
-
     private var configuredHandler: ConsentUiHost? = null
     private var configuredBundles: List<ConsentBundle>? = null
 
 
-// </editor-fold>
-// <editor-fold desc="Fluent API">
+    // --- FluentAPI
 
 
     /**
@@ -113,8 +109,7 @@ class ConsentTransactionBuilder(
     }
 
 
-// </editor-fold>
-// <editor-fold desc="Internals">
+    // --- Internals
 
 
     /**
@@ -180,7 +175,4 @@ class ConsentTransactionBuilder(
     private fun requireHandler() = require(configuredHandler != null) {
         "The configuration for handler was not provided or poorly constructed."
     }
-
-
-// </editor-fold>
 }

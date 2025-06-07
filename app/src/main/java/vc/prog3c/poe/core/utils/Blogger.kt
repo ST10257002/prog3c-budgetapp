@@ -7,8 +7,6 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
  * Logger to synchronise reports to Logcat and Crashlytics.
  */
 object Blogger {
-// <editor-fold desc="Fields">
-
     private var crashlytics: FirebaseCrashlytics? = null
 
     init {
@@ -19,8 +17,9 @@ object Blogger {
         }
     }
 
-// </editor-fold>
-// <editor-fold desc="Logging">
+    
+    // --- Logging
+    
 
     /**
      * Log an information message.
@@ -60,6 +59,4 @@ object Blogger {
             crashlytics?.recordException(throwable)
         }
     }
-
-// </editor-fold>
 }

@@ -18,7 +18,7 @@ import vc.prog3c.poe.data.models.BoosterBucks
 import vc.prog3c.poe.databinding.ActivityAchievementsBinding
 import vc.prog3c.poe.ui.adapters.AchievementAdapter
 import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
-import vc.prog3c.poe.utils.CurrencyFormatter
+import vc.prog3c.poe.core.utils.CurrencyFormatter
 import java.text.NumberFormat
 import java.util.Locale
 

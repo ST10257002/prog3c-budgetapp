@@ -1,4 +1,4 @@
-package vc.prog3c.poe.utils
+package vc.prog3c.poe.core.utils
 
 import java.text.NumberFormat
 import java.util.Locale
@@ -21,4 +21,4 @@ object CurrencyFormatter {
     fun format(amount: Float): String {
         return formatter.format(amount)
     }
-} 
+}

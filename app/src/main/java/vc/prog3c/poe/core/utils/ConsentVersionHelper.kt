@@ -54,7 +54,7 @@ object ConsentVersionHelper {
     }
 
 
-    // ---
+    // --- Constants
 
 
     private const val UNSUPPORTED_EXCEPTION = "Caught request made for an unsupported version."

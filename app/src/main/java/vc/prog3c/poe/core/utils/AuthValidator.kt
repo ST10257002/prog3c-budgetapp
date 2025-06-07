@@ -3,7 +3,6 @@ package vc.prog3c.poe.core.utils
 import android.util.Patterns
 
 object AuthValidator {
-
     fun isValidEAddress(input: String): Boolean {
         return Patterns.EMAIL_ADDRESS.matcher(input).matches()
     }

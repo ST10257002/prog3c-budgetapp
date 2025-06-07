@@ -21,7 +21,7 @@ import vc.prog3c.poe.databinding.ActivityDashboardBinding
 import vc.prog3c.poe.ui.adapters.CategoryAdapter
 import vc.prog3c.poe.ui.viewmodels.DashboardUiState
 import vc.prog3c.poe.ui.viewmodels.DashboardViewModel
-import vc.prog3c.poe.utils.CurrencyFormatter
+import vc.prog3c.poe.core.utils.CurrencyFormatter
 import java.text.NumberFormat
 import java.util.Locale
 

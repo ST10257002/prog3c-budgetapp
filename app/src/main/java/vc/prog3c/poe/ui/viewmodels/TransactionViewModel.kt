@@ -15,7 +15,7 @@ import vc.prog3c.poe.data.models.FilterOption
 import java.text.NumberFormat
 import java.util.*
 import vc.prog3c.poe.data.models.SortOption
-import vc.prog3c.poe.utils.CurrencyFormatter
+import vc.prog3c.poe.core.utils.CurrencyFormatter
 
 /**
  * Unified ViewModel for both income and expense transactions.

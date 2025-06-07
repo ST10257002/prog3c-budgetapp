@@ -25,7 +25,7 @@ import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
-import vc.prog3c.poe.utils.CurrencyFormatter
+import vc.prog3c.poe.core.utils.CurrencyFormatter
 import vc.prog3c.poe.databinding.ActivityGraphBinding
 import java.text.SimpleDateFormat
 import java.util.*

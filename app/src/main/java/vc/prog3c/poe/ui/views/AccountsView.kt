@@ -35,7 +35,7 @@ import vc.prog3c.poe.ui.viewmodels.AccountsViewModel
 import java.text.NumberFormat
 import java.util.Locale
 import java.util.UUID
-import vc.prog3c.poe.utils.CurrencyFormatter
+import vc.prog3c.poe.core.utils.CurrencyFormatter
 
 class AccountsView : AppCompatActivity(), View.OnClickListener {
 

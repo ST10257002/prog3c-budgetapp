@@ -27,8 +27,7 @@ import vc.prog3c.poe.core.utils.ImageFileUtil
 class DeviceGalleryService(
     caller: FragmentActivity
 ) : DeviceImageService(caller) {
-
-
+    
     private lateinit var galleryLauncher: ActivityResultLauncher<String>
 
 
@@ -45,8 +44,7 @@ class DeviceGalleryService(
         galleryLauncher.launch(MULTIMEDIA_TYPE)
     }
 
-
-    // @InheritDoc
+    
     override fun registerForLauncherResult(
         callback: (ImageResult) -> Unit
     ) {

@@ -18,8 +18,6 @@ import java.util.Locale
  * @author ST10257002
  */
 object ImageFileUtil {
-// <editor-fold desc="Fields">
-
     private const val TAG = "ImageFileUtil"
 
     /**
@@ -30,9 +28,10 @@ object ImageFileUtil {
      */
     private val timestampFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
 
-// </editor-fold>
-// <editor-fold desc="Utilities">
+    
+    // --- Utilities
 
+    
     /**
      * Creates and locates the private storage directory of the application.
      *
@@ -107,6 +106,4 @@ object ImageFileUtil {
             false
         }
     }
-
-// </editor-fold>
 }

@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
-import vc.prog3c.poe.utils.CurrencyFormatter
+import vc.prog3c.poe.core.utils.CurrencyFormatter
 
 class TransactionAdapter(
     private val onItemClick: (Transaction) -> Unit

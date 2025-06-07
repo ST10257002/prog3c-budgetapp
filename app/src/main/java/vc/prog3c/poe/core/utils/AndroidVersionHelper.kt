@@ -11,9 +11,6 @@ import androidx.annotation.ChecksSdkIntAtLeast
  */
 object AndroidVersionHelper {
 
-//<editor-fold desc="Functions">
-
-
     /**
      * Check if the active system version is at least the specified version.
      *
@@ -40,8 +37,7 @@ object AndroidVersionHelper {
     fun getDeviceApiLevel(): Int = Build.VERSION.SDK_INT
 
 
-//</editor-fold>
-//<editor-fold desc="Helpers">
+    // --- Helpers
 
 
     /**
@@ -105,7 +101,4 @@ object AndroidVersionHelper {
     @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
     fun isDeviceVersionAtLeastApi29Q(): Boolean =
         isDeviceVersionAtLeast(apiLevel = Build.VERSION_CODES.Q)
-
-
-//</editor-fold>
 }

@@ -6,11 +6,7 @@ object FirestoreService {
     val savingsGoal = SavingsGoalRepository()
     val user = UserRepository()
     val category = CategoryRepository()
-    val transaction = TransactionRepository() // expenses and income
+    val transaction = TransactionRepository()
     val account = AccountRepository()
     val budget = BudgetRepository()
 }
-
-
-//Example on how we could use this
-// FirestoreService.expenses.getAllExpenses { ... }

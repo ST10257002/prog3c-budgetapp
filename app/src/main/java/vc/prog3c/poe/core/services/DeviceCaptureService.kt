@@ -57,8 +57,7 @@ class DeviceCaptureService(
         }
     }
 
-
-    // @InheritDoc
+    
     override fun registerForLauncherResult(
         callback: (ImageResult) -> Unit
     ) {
@@ -103,6 +102,4 @@ class DeviceCaptureService(
         const val LAUNCHER_FAILURE_MESSAGE = "Failed to create the image file"
         const val REGISTER_FAILURE_MESSAGE = "Something went wrong with the camera"
     }
-
-    
 }

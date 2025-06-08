@@ -10,23 +10,25 @@ import com.google.android.material.progressindicator.LinearProgressIndicator
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Achievement
 import vc.prog3c.poe.data.models.AchievementCategory
-import vc.prog3c.poe.data.models.AchievementDefinitions
 
 class AchievementAdapter(
-    private var achievements: List<Achievement>,
+    private var fullList: List<Achievement>,
     private val onAchievementClick: (Achievement) -> Unit
 ) : RecyclerView.Adapter<AchievementAdapter.AchievementViewHolder>() {
 
+    private var filteredList: List<Achievement> = fullList
+
     fun updateAchievements(newAchievements: List<Achievement>) {
-        achievements = newAchievements
+        fullList = newAchievements
+        filteredList = newAchievements
         notifyDataSetChanged()
     }
 
     fun filterByCategory(category: AchievementCategory?) {
-        achievements = if (category == null) {
-            AchievementDefinitions.achievements
+        filteredList = if (category == null) {
+            fullList
         } else {
-            AchievementDefinitions.achievements.filter { it.category == category }
+            fullList.filter { it.category == category }
         }
         notifyDataSetChanged()
     }
@@ -38,10 +40,10 @@ class AchievementAdapter(
     }
 
     override fun onBindViewHolder(holder: AchievementViewHolder, position: Int) {
-        holder.bind(achievements[position])
+        holder.bind(filteredList[position])
     }
 
-    override fun getItemCount() = achievements.size
+    override fun getItemCount() = filteredList.size
 
     inner class AchievementViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val icon: ImageView = itemView.findViewById(R.id.achievementIcon)
@@ -55,7 +57,7 @@ class AchievementAdapter(
             itemView.setOnClickListener {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    onAchievementClick(achievements[position])
+                    onAchievementClick(filteredList[position])
                 }
             }
         }
@@ -65,26 +67,25 @@ class AchievementAdapter(
             description.text = achievement.description
             boosterBucksReward.text = achievement.boosterBucksReward.toString()
 
-            // Set progress
             val progress = (achievement.progress.toFloat() / achievement.requiredProgress.toFloat() * 100).toInt()
             progressIndicator.progress = progress
             progressText.text = "${achievement.progress}/${achievement.requiredProgress}"
 
-            // Update icon based on completion status
+            val context = itemView.context
             icon.setImageResource(
                 if (achievement.isCompleted) R.drawable.ic_achievement_completed
                 else R.drawable.ic_achievement
             )
-
-            // Update colors based on completion status
-            val context = itemView.context
-            if (achievement.isCompleted) {
-                title.setTextColor(context.getColor(R.color.primary))
-                progressIndicator.setIndicatorColor(context.getColor(R.color.primary))
-            } else {
-                title.setTextColor(context.getColor(R.color.text_primary))
-                progressIndicator.setIndicatorColor(context.getColor(R.color.progress_background))
-            }
+            title.setTextColor(
+                context.getColor(
+                    if (achievement.isCompleted) R.color.primary else R.color.text_primary
+                )
+            )
+            progressIndicator.setIndicatorColor(
+                context.getColor(
+                    if (achievement.isCompleted) R.color.primary else R.color.progress_background
+                )
+            )
         }
     }
-} 
+}

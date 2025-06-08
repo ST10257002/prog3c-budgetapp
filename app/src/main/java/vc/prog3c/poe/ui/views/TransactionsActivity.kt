@@ -11,10 +11,14 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import vc.prog3c.poe.databinding.ActivityTransactionsBinding
+import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
 
 class TransactionsActivity : AppCompatActivity() {
-    
+    private lateinit var binding: ActivityTransactionsBinding
+    private lateinit var viewModel: TransactionViewModel
+    private lateinit var achievementViewModel: AchievementViewModel
+
     private lateinit var binds: ActivityTransactionsBinding
     private lateinit var model: TransactionViewModel
     private var accountId: String? = null
@@ -23,44 +27,46 @@ class TransactionsActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
+            accountId?.let { viewModel.loadTransactions(it) }
             // Refresh transactions when a new one is added
             accountId?.let { model.loadTransactions(it) }
         }
     }
-    
+
     // --- Lifecycle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        setupBindings()
-        setupLayoutUi()
+        binding = ActivityTransactionsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        model = ViewModelProvider(this)[TransactionViewModel::class.java]
-        
-        setupTransactionsView()
-        
+        // Initialize ViewModels
+        viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
+        achievementViewModel = ViewModelProvider(this)[AchievementViewModel::class.java]
+
         accountId = intent.getStringExtra("account_id")
         if (accountId == null) {
-            Toast.makeText(
-                this, "Account ID is required", Toast.LENGTH_SHORT
-            ).show()
             finish()
-        } else {
-            model.loadAccountName(accountId!!)
-            model.loadTransactions(accountId!!)
+            return
         }
-        
+
+        setupToolbar()
+        setupTransactionsView()
+
+        // Initial load of transactions
+        accountId?.let { viewModel.loadTransactions(it) }
+
         observeViewModel()
     }
-    
+
     // --- ViewModel
-    
+
     private fun observeViewModel() {
         model.accountName.observe(this) { name ->
             supportActionBar?.subtitle = name ?: ""
         }
     }
+
 
     // --- Internals
 
@@ -78,7 +84,7 @@ class TransactionsActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-    
+
     // --- UI Configuration
 
     private fun setupToolbar() {
@@ -91,8 +97,8 @@ class TransactionsActivity : AppCompatActivity() {
     }
 
     private fun setupTransactionsView() {
-        binds.transactionsView.apply {
-            setViewModel(model, this@TransactionsActivity, accountId ?: "")
+        binding.transactionsView.apply {
+            setViewModel(viewModel, achievementViewModel, this@TransactionsActivity, accountId ?: "")
             setOnAddTransactionClickListener {
                 val intent = Intent(this@TransactionsActivity, TransactionUpsertActivity::class.java).apply {
                     putExtra("account_id", accountId)
@@ -101,13 +107,13 @@ class TransactionsActivity : AppCompatActivity() {
             }
         }
     }
-    
+
     // --- UI Registrations
-    
+
     private fun setupBindings() {
         binds = ActivityTransactionsBinding.inflate(layoutInflater)
     }
-    
+
     private fun setupLayoutUi() {
         setContentView(binds.root)
         enableEdgeToEdge()
@@ -119,4 +125,4 @@ class TransactionsActivity : AppCompatActivity() {
 
         setupToolbar()
     }
-} 
+}

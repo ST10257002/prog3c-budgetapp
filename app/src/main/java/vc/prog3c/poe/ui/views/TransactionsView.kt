@@ -60,13 +60,27 @@ class TransactionsView @JvmOverloads constructor(
     }
 
     private fun setupRecyclerView() {
-        transactionAdapter = TransactionAdapter { transaction ->
-            val intent = Intent(context, TransactionDetailsActivity::class.java).apply {
-                putExtra(TransactionDetailsActivity.EXTRA_TRANSACTION_ID, transaction.id)
-                currentAccountId?.let { putExtra("account_id", it) }
+        transactionAdapter = TransactionAdapter(
+            onItemClick = { transaction ->
+                val intent = Intent(context, TransactionDetailsActivity::class.java).apply {
+                    putExtra(TransactionDetailsActivity.EXTRA_TRANSACTION_ID, transaction.id)
+                    currentAccountId?.let { putExtra("account_id", it) }
+                }
+                context.startActivity(intent)
+            },
+            onItemLongClick = { transaction ->
+                AlertDialog.Builder(context)
+                    .setTitle("Delete Transaction")
+                    .setMessage("Are you sure you want to delete this transaction?")
+                    .setPositiveButton("Delete") { _, _ ->
+                        currentAccountId?.let { accountId ->
+                            viewModel.deleteTransaction(transaction.id, accountId)
+                        }
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             }
-            context.startActivity(intent)
-        }
+        )
         binding.transactionsRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = transactionAdapter

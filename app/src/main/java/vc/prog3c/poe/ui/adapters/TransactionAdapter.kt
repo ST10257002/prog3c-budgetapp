@@ -13,7 +13,8 @@ import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.core.utils.CurrencyFormatter
 
 class TransactionAdapter(
-    private val onItemClick: (Transaction) -> Unit
+    private val onItemClick: (Transaction) -> Unit,
+    private val onItemLongClick: ((Transaction) -> Unit)? = null
 ) : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
@@ -37,6 +38,15 @@ class TransactionAdapter(
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onItemClick(getItem(position))
+                }
+            }
+            itemView.setOnLongClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemLongClick?.invoke(getItem(position))
+                    true
+                } else {
+                    false
                 }
             }
         }

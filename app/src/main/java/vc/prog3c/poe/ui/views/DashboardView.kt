@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Budget
@@ -22,6 +23,8 @@ import vc.prog3c.poe.ui.adapters.CategoryAdapter
 import vc.prog3c.poe.ui.viewmodels.DashboardUiState
 import vc.prog3c.poe.ui.viewmodels.DashboardViewModel
 import vc.prog3c.poe.core.utils.CurrencyFormatter
+import vc.prog3c.poe.data.models.Achievement
+import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -30,6 +33,8 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
     private lateinit var binds: ActivityDashboardBinding
     private lateinit var model: DashboardViewModel
     private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var achievementViewModel: AchievementViewModel
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +50,15 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
 
         observeViewModel()
         model.refreshData()
+
+        achievementViewModel = ViewModelProvider(this)[AchievementViewModel::class.java]
+
+        achievementViewModel.newlyCompleted.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { achievement ->
+                showAchievementSnackbar(achievement)
+            }
+        }
+
     }
 
     override fun onResume() {
@@ -268,4 +282,22 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         window.decorView.systemUiVisibility = window.decorView.systemUiVisibility and 
             View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
     }
+
+    private fun showAchievementSnackbar(achievement: Achievement) {
+        val message = "🎉 Achievement Unlocked: ${achievement.title} (+${achievement.boosterBucksReward} BB)"
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG)
+            .setAction("View") {
+                showAchievementDetailsDialog(achievement)
+            }
+            .show()
+    }
+
+    private fun showAchievementDetailsDialog(achievement: Achievement) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(achievement.title)
+            .setMessage("${achievement.description}\n\nCompleted on: ${achievement.completedAt?.toDate() ?: "N/A"}")
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
 }

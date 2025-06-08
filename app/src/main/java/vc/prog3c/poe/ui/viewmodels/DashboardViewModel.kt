@@ -17,6 +17,10 @@ import vc.prog3c.poe.data.models.*
 import vc.prog3c.poe.data.services.FirestoreService
 import vc.prog3c.poe.ui.viewmodels.DashboardUiState.*
 import java.util.Calendar
+import vc.prog3c.poe.core.services.AchievementEngine
+import vc.prog3c.poe.data.models.Account
+import vc.prog3c.poe.data.models.Transaction
+
 
 class DashboardViewModel(
     private val authService: AuthService = AuthService()
@@ -143,4 +147,7 @@ class DashboardViewModel(
             emitUpdatedState()
         }
     }
+
+
+
 }

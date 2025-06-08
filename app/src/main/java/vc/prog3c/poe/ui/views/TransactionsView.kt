@@ -1,45 +1,25 @@
 package vc.prog3c.poe.ui.views
 
 import android.app.AlertDialog
-import android.content.Intent
-import android.os.Bundle
-import android.view.View
-import android.view.animation.AnimationUtils
-import android.widget.ImageView
-import android.widget.RadioGroup
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.chip.Chip
-import com.google.android.material.snackbar.Snackbar
-import vc.prog3c.poe.R
-import vc.prog3c.poe.data.models.FilterOption
-import vc.prog3c.poe.data.models.SortOption
-import vc.prog3c.poe.databinding.ActivityTransactionsBinding
-import vc.prog3c.poe.data.models.TransactionType
-import vc.prog3c.poe.ui.adapters.TransactionAdapter
-import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
-import vc.prog3c.poe.ui.viewmodels.TransactionState
-import java.text.NumberFormat
-import java.util.Locale
-import android.widget.EditText
-import android.app.DatePickerDialog
-import java.util.Calendar
-import java.text.SimpleDateFormat
-import java.util.Date
 import android.content.Context
+import android.content.Intent
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager
+import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Transaction
+import vc.prog3c.poe.data.models.TransactionType
+import vc.prog3c.poe.data.models.SortOption
 import vc.prog3c.poe.databinding.ViewTransactionsBinding
-import android.widget.ArrayAdapter
+import vc.prog3c.poe.ui.adapters.TransactionAdapter
+import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
+import vc.prog3c.poe.ui.viewmodels.TransactionState
+import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 class TransactionsView @JvmOverloads constructor(
     context: Context,
@@ -112,7 +92,7 @@ class TransactionsView @JvmOverloads constructor(
 
     private fun showFilterDialog() {
         val options = arrayOf("All", "Income", "Expense")
-        android.app.AlertDialog.Builder(context)
+        AlertDialog.Builder(context)
             .setTitle("Filter Transactions")
             .setItems(options) { _, which ->
                 val selectedFilter = options[which]
@@ -123,7 +103,7 @@ class TransactionsView @JvmOverloads constructor(
 
     private fun showSortDialog() {
         val options = arrayOf("Date (Newest)", "Date (Oldest)", "Amount (High to Low)", "Amount (Low to High)")
-        android.app.AlertDialog.Builder(context)
+        AlertDialog.Builder(context)
             .setTitle("Sort Transactions")
             .setItems(options) { _, which ->
                 when (which) {
@@ -136,14 +116,22 @@ class TransactionsView @JvmOverloads constructor(
             .show()
     }
 
-    fun setViewModel(viewModel: TransactionViewModel, context: Context, accountId: String) {
+    fun setViewModel(
+        viewModel: TransactionViewModel,
+        achievementViewModel: AchievementViewModel,
+        context: Context,
+        accountId: String
+    ) {
         this.viewModel = viewModel
         this.currentAccountId = accountId
-        viewModel.transactions.observe(context as androidx.lifecycle.LifecycleOwner) { transactions ->
+        this.viewModel.achievementViewModel = achievementViewModel // 🔥 Injected safely here
+
+        viewModel.transactions.observe(context as LifecycleOwner) { transactions ->
             transactionAdapter.submitList(transactions)
             updateTotals(transactions)
             binding.swipeRefreshLayout.isRefreshing = false
         }
+
         viewModel.transactionState.observe(context) { state ->
             when (state) {
                 is TransactionState.Loading -> {
@@ -161,6 +149,7 @@ class TransactionsView @JvmOverloads constructor(
                 }
             }
         }
+
         viewModel.loadTransactions(accountId)
     }
 

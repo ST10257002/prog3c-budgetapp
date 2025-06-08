@@ -6,20 +6,20 @@ import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.databinding.ActivityTransactionsBinding
+import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
 import vc.prog3c.poe.ui.viewmodels.TransactionViewModel
 
 class TransactionsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTransactionsBinding
     private lateinit var viewModel: TransactionViewModel
+    private lateinit var achievementViewModel: AchievementViewModel
     private var accountId: String? = null
 
     private val addTransactionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Refresh transactions when a new one is added
             accountId?.let { viewModel.loadTransactions(it) }
         }
     }
@@ -29,9 +29,11 @@ class TransactionsActivity : AppCompatActivity() {
         binding = ActivityTransactionsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Initialize ViewModels
         viewModel = ViewModelProvider(this)[TransactionViewModel::class.java]
-        accountId = intent.getStringExtra("account_id")
+        achievementViewModel = ViewModelProvider(this)[AchievementViewModel::class.java]
 
+        accountId = intent.getStringExtra("account_id")
         if (accountId == null) {
             finish()
             return
@@ -39,7 +41,7 @@ class TransactionsActivity : AppCompatActivity() {
 
         setupToolbar()
         setupTransactionsView()
-        
+
         // Initial load of transactions
         accountId?.let { viewModel.loadTransactions(it) }
     }
@@ -55,8 +57,8 @@ class TransactionsActivity : AppCompatActivity() {
 
     private fun setupTransactionsView() {
         binding.transactionsView.apply {
-            setViewModel(viewModel, this@TransactionsActivity, accountId ?: "")
-            setOnAddTransactionClickListener {                
+            setViewModel(viewModel, achievementViewModel, this@TransactionsActivity, accountId ?: "")
+            setOnAddTransactionClickListener {
                 val intent = Intent(this@TransactionsActivity, TransactionUpsertActivity::class.java).apply {
                     putExtra("account_id", accountId)
                 }
@@ -79,4 +81,4 @@ class TransactionsActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-} 
+}

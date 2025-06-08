@@ -329,5 +329,30 @@ object SeedData {
                 .document(category.id)
                 .set(category)
         }
+
+            // Needed to be run once
+//        // -------------------------------
+//        // Seed Global Master Achievements
+//        // -------------------------------
+//
+//        val masterAchievements = AchievementDefinitions.achievements
+//        val achievementBatch = db.batch()
+//
+//        masterAchievements.forEach { achievement ->
+//            val achievementData = mapOf(
+//                "id" to achievement.id,
+//                "title" to achievement.title,
+//                "description" to achievement.description,
+//                "category" to achievement.category.name,
+//                "boosterBucksReward" to achievement.boosterBucksReward,
+//                "requiredProgress" to achievement.requiredProgress
+//            )
+//
+//            val ref = db.collection("achievements").document(achievement.id)
+//            achievementBatch.set(ref, achievementData)
+//        }
+//
+//        achievementBatch.commit()
+
     }
 }

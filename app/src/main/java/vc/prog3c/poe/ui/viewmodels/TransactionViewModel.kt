@@ -16,6 +16,9 @@ import java.text.NumberFormat
 import java.util.*
 import vc.prog3c.poe.data.models.SortOption
 import vc.prog3c.poe.core.utils.CurrencyFormatter
+import vc.prog3c.poe.data.services.AchievementEvaluator
+import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
+import vc.prog3c.poe.data.models.Account
 
 /**
  * Unified ViewModel for both income and expense transactions.
@@ -59,6 +62,9 @@ class TransactionViewModel : ViewModel() {
 
     private var _fullTransactionList: List<Transaction> = emptyList()
 
+    lateinit var achievementViewModel: AchievementViewModel
+
+
     /**
      * Load all transactions for an account.
      */
@@ -66,8 +72,11 @@ class TransactionViewModel : ViewModel() {
         viewModelScope.launch {
             _transactionState.value = TransactionState.Loading
             try {
+                val userId = auth.currentUser?.uid ?: ""
+
+                // 🔹 Load transactions
                 val transactionList = firestore.collection("users")
-                    .document(auth.currentUser?.uid ?: "")
+                    .document(userId)
                     .collection("accounts")
                     .document(accountId)
                     .collection("transactions")
@@ -78,11 +87,39 @@ class TransactionViewModel : ViewModel() {
                 allTransactions = transactionList
                 applyFilterAndSort()
                 _transactionState.value = TransactionState.Success()
+
+                // 🔹 Load all accounts
+                val accountsSnapshot = firestore.collection("users")
+                    .document(userId)
+                    .collection("accounts")
+                    .get()
+                    .await()
+
+                val accounts = accountsSnapshot.toObjects(vc.prog3c.poe.data.models.Account::class.java)
+
+                // 🔹 Load all categories
+                val categoriesSnapshot = firestore.collection("users")
+                    .document(userId)
+                    .collection("categories")
+                    .get()
+                    .await()
+
+                val categories = categoriesSnapshot.toObjects(vc.prog3c.poe.data.models.Category::class.java)
+
+                // 🔹 Evaluate achievements
+                val evaluator = vc.prog3c.poe.data.services.AchievementEvaluator(
+                    userId = userId,
+                    achievementViewModel = achievementViewModel
+                )
+                evaluator.run(accounts, allTransactions, categories)
+
             } catch (e: Exception) {
                 _transactionState.value = TransactionState.Error(e.message ?: "Failed to load transactions")
             }
         }
     }
+
+
 
     fun refreshTransactions(accountId: String?) = loadTransactions(accountId ?: "")
 
@@ -328,4 +365,18 @@ class TransactionViewModel : ViewModel() {
         const val ACCOUNT_ID = "account_id"
         const val CATEGORY = "category"
     }
+
+    fun evaluateAchievements(
+        userId: String,
+        accounts: List<Account>,
+        categories: List<vc.prog3c.poe.data.models.Category>
+    ) {
+        val evaluator = vc.prog3c.poe.data.services.AchievementEvaluator(
+            userId = userId,
+            achievementViewModel = achievementViewModel
+        )
+        evaluator.run(accounts, allTransactions, categories)  // allTransactions already cached
+    }
+
+
 }

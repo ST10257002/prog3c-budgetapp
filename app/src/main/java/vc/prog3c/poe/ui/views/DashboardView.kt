@@ -27,6 +27,9 @@ import vc.prog3c.poe.data.models.Achievement
 import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import com.google.android.material.button.MaterialButton
 
 class DashboardView : AppCompatActivity(), View.OnClickListener {
 
@@ -42,6 +45,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         setupBindings()
         setupLayoutUi()
         setupClickListeners()
+        setupSavingsGoalCard()
 
         model = ViewModelProvider(this)[DashboardViewModel::class.java]
 
@@ -153,6 +157,9 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
                 val dateFormat = android.text.format.DateFormat.getMediumDateFormat(this)
                 "Target date: ${dateFormat.format(it)}"
             } ?: ""
+
+            // Show/hide contribute button based on whether goal is reached
+            binds.contributeButton.isEnabled = goal.savedAmount < goal.targetAmount
         } else {
             binds.savingsGoalText.text = getString(R.string.no_savings_goals)
             binds.currentSavingsText.text = CurrencyFormatter.format(0)
@@ -282,6 +289,58 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             .setMessage("${achievement.description}\n\nCompleted on: ${achievement.completedAt?.toDate() ?: "N/A"}")
             .setPositiveButton("OK", null)
             .show()
+    }
+
+    private fun setupSavingsGoalCard() {
+        binds.manageGoalsButton.setOnClickListener {
+            val intent = Intent(this, ManageGoalsActivity::class.java)
+            startActivity(intent)
+        }
+
+        binds.contributeButton.setOnClickListener {
+            showContributeDialog()
+        }
+    }
+
+    private fun showContributeDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_contribute_savings, null)
+        val amountInput = dialogView.findViewById<TextInputEditText>(R.id.amountInput)
+        val amountLayout = dialogView.findViewById<TextInputLayout>(R.id.amountLayout)
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+
+        dialogView.findViewById<MaterialButton>(R.id.cancelButton).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<MaterialButton>(R.id.confirmButton).setOnClickListener {
+            val amountStr = amountInput.text.toString()
+            if (amountStr.isBlank()) {
+                amountLayout.error = "Please enter an amount"
+                return@setOnClickListener
+            }
+
+            val amount = amountStr.toDoubleOrNull()
+            if (amount == null || amount <= 0) {
+                amountLayout.error = "Please enter a valid amount"
+                return@setOnClickListener
+            }
+
+            // Get the first goal from the current UI state
+            val currentState = model.uiState.value
+            if (currentState is DashboardUiState.Updated) {
+                val goal = currentState.savingsGoals?.firstOrNull()
+                if (goal != null) {
+                    model.contributeToSavingsGoal(goal.id, amount)
+                    dialog.dismiss()
+                }
+            }
+        }
+
+        dialog.show()
     }
 
 }

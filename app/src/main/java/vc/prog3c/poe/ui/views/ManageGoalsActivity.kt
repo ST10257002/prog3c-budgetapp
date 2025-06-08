@@ -13,6 +13,7 @@ import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
 import vc.prog3c.poe.databinding.ActivityManageGoalsBinding
 import vc.prog3c.poe.ui.viewmodels.GoalViewModel
+import vc.prog3c.poe.core.utils.CurrencyFormatter
 
 class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -33,6 +34,7 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
         model = ViewModelProvider(this)[GoalViewModel::class.java]
 
         observeViewModel()
+        loadCurrentGoal()
     }
 
 
@@ -43,6 +45,21 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
         model.error.observe(this) { error ->
             error?.let {
                 Snackbar.make(binds.root, it, Snackbar.LENGTH_LONG).show()
+            }
+        }
+
+        model.isLoading.observe(this) { isLoading ->
+            binds.loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+    }
+
+
+    private fun loadCurrentGoal() {
+        model.loadCurrentGoal { goal ->
+            goal?.let {
+                binds.minGoalInput.setText(it.minMonthlyGoal.toString())
+                binds.maxGoalInput.setText(it.maxMonthlyGoal.toString())
+                binds.budgetInput.setText(it.monthlyBudget.toString())
             }
         }
     }
@@ -193,7 +210,6 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
         }
         setupStatusBar()
         setupToolbar()
-        saveForm()
     }
 
     private fun setupStatusBar() {

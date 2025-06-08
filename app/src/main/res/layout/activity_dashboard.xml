@@ -199,6 +199,19 @@
 
                             </LinearLayout>
                         </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/contributeButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="Contribute"
+                            android:textColor="@color/white"
+                            app:backgroundTint="#33FFFFFF"
+                            app:rippleColor="#4DFFFFFF"
+                            app:strokeColor="@color/white"
+                            app:strokeWidth="1dp"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

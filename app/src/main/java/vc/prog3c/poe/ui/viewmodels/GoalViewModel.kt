@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.Goal
+import vc.prog3c.poe.data.models.SavingsGoal
+import vc.prog3c.poe.data.services.FirestoreService
 import java.util.Date
 
 // TODO: Replace with Firestore implementation
@@ -40,6 +42,10 @@ class GoalViewModel(
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
+
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
 
 
     init {
@@ -175,20 +181,44 @@ class GoalViewModel(
     }
 
 
-    fun saveValidatedGoalToFirestore(
-        min: Double, max: Double, budget: Double, onResult: (Boolean) -> Unit
-    ) {
-        val uid = authService.getCurrentUser()?.uid ?: return onResult(false)
+    fun saveValidatedGoalToFirestore(minGoal: Double, maxGoal: Double, monthlyBudget: Double, onResult: (Boolean) -> Unit) {
+        _isLoading.value = true
+        val userId = authService.getCurrentUser()?.uid ?: run {
+            _error.value = "User not authenticated"
+            _isLoading.value = false
+            onResult(false)
+            return
+        }
 
-        val goalData = mapOf(
-            "minMonthlyGoal" to min,
-            "maxMonthlyGoal" to max,
-            "monthlyBudget" to budget,
-            "createdAt" to System.currentTimeMillis()
+        // Create a new savings goal
+        val savingsGoal = SavingsGoal(
+            userId = userId,
+            name = "Monthly Savings Goal",
+            targetAmount = maxGoal,
+            savedAmount = 0.0,
+            targetDate = Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000), // 30 days from now
+            minMonthlyGoal = minGoal,
+            maxMonthlyGoal = maxGoal,
+            monthlyBudget = monthlyBudget
         )
 
-        dataService.collection("users").document(uid).collection("goals")
-            .document("primary_savings_goal").set(goalData).addOnSuccessListener { onResult(true) }
-            .addOnFailureListener { onResult(false) }
+        FirestoreService.savingsGoal.saveGoal(savingsGoal) { success ->
+            _isLoading.value = false
+            if (success) {
+                _error.value = null
+                onResult(true)
+            } else {
+                _error.value = "Failed to save goal"
+                onResult(false)
+            }
+        }
+    }
+
+    fun loadCurrentGoal(onComplete: (SavingsGoal?) -> Unit) {
+        _isLoading.value = true
+        FirestoreService.savingsGoal.fetchGoals { goals ->
+            _isLoading.value = false
+            onComplete(goals.firstOrNull())
+        }
     }
 } 

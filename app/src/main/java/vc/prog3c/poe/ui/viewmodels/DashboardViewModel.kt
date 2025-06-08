@@ -21,6 +21,7 @@ import java.util.Date
 import vc.prog3c.poe.core.services.AchievementEngine
 import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.data.models.Transaction
+import java.util.UUID
 
 
 class DashboardViewModel(
@@ -227,29 +228,84 @@ class DashboardViewModel(
     }
 
     fun contributeToSavingsGoal(goalId: String, amount: Double) {
-        val userId = authService.getCurrentUser()?.uid ?: return
-        
-        // Find the goal in the current list
-        val currentGoal = currentSavingsGoals?.find { it.id == goalId } ?: return
-        
-        val updatedGoal = currentGoal.copy(
-            savedAmount = currentGoal.savedAmount + amount,
-            lastContributionDate = Date()
-        )
-        
-        val updates = mapOf<String, Any>(
-            "savedAmount" to updatedGoal.savedAmount,
-            "lastContributionDate" to updatedGoal.lastContributionDate!!
-        )
-        
-        FirestoreService.savingsGoal.updateGoal(goalId, updates) { success ->
-            if (success) {
-                currentSavingsGoals = currentSavingsGoals?.map {
-                    if (it.id == goalId) updatedGoal else it
+        viewModelScope.launch {
+            try {
+                // Find the goal in our current list
+                val goal = currentSavingsGoals?.find { it.id == goalId }
+                if (goal == null) {
+                    _uiState.value = DashboardUiState.Failure("Savings goal not found")
+                    return@launch
                 }
-                emitUpdatedState()
-            } else {
-                _uiState.value = Failure("Failed to update savings goal")
+
+                // Get all accounts to calculate total income
+                FirestoreService.account.getAllAccounts { accounts ->
+                    var totalIncome = 0.0
+                    var processedAccounts = 0
+
+                    // Calculate total income from all accounts
+                    accounts.forEach { account ->
+                        FirestoreService.account.getTransactionsForAccount(account.id) { transactions ->
+                            totalIncome += transactions
+                                .filter { it.type == TransactionType.INCOME }
+                                .sumOf { it.amount }
+                            
+                            processedAccounts++
+                            
+                            // When all accounts are processed, check if contribution is valid
+                            if (processedAccounts == accounts.size) {
+                                if (amount > totalIncome) {
+                                    _uiState.value = DashboardUiState.Failure("Contribution amount exceeds available income")
+                                    return@getTransactionsForAccount
+                                }
+
+                                // Create a new income transaction to record the contribution
+                                val contributionTransaction = Transaction(
+                                    id = UUID.randomUUID().toString(),
+                                    type = TransactionType.EXPENSE, // Mark as expense to subtract from income
+                                    amount = amount,
+                                    description = "Contribution to ${goal.name}",
+                                    date = com.google.firebase.Timestamp.now(),
+                                    category = "Savings",
+                                    accountId = accounts.first().id, // Use first account for now
+                                    userId = authService.getCurrentUser()?.uid ?: return@getTransactionsForAccount
+                                )
+
+                                // Add the transaction first
+                                FirestoreService.transaction.addTransaction(contributionTransaction) { success ->
+                                    if (!success) {
+                                        _uiState.value = DashboardUiState.Failure("Failed to record contribution")
+                                        return@addTransaction
+                                    }
+
+                                    // Then update the goal
+                                    val updatedGoal = goal.copy(
+                                        savedAmount = goal.savedAmount + amount,
+                                        lastContributionDate = Date()
+                                    )
+
+                                    val updates = mapOf<String, Any>(
+                                        "savedAmount" to updatedGoal.savedAmount,
+                                        "lastContributionDate" to updatedGoal.lastContributionDate!!
+                                    )
+                                    
+                                    FirestoreService.savingsGoal.updateGoal(goalId, updates) { success ->
+                                        if (success) {
+                                            // Update local state
+                                            currentSavingsGoals = currentSavingsGoals?.map { 
+                                                if (it.id == goalId) updatedGoal else it 
+                                            }
+                                            emitUpdatedState()
+                                        } else {
+                                            _uiState.value = DashboardUiState.Failure("Failed to update savings goal")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.value = DashboardUiState.Failure("Failed to contribute to savings goal: ${e.message}")
             }
         }
     }

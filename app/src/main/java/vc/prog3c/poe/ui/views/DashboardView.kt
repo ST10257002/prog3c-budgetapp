@@ -147,6 +147,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             val progress = if (goal.targetAmount > 0) goal.savedAmount / goal.targetAmount else 0.0
             val percent = (progress * 100).toInt().coerceIn(0, 100)
 
+            binds.savingsGoalTitle.text = "Savings Goal"
             binds.savingsGoalText.text = "${goal.name}: ${CurrencyFormatter.format(goal.savedAmount)} / ${CurrencyFormatter.format(goal.targetAmount)}"
             binds.currentSavingsText.text = CurrencyFormatter.format(goal.savedAmount)
             binds.maxSavingsText.text = CurrencyFormatter.format(goal.targetAmount)
@@ -161,6 +162,7 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
             // Show/hide contribute button based on whether goal is reached
             binds.contributeButton.isEnabled = goal.savedAmount < goal.targetAmount
         } else {
+            binds.savingsGoalTitle.text = "Savings Goal"
             binds.savingsGoalText.text = getString(R.string.no_savings_goals)
             binds.currentSavingsText.text = CurrencyFormatter.format(0)
             binds.maxSavingsText.text = CurrencyFormatter.format(0)

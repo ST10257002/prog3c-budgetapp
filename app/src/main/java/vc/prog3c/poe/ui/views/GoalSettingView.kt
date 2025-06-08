@@ -53,6 +53,7 @@ class GoalSettingView : AppCompatActivity(), View.OnClickListener {
         val minGoal = binds.minGoalEditText.text.toString().toDoubleOrNull()
         val maxGoal = binds.maxGoalEditText.text.toString().toDoubleOrNull()
         val monthlyBudget = binds.budgetEditText.text.toString().toDoubleOrNull()
+        val goalName = "Monthly Savings Goal" // Default name for goal setting view
 
         if (minGoal == null || maxGoal == null || monthlyBudget == null) {
             Toast.makeText(this, "Please enter valid amounts", Toast.LENGTH_SHORT).show()
@@ -60,7 +61,7 @@ class GoalSettingView : AppCompatActivity(), View.OnClickListener {
         }
 
         if (model.validateGoal(minGoal, maxGoal, monthlyBudget)) {
-            model.saveValidatedGoalToFirestore(minGoal, maxGoal, monthlyBudget) { success ->
+            model.saveValidatedGoalToFirestore(goalName, minGoal, maxGoal, monthlyBudget) { success ->
                 if (success) {
                     Toast.makeText(this, "Goal saved!", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, DashboardView::class.java))

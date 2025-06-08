@@ -57,6 +57,7 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
     private fun loadCurrentGoal() {
         model.loadCurrentGoal { goal ->
             goal?.let {
+                binds.goalNameInput.setText(it.name)
                 binds.minGoalInput.setText(it.minMonthlyGoal.toString())
                 binds.maxGoalInput.setText(it.maxMonthlyGoal.toString())
                 binds.budgetInput.setText(it.monthlyBudget.toString())
@@ -70,6 +71,15 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun validateForm(): Boolean {
         var isValid = true
+
+        // Validate goal name
+        val goalName = binds.goalNameInput.text.toString()
+        if (goalName.isBlank()) {
+            binds.goalNameLayout.error = "Goal name is required"
+            isValid = false
+        } else {
+            binds.goalNameLayout.error = null
+        }
 
         // Validate minimum goal
         val minGoalText = binds.minGoalInput.text.toString()
@@ -137,12 +147,13 @@ class ManageGoalsActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun saveForm() {
         if (validateForm()) {
+            val goalName = binds.goalNameInput.text.toString()
             val minGoal = binds.minGoalInput.text.toString().toDoubleOrNull() ?: 0.0
             val maxGoal = binds.maxGoalInput.text.toString().toDoubleOrNull() ?: 0.0
             val monthlyBudget = binds.budgetInput.text.toString().toDoubleOrNull() ?: 0.0
 
             if (model.validateGoal(minGoal, maxGoal, monthlyBudget)) {
-                model.saveValidatedGoalToFirestore(minGoal, maxGoal, monthlyBudget) { success ->
+                model.saveValidatedGoalToFirestore(goalName, minGoal, maxGoal, monthlyBudget) { success ->
                     if (success) {
                         Toast.makeText(this, "Goals updated successfully", Toast.LENGTH_SHORT)
                             .show()

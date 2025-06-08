@@ -19,8 +19,6 @@ class TransactionsActivity : AppCompatActivity() {
     private lateinit var viewModel: TransactionViewModel
     private lateinit var achievementViewModel: AchievementViewModel
 
-    private lateinit var binds: ActivityTransactionsBinding
-    private lateinit var model: TransactionViewModel
     private var accountId: String? = null
 
     private val addTransactionLauncher = registerForActivityResult(
@@ -28,8 +26,6 @@ class TransactionsActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             accountId?.let { viewModel.loadTransactions(it) }
-            // Refresh transactions when a new one is added
-            accountId?.let { model.loadTransactions(it) }
         }
     }
 
@@ -62,7 +58,7 @@ class TransactionsActivity : AppCompatActivity() {
     // --- ViewModel
 
     private fun observeViewModel() {
-        model.accountName.observe(this) { name ->
+        viewModel.accountName.observe(this) { name ->
             supportActionBar?.subtitle = name ?: ""
         }
     }
@@ -88,7 +84,7 @@ class TransactionsActivity : AppCompatActivity() {
     // --- UI Configuration
 
     private fun setupToolbar() {
-        setSupportActionBar(binds.toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
@@ -110,14 +106,10 @@ class TransactionsActivity : AppCompatActivity() {
 
     // --- UI Registrations
 
-    private fun setupBindings() {
-        binds = ActivityTransactionsBinding.inflate(layoutInflater)
-    }
-
     private fun setupLayoutUi() {
-        setContentView(binds.root)
+        setContentView(binding.root)
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets

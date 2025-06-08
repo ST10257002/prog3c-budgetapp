@@ -278,7 +278,16 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
         enableEdgeToEdge()
         ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom)
+            // Add top padding to the AppBarLayout (parent of toolbar)
+            (binds.toolbar.parent as? View)?.let { appBar ->
+                appBar.setPadding(
+                    appBar.paddingLeft,
+                    systemBars.top,
+                    appBar.paddingRight,
+                    appBar.paddingBottom
+                )
+            }
             insets
         }
         setupStatusBar()

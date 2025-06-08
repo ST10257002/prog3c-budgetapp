@@ -81,7 +81,6 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
 
     // --- ViewModel
 
-
     private fun observeViewModelState() = model.uiState.observe(this) { state ->
         when (state) {
             is TransactionUpsertUiState.Success -> {
@@ -139,10 +138,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
     private fun loadImageInView(path: String) {
         setPhotoPath(path)
         val uri = path.toUri()
-        Glide.with(binds.ivImage.context)
-            .load(uri)
-            .centerCrop()
-            .into(binds.ivImage)
+        Glide.with(binds.ivImage.context).load(uri).centerCrop().into(binds.ivImage)
     }
 
     private fun loadOptionsForCategoryDropdown(options: List<Category>) {
@@ -286,15 +282,12 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
     private fun setupLayoutUi() {
         enableEdgeToEdge()
         setContentView(binds.root)
-        
+
         // Handle system insets
         ViewCompat.setOnApplyWindowInsetsListener(binds.root) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(
-                insets.left,
-                view.paddingTop,
-                insets.right,
-                insets.bottom
+                insets.left, view.paddingTop, insets.right, insets.bottom
             )
             windowInsets
         }

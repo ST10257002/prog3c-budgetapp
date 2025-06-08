@@ -73,9 +73,9 @@ class TransactionViewModel(
         viewModelScope.launch {
             _transactionState.value = TransactionState.Loading
             try {
-                val userId = auth.currentUser?.uid ?: ""
+                val userId = authService.getCurrentUser()?.uid ?: return@launch
 
-                // 🔹 Load transactions
+                // Load transactions
                 val transactionList = firestore.collection("users")
                     .document(userId)
                     .collection("accounts")
@@ -89,16 +89,16 @@ class TransactionViewModel(
                 applyFilterAndSort()
                 _transactionState.value = TransactionState.Success()
 
-                // 🔹 Load all accounts
+                // Load accounts
                 val accountsSnapshot = firestore.collection("users")
                     .document(userId)
                     .collection("accounts")
                     .get()
                     .await()
 
-                val accounts = accountsSnapshot.toObjects(vc.prog3c.poe.data.models.Account::class.java)
+                val accounts = accountsSnapshot.toObjects(Account::class.java)
 
-                // 🔹 Load all categories
+                // Load categories
                 val categoriesSnapshot = firestore.collection("users")
                     .document(userId)
                     .collection("categories")
@@ -107,18 +107,15 @@ class TransactionViewModel(
 
                 val categories = categoriesSnapshot.toObjects(vc.prog3c.poe.data.models.Category::class.java)
 
-                // 🔹 Evaluate achievements
-                val evaluator = vc.prog3c.poe.data.services.AchievementEvaluator(
-                    userId = userId,
-                    achievementViewModel = achievementViewModel
-                )
-                evaluator.run(accounts, allTransactions, categories)
+                // Evaluate achievements
+                evaluateAchievements(userId, accounts, categories)
 
             } catch (e: Exception) {
                 _transactionState.value = TransactionState.Error(e.message ?: "Failed to load transactions")
             }
         }
     }
+
 
     fun loadAccountName(accountId: String) {
         dataService.account.getAccount(accountId) { result ->

@@ -243,29 +243,29 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
             binds.btImageGallery.id -> galleryService.launchPicker()
             binds.etDate.id -> showDateSelectorDialog()
             binds.btSave.id -> submitTransaction()
+            binds.btnRemoveImage.id -> {
+                selectedPhotoUri = null
+                binds.ivImage.setImageDrawable(null)
+                Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     override fun onLongClick(view: View?): Boolean {
-        when (view?.id) {
-            binds.ivImage.id -> {
-                selectedPhotoUri = null
-                binds.ivImage.setImageDrawable(null)
-                Toast.makeText(
-                    this, "Deselected image", Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-
-        return true
+        // No longer used for image removal
+        return false
     }
 
     private fun setupClickListeners() {
-        binds.ivImage.setOnLongClickListener(this)
         binds.btImageCapture.setOnClickListener(this)
         binds.btImageGallery.setOnClickListener(this)
         binds.btSave.setOnClickListener(this)
         binds.etDate.setOnClickListener(this)
+        binds.btnRemoveImage.setOnClickListener {
+            selectedPhotoUri = null
+            binds.ivImage.setImageDrawable(null)
+            Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show()
+        }
     }
 
     // --- UI Configuration

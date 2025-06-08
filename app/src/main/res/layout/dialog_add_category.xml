@@ -14,7 +14,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/nameInput"
-            style="@style/Widget.BudgetApp.TextInputLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -30,7 +30,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/descriptionInput"
-            style="@style/Widget.BudgetApp.TextInputLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -46,7 +46,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/typeInput"
-            style="@style/Widget.BudgetApp.TextInputLayout.ExposedDropdownMenu"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -77,35 +77,38 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/minBudgetInput"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:hint="Minimum Budget">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:inputType="numberDecimal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/maxBudgetInput"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
             android:hint="Maximum Budget">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:inputType="numberDecimal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:text="Category Icon"
-            android:textAppearance="?attr/textAppearanceSubtitle1"
-            android:textColor="?attr/colorOnSurface" />
+            android:layout_marginBottom="8dp"
+            android:text="Icon"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -125,7 +128,9 @@
                     android:layout_height="wrap_content"
                     android:text="Category"
                     app:chipIcon="@drawable/ic_category"
-                    app:chipIconSize="24dp" />
+                    app:chipIconSize="24dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/iconSavings"
@@ -133,7 +138,9 @@
                     android:layout_height="wrap_content"
                     android:text="Savings"
                     app:chipIcon="@drawable/ic_savings"
-                    app:chipIconSize="24dp" />
+                    app:chipIconSize="24dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/iconUtilities"
@@ -141,7 +148,9 @@
                     android:layout_height="wrap_content"
                     android:text="Utilities"
                     app:chipIcon="@drawable/ic_utilities"
-                    app:chipIconSize="24dp" />
+                    app:chipIconSize="24dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/iconEmergency"
@@ -149,7 +158,9 @@
                     android:layout_height="wrap_content"
                     android:text="Emergency"
                     app:chipIcon="@drawable/ic_error"
-                    app:chipIconSize="24dp" />
+                    app:chipIconSize="24dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/iconIncome"
@@ -157,7 +168,9 @@
                     android:layout_height="wrap_content"
                     android:text="Income"
                     app:chipIcon="@drawable/ic_income"
-                    app:chipIconSize="24dp" />
+                    app:chipIconSize="24dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/iconExpense"
@@ -165,7 +178,9 @@
                     android:layout_height="wrap_content"
                     android:text="Expense"
                     app:chipIcon="@drawable/ic_expense"
-                    app:chipIconSize="24dp" />
+                    app:chipIconSize="24dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
             </com.google.android.material.chip.ChipGroup>
 
@@ -174,86 +189,109 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:text="Category Color"
-            android:textAppearance="?attr/textAppearanceSubtitle1"
-            android:textColor="?attr/colorOnSurface" />
+            android:layout_marginBottom="8dp"
+            android:text="Color"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/colorChipGroup"
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:singleSelection="true">
+            android:layout_marginBottom="24dp"
+            android:scrollbars="none">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/colorGreen"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/colorChipGroup"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Green"
-                app:chipBackgroundColor="#4CAF50"
-                app:chipMinHeight="48dp" />
+                app:singleSelection="true">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/colorBlue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Blue"
-                app:chipBackgroundColor="#2196F3"
-                app:chipMinHeight="48dp" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/colorGreen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Green"
+                    app:chipBackgroundColor="@color/colorGreen"
+                    app:chipStrokeColor="@color/primary"
+                    app:chipStrokeWidth="1dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/colorRed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Red"
-                app:chipBackgroundColor="#F44336"
-                app:chipMinHeight="48dp" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/colorBlue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Blue"
+                    app:chipBackgroundColor="@color/colorBlue"
+                    app:chipStrokeColor="@color/primary"
+                    app:chipStrokeWidth="1dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/colorPurple"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Purple"
-                app:chipBackgroundColor="#9C27B0"
-                app:chipMinHeight="48dp" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/colorRed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Red"
+                    app:chipBackgroundColor="@color/colorRed"
+                    app:chipStrokeColor="@color/primary"
+                    app:chipStrokeWidth="1dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/colorOrange"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Orange"
-                app:chipBackgroundColor="#FF9800"
-                app:chipMinHeight="48dp" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/colorPurple"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Purple"
+                    app:chipBackgroundColor="@color/colorPurple"
+                    app:chipStrokeColor="@color/primary"
+                    app:chipStrokeWidth="1dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
 
-        </com.google.android.material.chip.ChipGroup>
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/colorOrange"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Orange"
+                    app:chipBackgroundColor="@color/colorOrange"
+                    app:chipStrokeColor="@color/primary"
+                    app:chipStrokeWidth="1dp"
+                    app:checkedIcon="@drawable/ic_check"
+                    app:checkedIconVisible="true" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+        </HorizontalScrollView>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/activeSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:checked="true"
-            android:text="Active Category" />
+            android:layout_marginBottom="24dp"
+            android:text="Active"
+            android:checked="true" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:gravity="end"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cancelButton"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
+                android:layout_weight="1"
                 android:text="Cancel" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/saveButton"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
                 android:text="Save" />
 
         </LinearLayout>

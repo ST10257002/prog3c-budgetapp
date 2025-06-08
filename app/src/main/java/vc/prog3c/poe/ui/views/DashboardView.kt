@@ -205,24 +205,8 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         binds.noCategoriesText.visibility = View.GONE
         binds.categoriesRecyclerView.visibility = View.VISIBLE
 
-        val allCategories = categories.toMutableList()
-
-        if (allCategories.none { it.type == CategoryType.SAVINGS }) {
-            allCategories.add(Category("savings", "Savings", CategoryType.SAVINGS, "ic_savings", "#4CAF50", false))
-        }
-        if (allCategories.none { it.type == CategoryType.EMERGENCY }) {
-            allCategories.add(Category("emergency", "Emergency Fund", CategoryType.EMERGENCY, "ic_error", "#F44336", false))
-        }
-        if (allCategories.none { it.type == CategoryType.UTILITIES }) {
-            allCategories.add(Category("utilities", "Utilities", CategoryType.UTILITIES, "ic_utilities", "#2196F3", false))
-        }
-
-        val sortedCategories = allCategories.sortedWith(
-            compareBy<Category> { it.type != CategoryType.SAVINGS }
-                .thenBy { it.type != CategoryType.EMERGENCY }
-                .thenBy { it.type != CategoryType.UTILITIES }
-                .thenBy { it.name }
-        )
+        // Only use user categories, do not add preset ones
+        val sortedCategories = categories.sortedBy { it.name }
 
         categoryAdapter.submitList(sortedCategories)
         categoryAdapter.updateCategoryTotals(breakdown)

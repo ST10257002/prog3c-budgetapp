@@ -86,6 +86,9 @@ dependencies {
     implementation(libs.androidx.activity)
     kapt("com.github.bumptech.glide:compiler:4.16.0")
 
+    // CircleImageView
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+
     // Charts
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 

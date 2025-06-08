@@ -15,70 +15,6 @@ class CategoryViewModel(
     private val authService: AuthService = AuthService(),
     private val dataService: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) : ViewModel() {
-    companion object {
-        private const val TAG = "CategoryViewModel"
-        
-        private val PRESET_CATEGORIES = listOf(
-            // Income categories
-            Category(
-                id = "income_salary",
-                name = "Salary",
-                type = CategoryType.SAVINGS,
-                isEditable = false
-            ),
-            Category(
-                id = "income_bonus",
-                name = "Bonus",
-                type = CategoryType.SAVINGS,
-                isEditable = false
-            ),
-            Category(
-                id = "income_investment",
-                name = "Investment",
-                type = CategoryType.SAVINGS,
-                isEditable = false
-            ),
-            Category(
-                id = "income_other",
-                name = "Other Income",
-                type = CategoryType.SAVINGS,
-                isEditable = false
-            ),
-            
-            // Expense categories
-            Category(
-                id = "expense_utilities",
-                name = "Utilities",
-                type = CategoryType.UTILITIES,
-                isEditable = false
-            ),
-            Category(
-                id = "expense_rent",
-                name = "Rent",
-                type = CategoryType.UTILITIES,
-                isEditable = false
-            ),
-            Category(
-                id = "expense_groceries",
-                name = "Groceries",
-                type = CategoryType.UTILITIES,
-                isEditable = false
-            ),
-            Category(
-                id = "expense_transport",
-                name = "Transport",
-                type = CategoryType.UTILITIES,
-                isEditable = false
-            ),
-            Category(
-                id = "expense_other",
-                name = "Other Expense",
-                type = CategoryType.UTILITIES,
-                isEditable = false
-            )
-        )
-    }
-    
     private val _categories = MutableLiveData<List<Category>>()
     val categories: LiveData<List<Category>> = _categories
     
@@ -95,10 +31,7 @@ class CategoryViewModel(
             val userCategories =
                 dataService.collection("users").document(userId).collection("categories").get().await()
                     .toObjects(Category::class.java)
-
-            // Combine preset categories with user categories
-            val allCategories = PRESET_CATEGORIES + userCategories
-            _categories.value = allCategories
+            _categories.value = userCategories
         } catch (e: Exception) {
             _error.value = "Failed to load categories: ${e.message}"
         }
@@ -125,13 +58,6 @@ class CategoryViewModel(
     fun deleteCategory(categoryId: String) = viewModelScope.launch {
         try {
             val userId = authService.getCurrentUser()?.uid ?: return@launch
-            val category = _categories.value?.find { it.id == categoryId }
-
-            if (category?.isEditable == false) {
-                _error.value = "Cannot delete preset categories"
-                return@launch
-            }
-
             dataService.collection("users").document(userId).collection("categories").document(categoryId)
                 .delete().await()
 
@@ -147,11 +73,6 @@ class CategoryViewModel(
     fun updateCategory(category: Category) = viewModelScope.launch {
         try {
             val userId = authService.getCurrentUser()?.uid ?: return@launch
-            if (!category.isEditable) {
-                _error.value = "Cannot modify preset categories"
-                return@launch
-            }
-
             dataService.collection("users").document(userId).collection("categories").document(category.id)
                 .set(category).await()
 

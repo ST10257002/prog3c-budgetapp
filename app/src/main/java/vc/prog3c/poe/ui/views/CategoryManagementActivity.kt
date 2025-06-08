@@ -14,6 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.google.android.material.switchmaterial.SwitchMaterial
+import android.app.AlertDialog
+import android.widget.Toast
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.CategoryType
@@ -69,61 +74,89 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_category, null)
 
         val nameInput = dialogView.findViewById<TextInputLayout>(R.id.nameInput)
+        val descriptionInput = dialogView.findViewById<TextInputLayout>(R.id.descriptionInput)
         val typeInput = dialogView.findViewById<TextInputLayout>(R.id.typeInput)
         val typeDropdown = typeInput.editText as? AutoCompleteTextView
         val minInput = dialogView.findViewById<TextInputLayout>(R.id.minBudgetInput)
         val maxInput = dialogView.findViewById<TextInputLayout>(R.id.maxBudgetInput)
-        val iconChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.iconChipGroup)
-        val colorChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.colorChipGroup)
+        val iconChipGroup = dialogView.findViewById<ChipGroup>(R.id.iconChipGroup)
+        val colorChipGroup = dialogView.findViewById<ChipGroup>(R.id.colorChipGroup)
+        val activeSwitch = dialogView.findViewById<SwitchMaterial>(R.id.activeSwitch)
 
+        // Set up type dropdown
         val types = CategoryType.values().filter { it != CategoryType.SAVINGS }
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, types)
         typeDropdown?.setAdapter(adapter)
 
+        // Set default selections
         iconChipGroup.check(R.id.iconCategory)
         colorChipGroup.check(R.id.colorGreen)
+        activeSwitch.isChecked = true
 
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("Add Category")
             .setView(dialogView)
-            .setPositiveButton("Add") { _, _ ->
+            .setPositiveButton("Add", null) // Set to null initially
+            .setNegativeButton("Cancel", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.setOnClickListener {
                 val name = nameInput.editText?.text.toString()
+                val description = descriptionInput.editText?.text.toString()
                 val type = typeDropdown?.text.toString()
                 val min = minInput.editText?.text.toString().toDoubleOrNull() ?: 0.0
                 val max = maxInput.editText?.text.toString().toDoubleOrNull() ?: 0.0
+                val isActive = activeSwitch.isChecked
 
-                val selectedIconChip = dialogView.findViewById<com.google.android.material.chip.Chip>(iconChipGroup.checkedChipId)
-                val selectedColorChip = dialogView.findViewById<com.google.android.material.chip.Chip>(colorChipGroup.checkedChipId)
-
-                if (name.isNotBlank() && type.isNotBlank()) {
-                    val newCategory = Category(
-                        id = UUID.randomUUID().toString(),
-                        name = name,
-                        type = CategoryType.valueOf(type),
-                        icon = when (selectedIconChip.id) {
-                            R.id.iconSavings -> "ic_savings"
-                            R.id.iconUtilities -> "ic_utilities"
-                            R.id.iconEmergency -> "ic_error"
-                            R.id.iconIncome -> "ic_income"
-                            R.id.iconExpense -> "ic_expense"
-                            else -> "ic_category"
-                        },
-                        color = when (selectedColorChip.id) {
-                            R.id.colorBlue -> "#2196F3"
-                            R.id.colorRed -> "#F44336"
-                            R.id.colorPurple -> "#9C27B0"
-                            R.id.colorOrange -> "#FF9800"
-                            else -> "#4CAF50"
-                        },
-                        minBudget = min,
-                        maxBudget = max,
-                        isEditable = true
-                    )
-                    model.addCategory(newCategory)
+                if (name.isBlank()) {
+                    nameInput.error = "Name is required"
+                    return@setOnClickListener
                 }
+                if (type.isBlank()) {
+                    typeInput.error = "Type is required"
+                    return@setOnClickListener
+                }
+                if (min > max) {
+                    maxInput.error = "Max must be ≥ Min"
+                    return@setOnClickListener
+                }
+
+                val selectedIconChip = dialogView.findViewById<Chip>(iconChipGroup.checkedChipId)
+                val selectedColorChip = dialogView.findViewById<Chip>(colorChipGroup.checkedChipId)
+
+                val newCategory = Category(
+                    id = UUID.randomUUID().toString(),
+                    name = name,
+                    type = CategoryType.valueOf(type),
+                    icon = when (selectedIconChip.id) {
+                        R.id.iconSavings -> "ic_savings"
+                        R.id.iconUtilities -> "ic_utilities"
+                        R.id.iconEmergency -> "ic_error"
+                        R.id.iconIncome -> "ic_income"
+                        R.id.iconExpense -> "ic_expense"
+                        else -> "ic_category"
+                    },
+                    color = when (selectedColorChip.id) {
+                        R.id.colorBlue -> "colorBlue"
+                        R.id.colorRed -> "colorRed"
+                        R.id.colorPurple -> "colorPurple"
+                        R.id.colorOrange -> "colorOrange"
+                        else -> "colorGreen"
+                    },
+                    description = description,
+                    minBudget = min,
+                    maxBudget = max,
+                    isActive = isActive,
+                    isEditable = true
+                )
+                model.addCategory(newCategory)
+                dialog.dismiss()
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
+
+        dialog.show()
     }
 
 
@@ -135,17 +168,29 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
         }
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_category, null)
-        val nameInput = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.nameInput)
-        val typeInput = dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.typeInput)
-        val typeDropdown = typeInput.editText as? com.google.android.material.textfield.MaterialAutoCompleteTextView
-        val iconChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.iconChipGroup)
-        val colorChipGroup = dialogView.findViewById<com.google.android.material.chip.ChipGroup>(R.id.colorChipGroup)
 
+        val nameInput = dialogView.findViewById<TextInputLayout>(R.id.nameInput)
+        val descriptionInput = dialogView.findViewById<TextInputLayout>(R.id.descriptionInput)
+        val typeInput = dialogView.findViewById<TextInputLayout>(R.id.typeInput)
+        val typeDropdown = typeInput.editText as? AutoCompleteTextView
+        val minInput = dialogView.findViewById<TextInputLayout>(R.id.minBudgetInput)
+        val maxInput = dialogView.findViewById<TextInputLayout>(R.id.maxBudgetInput)
+        val iconChipGroup = dialogView.findViewById<ChipGroup>(R.id.iconChipGroup)
+        val colorChipGroup = dialogView.findViewById<ChipGroup>(R.id.colorChipGroup)
+        val activeSwitch = dialogView.findViewById<SwitchMaterial>(R.id.activeSwitch)
+
+        // Populate fields
         nameInput.editText?.setText(category.name)
+        descriptionInput.editText?.setText(category.description)
+        typeDropdown?.setText(category.type.name, false)
+        minInput.editText?.setText(category.minBudget.toString())
+        maxInput.editText?.setText(category.maxBudget.toString())
+        activeSwitch.isChecked = category.isActive
+
+        // Set up type dropdown
         val types = CategoryType.values().filter { it != CategoryType.SAVINGS }
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, types)
         typeDropdown?.setAdapter(adapter)
-        typeDropdown?.setText(category.type.toString(), false)
 
         // Set current selections
         iconChipGroup.check(
@@ -153,52 +198,84 @@ class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
                 "ic_savings" -> R.id.iconSavings
                 "ic_utilities" -> R.id.iconUtilities
                 "ic_error" -> R.id.iconEmergency
+                "ic_income" -> R.id.iconIncome
+                "ic_expense" -> R.id.iconExpense
                 else -> R.id.iconCategory
             }
         )
 
         colorChipGroup.check(
             when (category.color) {
-                "#2196F3" -> R.id.colorBlue
-                "#F44336" -> R.id.colorRed
-                "#9C27B0" -> R.id.colorPurple
-                "#FF9800" -> R.id.colorOrange
+                "colorBlue" -> R.id.colorBlue
+                "colorRed" -> R.id.colorRed
+                "colorPurple" -> R.id.colorPurple
+                "colorOrange" -> R.id.colorOrange
                 else -> R.id.colorGreen
             }
         )
 
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("Edit Category")
             .setView(dialogView)
-            .setPositiveButton("Save") { _, _ ->
-                val name = nameInput.editText?.text.toString()
-                val type = typeDropdown?.text.toString()
-                val selectedIconChip = dialogView.findViewById<com.google.android.material.chip.Chip>(iconChipGroup.checkedChipId)
-                val selectedColorChip = dialogView.findViewById<com.google.android.material.chip.Chip>(colorChipGroup.checkedChipId)
-
-                if (name.isNotBlank() && type.isNotBlank()) {
-                    val updatedCategory = category.copy(
-                        name = name,
-                        type = CategoryType.valueOf(type),
-                        icon = when (selectedIconChip.id) {
-                            R.id.iconSavings -> "ic_savings"
-                            R.id.iconUtilities -> "ic_utilities"
-                            R.id.iconEmergency -> "ic_error"
-                            else -> "ic_category"
-                        },
-                        color = when (selectedColorChip.id) {
-                            R.id.colorBlue -> "#2196F3"
-                            R.id.colorRed -> "#F44336"
-                            R.id.colorPurple -> "#9C27B0"
-                            R.id.colorOrange -> "#FF9800"
-                            else -> "#4CAF50"
-                        }
-                    )
-                    model.updateCategory(updatedCategory)
-                }
-            }
+            .setPositiveButton("Save", null) // Set to null initially
             .setNegativeButton("Cancel", null)
-            .show()
+            .create()
+
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.setOnClickListener {
+                val name = nameInput.editText?.text.toString()
+                val description = descriptionInput.editText?.text.toString()
+                val type = typeDropdown?.text.toString()
+                val min = minInput.editText?.text.toString().toDoubleOrNull() ?: 0.0
+                val max = maxInput.editText?.text.toString().toDoubleOrNull() ?: 0.0
+                val isActive = activeSwitch.isChecked
+
+                if (name.isBlank()) {
+                    nameInput.error = "Name is required"
+                    return@setOnClickListener
+                }
+                if (type.isBlank()) {
+                    typeInput.error = "Type is required"
+                    return@setOnClickListener
+                }
+                if (min > max) {
+                    maxInput.error = "Max must be ≥ Min"
+                    return@setOnClickListener
+                }
+
+                val selectedIconChip = dialogView.findViewById<Chip>(iconChipGroup.checkedChipId)
+                val selectedColorChip = dialogView.findViewById<Chip>(colorChipGroup.checkedChipId)
+
+                val updatedCategory = category.copy(
+                    name = name,
+                    type = CategoryType.valueOf(type),
+                    icon = when (selectedIconChip.id) {
+                        R.id.iconSavings -> "ic_savings"
+                        R.id.iconUtilities -> "ic_utilities"
+                        R.id.iconEmergency -> "ic_error"
+                        R.id.iconIncome -> "ic_income"
+                        R.id.iconExpense -> "ic_expense"
+                        else -> "ic_category"
+                    },
+                    color = when (selectedColorChip.id) {
+                        R.id.colorBlue -> "colorBlue"
+                        R.id.colorRed -> "colorRed"
+                        R.id.colorPurple -> "colorPurple"
+                        R.id.colorOrange -> "colorOrange"
+                        else -> "colorGreen"
+                    },
+                    description = description,
+                    minBudget = min,
+                    maxBudget = max,
+                    isActive = isActive
+                )
+                model.updateCategory(updatedCategory)
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
     }
     
 

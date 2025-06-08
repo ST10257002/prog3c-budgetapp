@@ -84,6 +84,8 @@ class GraphView : AppCompatActivity(), View.OnClickListener {
         } catch (e: Exception) {
             showError("Failed to load graph: ${e.message}")
             Log.e("GRAPH_TEST", "Graph loading failed", e)
+        } finally {
+            binds.swipeRefreshLayout.isRefreshing = false
         }
     }
 
@@ -351,7 +353,7 @@ class GraphView : AppCompatActivity(), View.OnClickListener {
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
-            title = "Insights"
+            title = "Graph"
         }
     }
 
@@ -380,6 +382,12 @@ class GraphView : AppCompatActivity(), View.OnClickListener {
         binds.bottomNavigation.selectedItemId = R.id.nav_graph
     }
 
+    private fun setupSwipeRefresh() {
+        binds.swipeRefreshLayout.setOnRefreshListener {
+            loadGraphData()
+        }
+    }
+
     // --- UI Registrations
 
     private fun setupBindings() {
@@ -388,7 +396,7 @@ class GraphView : AppCompatActivity(), View.OnClickListener {
 
     private fun setupLayoutUI() {
         setContentView(binds.root)
-        enableEdgeToEdge( // Fix transparent status bar text
+        enableEdgeToEdge(
             SystemBarStyle.light(
                 ContextCompat.getColor(this, R.color.primary),
                 ContextCompat.getColor(this, R.color.primary)
@@ -396,10 +404,19 @@ class GraphView : AppCompatActivity(), View.OnClickListener {
         )
         ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom)
+            (binds.toolbar.parent as? View)?.let { appBar ->
+                appBar.setPadding(
+                    appBar.paddingLeft,
+                    systemBars.top,
+                    appBar.paddingRight,
+                    appBar.paddingBottom
+                )
+            }
             insets
         }
         
         setupToolbar()
+        setupSwipeRefresh()
     }
 }

@@ -208,13 +208,14 @@ This project wouldn't be possible without our brilliant team:
 # 📚 References
 
 This section includes all the external resources, libraries, tools, and platforms used in the development of the **BankBoosta – prog3c-budgetapp** Android application, formatted in Harvard style.
+Please NOTE: There is a full reference document included, which contains all in-text references.
 
 1. **ST10257002, ST10293362, ST10326084, and ST10187287** (2025) *BankBoosta – prog3c-budgetapp*. GitHub. Available at: [https://github.com/ST10257002/prog3c-budgetapp](https://github.com/ST10257002/prog3c-budgetapp) (Accessed: 14 May 2025).
 
 2. **JetBrains** (n.d.) *Kotlin programming language*. Available at: [https://kotlinlang.org/](https://kotlinlang.org/) (Accessed: 5 April 2025).  
    → Kotlin is the primary programming language used for building Android apps in this project.
 
-3. **Android Developers** (n.d.) *Android Studio and SDK tools*. Google. Available at: [https://developer.android.com/studio](https://developer.android.com/studio) (Accessed: 13 May 2025).  
+3. **Android Developers** (2025) *Android Studio and SDK tools*. Google. Available at: [https://developer.android.com/studio](https://developer.android.com/studio) (Accessed: 13 May 2025).  
    → The app is built using Android Studio with Gradle and the Android SDK.
 
 4. **Gradle Inc.** (n.d.) *Gradle Build Tool*. Available at: [https://gradle.org/](https://gradle.org/) (Accessed: 9 June 2025).  

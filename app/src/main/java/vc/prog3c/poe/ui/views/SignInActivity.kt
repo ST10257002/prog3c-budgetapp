@@ -21,6 +21,10 @@ import vc.prog3c.poe.core.utils.Notifier
 import vc.prog3c.poe.databinding.ActivitySignInBinding
 import vc.prog3c.poe.ui.viewmodels.SignInUiState
 import vc.prog3c.poe.ui.viewmodels.SignInViewModel
+/**
+ * @reference Android EditText Input Validation: https://developer.android.com/guide/topics/ui/controls/text
+ * @reference Android View Binding with Buttons: https://developer.android.com/topic/libraries/view-binding
+ */
 
 class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHost {
     companion object {

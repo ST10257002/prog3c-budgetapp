@@ -23,6 +23,11 @@ import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.data.models.Transaction
 import java.util.UUID
 
+/**
+ * @reference Firebase Firestore - Read from Multiple Collections: https://firebase.google.com/docs/firestore/query-data/get-data#kotlin+ktx
+ * @reference MPAndroidChart - Pie Charts: https://github.com/PhilJay/MPAndroidChart/wiki/PieChart
+ * @reference Android ViewModelScope with Coroutines: https://developer.android.com/topic/libraries/architecture/coroutines
+ */
 
 class DashboardViewModel(
     private val authService: AuthService = AuthService()

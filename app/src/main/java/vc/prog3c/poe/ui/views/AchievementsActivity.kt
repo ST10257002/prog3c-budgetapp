@@ -21,6 +21,13 @@ import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
 import vc.prog3c.poe.core.utils.CurrencyFormatter
 import java.text.NumberFormat
 import java.util.Locale
+/**
+ * @reference Android ViewModelProvider: https://developer.android.com/topic/libraries/architecture/viewmodel/providers
+ * @reference Snackbar for Feedback: https://developer.android.com/reference/com/google/android/material/snackbar/Snackbar
+ * @reference MaterialAlertDialogBuilder: https://m3.material.io/components/dialogs/android
+ * @reference RecyclerView and LinearLayoutManager: https://developer.android.com/guide/topics/ui/layout/recyclerview
+ * @reference TabLayout (Material Design): https://m3.material.io/components/tabs/android
+ */
 
 class AchievementsActivity : AppCompatActivity(), View.OnClickListener {
 

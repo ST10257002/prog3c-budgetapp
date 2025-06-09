@@ -1,4 +1,9 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference Android Activity Lifecycle: https://developer.android.com/guide/components/activities/activity-lifecycle
+ * @reference LiveData Observation in Activity: https://developer.android.com/topic/libraries/architecture/livedata
+ * @reference Material Design Chips: https://m3.material.io/components/chips/android
+ */
 
 import android.app.AlertDialog
 import android.content.Context

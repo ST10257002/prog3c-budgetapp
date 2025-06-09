@@ -14,6 +14,10 @@ import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.databinding.ActivitySignUpBinding
 import vc.prog3c.poe.ui.viewmodels.SignUpUiState
 import vc.prog3c.poe.ui.viewmodels.SignUpViewModel
+/**
+ * @reference Android Form Handling with ViewModel: https://developer.android.com/topic/libraries/architecture/viewmodel
+ * @reference Material Design Text Fields: https://m3.material.io/components/text-fields/android
+ */
 
 class SignUpActivity : AppCompatActivity(), View.OnClickListener {
 

@@ -250,11 +250,11 @@
                         android:layout_height="32dp"
                         android:background="@drawable/circle_background"
                         android:src="@drawable/ic_close"
-                        android:tint="@android:color/white"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         android:layout_margin="8dp"
-                        android:contentDescription="Remove image" />
+                        android:contentDescription="Remove image"
+                        app:tint="@android:color/white" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 

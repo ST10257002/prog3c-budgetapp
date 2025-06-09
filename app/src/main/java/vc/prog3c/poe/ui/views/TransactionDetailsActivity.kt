@@ -1,4 +1,9 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference Glide Image Loading: https://github.com/bumptech/glide
+ * @reference SimpleDateFormat and Locale: https://developer.android.com/reference/java/text/SimpleDateFormat
+ * @reference Intent Extras in Android: https://developer.android.com/guide/components/intents-filters
+ */
 
 import android.net.Uri
 import android.os.Bundle

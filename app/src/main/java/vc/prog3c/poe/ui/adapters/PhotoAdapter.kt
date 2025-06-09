@@ -8,6 +8,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import vc.prog3c.poe.databinding.ItemPhotoBinding
+/**
+ * @reference Glide - Image Loading: https://github.com/bumptech/glide
+ * @reference Android RecyclerView Adapter with ListAdapter: https://developer.android.com/reference/androidx/recyclerview/widget/ListAdapter
+ */
 
 class PhotoAdapter(
     private val onPhotoClick: (Uri) -> Unit,

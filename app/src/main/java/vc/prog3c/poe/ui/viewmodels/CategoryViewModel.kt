@@ -10,6 +10,10 @@ import kotlinx.coroutines.tasks.await
 import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.CategoryType
+/**
+ * @reference Firebase Firestore - Read and Write Data: https://firebase.google.com/docs/firestore/manage-data/add-data
+ * @reference Firebase Firestore - Delete Documents: https://firebase.google.com/docs/firestore/manage-data/delete-data
+ */
 
 class CategoryViewModel(
     private val authService: AuthService = AuthService(),

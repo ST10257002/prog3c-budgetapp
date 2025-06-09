@@ -15,6 +15,11 @@ import vc.prog3c.poe.ui.viewmodels.TransactionUpsertUiState.Success
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.UUID
+/**
+ * @reference Android ViewModel + LiveData: https://developer.android.com/topic/libraries/architecture/viewmodel
+ * @reference Firebase Firestore - Add Documents with Auto-Generated ID: https://firebase.google.com/docs/firestore/manage-data/add-data#add_a_document
+ * @reference Firebase Timestamp: https://firebase.google.com/docs/reference/kotlin/com/google/firebase/Timestamp
+ */
 
 class TransactionUpsertViewModel(
     private val authService: AuthService = AuthService(),

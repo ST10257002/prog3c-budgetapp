@@ -16,6 +16,11 @@ import vc.prog3c.poe.data.models.TransactionType
 import java.util.Date
 import vc.prog3c.poe.core.utils.Event
 import vc.prog3c.poe.data.models.AchievementCategory
+/**
+ * @reference Firebase Firestore - Update Documents: https://firebase.google.com/docs/firestore/manage-data/add-data#update-data
+ * @reference Firebase Firestore - Subcollections and Merging Data: https://firebase.google.com/docs/firestore/manage-data/structure-data
+ * @reference Firebase Firestore - Kotlin Await: https://firebase.google.com/docs/firestore/query-data/get-data#kotlin+ktx
+ */
 
 class AchievementViewModel(
     private val authService: AuthService = AuthService()

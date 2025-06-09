@@ -31,7 +31,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Savings Goals Section -->
+            <!-- Material Design Components -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -88,7 +88,7 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Monthly Budget Section -->
+            <!-- Material Design Components -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

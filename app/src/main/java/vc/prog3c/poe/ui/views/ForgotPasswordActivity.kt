@@ -1,4 +1,8 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference Android Email Validation using Patterns: https://developer.android.com/reference/android/util/Patterns
+ * @reference Snackbar for UI Feedback: https://developer.android.com/reference/com/google/android/material/snackbar/Snackbar
+ */
 
 import android.os.Bundle
 import android.view.View

@@ -11,6 +11,10 @@ import androidx.recyclerview.widget.RecyclerView
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.core.utils.CurrencyFormatter
+/**
+ * @reference Android View Binding with RecyclerView: https://developer.android.com/topic/libraries/view-binding
+ * @reference Material Design Icons in Android: https://developer.android.com/reference/android/graphics/drawable/Drawable
+ */
 
 class AccountAdapter(
     private val onItemClick: (Account) -> Unit

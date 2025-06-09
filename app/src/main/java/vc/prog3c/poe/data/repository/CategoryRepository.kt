@@ -3,6 +3,10 @@ package vc.prog3c.poe.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.data.models.Category
+/**
+ * @reference Firebase Firestore - Get Multiple Documents: https://firebase.google.com/docs/firestore/query-data/get-data#get_multiple_documents_from_a_collection
+ * @reference Firebase Firestore - Add a Document with Auto-ID: https://firebase.google.com/docs/firestore/manage-data/add-data
+ */
 
 class CategoryRepository {
     private val db = FirebaseFirestore.getInstance()

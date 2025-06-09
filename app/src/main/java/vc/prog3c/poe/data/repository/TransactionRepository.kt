@@ -8,6 +8,11 @@ import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.Transaction
 
 class TransactionRepository {
+    /**
+     * @reference Firebase Firestore - Add a Document: https://firebase.google.com/docs/firestore/manage-data/add-data
+     * @reference Firebase Firestore - Get Data: https://firebase.google.com/docs/firestore/query-data/get-data
+     * @reference Firebase Auth - Get Current User: https://firebase.google.com/docs/auth/android/manage-users#get_the_currently_signed-in_user
+     */
 
     private val db = FirebaseFirestore.getInstance()
     private val userId: String?

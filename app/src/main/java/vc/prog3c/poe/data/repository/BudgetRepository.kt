@@ -5,6 +5,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.data.models.Budget
 import vc.prog3c.poe.data.models.MonthlyStats
 import java.util.*
+/**
+ * @reference Firebase Firestore - Structured Data: https://firebase.google.com/docs/firestore/data-model
+ * @reference Firebase Firestore - Batched Writes & Transactions: https://firebase.google.com/docs/firestore/manage-data/transactions
+ * @reference Firebase Tasks API - whenAllSuccess: https://developers.google.com/android/reference/com/google/android/gms/tasks/Tasks#whenallsuccess
+ */
 
 class BudgetRepository {
     private val db = FirebaseFirestore.getInstance()

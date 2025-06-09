@@ -83,4 +83,4 @@
             android:padding="8dp" />
 
     </LinearLayout>
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout> 
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

@@ -10,6 +10,10 @@ import com.google.android.material.progressindicator.LinearProgressIndicator
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Achievement
 import vc.prog3c.poe.data.models.AchievementCategory
+/**
+ * @reference Android RecyclerView - Using ViewHolder: https://developer.android.com/develop/ui/views/layout/recyclerview#view-holder
+ * @reference Material Components - LinearProgressIndicator: https://m3.material.io/components/progress-indicators/android
+ */
 
 class AchievementAdapter(
     private var fullList: List<Achievement>,

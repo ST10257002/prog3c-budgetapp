@@ -1,4 +1,8 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference Android Jetpack Navigation Component: https://developer.android.com/guide/navigation/navigation-getting-started
+ * @reference WindowInsetsCompat for Edge-to-Edge Layouts: https://developer.android.com/develop/ui/views/layout/insets
+ */
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

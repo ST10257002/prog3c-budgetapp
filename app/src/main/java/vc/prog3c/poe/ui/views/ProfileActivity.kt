@@ -1,4 +1,9 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference Firebase Auth - Delete User: https://firebase.google.com/docs/auth/android/manage-users#delete_a_user
+ * @reference Firebase Firestore - Delete Nested Data: https://firebase.google.com/docs/firestore/manage-data/delete-data
+ * @reference BottomNavigationView: https://developer.android.com/reference/com/google/android/material/bottomnavigation/BottomNavigationView
+ */
 
 import android.content.Intent
 import android.os.Bundle

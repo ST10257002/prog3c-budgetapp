@@ -103,6 +103,12 @@
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Icons and Colors"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:layout_marginBottom="16dp"/>
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/iconChipGroup"
             android:layout_width="match_parent"
@@ -159,6 +165,7 @@
                 app:chipIcon="@drawable/ic_expense" />
 
         </com.google.android.material.chip.ChipGroup>
+
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/colorChipGroup"

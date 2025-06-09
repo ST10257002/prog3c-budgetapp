@@ -202,7 +202,7 @@ This project wouldn't be possible without our brilliant team:
 
 -add here
 
--old github here
+* https://github.com/ST10293362/PROG7313_POE_BudgetApp.git
 
 --- 
 # 📚 References

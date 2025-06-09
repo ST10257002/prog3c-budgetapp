@@ -15,8 +15,8 @@ android {
         applicationId = "vc.prog3c.poe"
         minSdk = 29
         targetSdk = 35
-        versionCode = 3
-        versionName = "post-2025w23a"
+        versionCode = 4
+        versionName = "post-2025w24a"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

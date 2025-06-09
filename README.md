@@ -208,6 +208,7 @@ This project wouldn't be possible without our brilliant team:
 # 📚 References
 
 This section includes all the external resources, libraries, tools, and platforms used in the development of the **BankBoosta – prog3c-budgetapp** Android application, formatted in Harvard style.
+Please NOTE: There is a full reference document included, which contains all in-text references.
 
 1. **ST10257002, ST10293362, ST10326084, and ST10187287** (2025) *BankBoosta – prog3c-budgetapp*. GitHub. Available at: [https://github.com/ST10257002/prog3c-budgetapp](https://github.com/ST10257002/prog3c-budgetapp) (Accessed: 14 May 2025).
 

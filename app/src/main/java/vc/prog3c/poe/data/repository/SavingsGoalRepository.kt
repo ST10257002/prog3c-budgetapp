@@ -8,6 +8,27 @@ class SavingsGoalRepository {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    // Get the current savings goal
+    fun getCurrentGoal(onComplete: (SavingsGoal?) -> Unit) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            onComplete(null)
+            return
+        }
+        val userId = currentUser.uid
+
+        db.collection("users")
+            .document(userId)
+            .collection("savingsGoals")
+            .limit(1)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val goal = snapshot.documents.firstOrNull()?.toObject(SavingsGoal::class.java)
+                onComplete(goal)
+            }
+            .addOnFailureListener { onComplete(null) }
+    }
+
     // Save a new savings goal
     fun saveGoal(goal: SavingsGoal, onComplete: (Boolean) -> Unit) {
         val currentUser = auth.currentUser

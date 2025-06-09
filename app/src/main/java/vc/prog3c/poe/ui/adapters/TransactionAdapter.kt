@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -13,7 +14,8 @@ import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.core.utils.CurrencyFormatter
 
 class TransactionAdapter(
-    private val onItemClick: (Transaction) -> Unit
+    private val onItemClick: (Transaction) -> Unit,
+    private val onItemLongClick: ((Transaction) -> Unit)? = null
 ) : ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder>(TransactionDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
@@ -39,6 +41,15 @@ class TransactionAdapter(
                     onItemClick(getItem(position))
                 }
             }
+            itemView.setOnLongClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemLongClick?.invoke(getItem(position))
+                    true
+                } else {
+                    false
+                }
+            }
         }
 
         fun bind(transaction: Transaction) {
@@ -48,11 +59,12 @@ class TransactionAdapter(
             categoryTextView.text = transaction.category
 
             // Set text color based on transaction type
-            val colorRes = when (transaction.type) {
-                TransactionType.INCOME, TransactionType.EARNED -> R.color.income_green
-                TransactionType.EXPENSE, TransactionType.REDEEMED -> R.color.expense_red
-            }
-            amountTextView.setTextColor(itemView.context.getColor(colorRes))
+            amountTextView.setTextColor(
+                ContextCompat.getColor(
+                    itemView.context,
+                    if (transaction.type == TransactionType.INCOME) R.color.income_color else R.color.expense_color
+                )
+            )
         }
     }
 

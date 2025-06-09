@@ -4,28 +4,34 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
-import vc.prog3c.poe.data.models.FilterOption
-import java.text.NumberFormat
 import java.util.*
 import vc.prog3c.poe.data.models.SortOption
 import vc.prog3c.poe.core.utils.CurrencyFormatter
+import vc.prog3c.poe.data.services.AchievementEvaluator
+import vc.prog3c.poe.ui.viewmodels.AchievementViewModel
+import vc.prog3c.poe.data.models.Account
+import vc.prog3c.poe.data.services.FirestoreService
 
 /**
  * Unified ViewModel for both income and expense transactions.
  * All CRUD and filtering operations go through this single VM.
  */
-class TransactionViewModel : ViewModel() {
+class TransactionViewModel(
+    private val authService: AuthService = AuthService(),
+    private val dataService: FirestoreService = FirestoreService
+) : ViewModel() {
 
     private val firestore = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
     private val transactionsCollection = firestore.collection("transactions")
+
+    val accountName = MutableLiveData<String>()
 
     private val _transactions = MutableLiveData<List<Transaction>>()
     val transactions: LiveData<List<Transaction>> = _transactions
@@ -55,9 +61,10 @@ class TransactionViewModel : ViewModel() {
     private var currentFilter = "All"
     private var currentSort = SortOption.DATE_DESC
 
-    fun getCurrentUserId(): String = auth.currentUser?.uid ?: ""
-
     private var _fullTransactionList: List<Transaction> = emptyList()
+
+    lateinit var achievementViewModel: AchievementViewModel
+
 
     /**
      * Load all transactions for an account.
@@ -66,8 +73,11 @@ class TransactionViewModel : ViewModel() {
         viewModelScope.launch {
             _transactionState.value = TransactionState.Loading
             try {
+                val userId = authService.getCurrentUser()?.uid ?: return@launch
+
+                // Load transactions
                 val transactionList = firestore.collection("users")
-                    .document(auth.currentUser?.uid ?: "")
+                    .document(userId)
                     .collection("accounts")
                     .document(accountId)
                     .collection("transactions")
@@ -78,11 +88,42 @@ class TransactionViewModel : ViewModel() {
                 allTransactions = transactionList
                 applyFilterAndSort()
                 _transactionState.value = TransactionState.Success()
+
+                // Load accounts
+                val accountsSnapshot = firestore.collection("users")
+                    .document(userId)
+                    .collection("accounts")
+                    .get()
+                    .await()
+
+                val accounts = accountsSnapshot.toObjects(Account::class.java)
+
+                // Load categories
+                val categoriesSnapshot = firestore.collection("users")
+                    .document(userId)
+                    .collection("categories")
+                    .get()
+                    .await()
+
+                val categories = categoriesSnapshot.toObjects(vc.prog3c.poe.data.models.Category::class.java)
+
+                // Evaluate achievements
+                evaluateAchievements(userId, accounts, categories)
+
             } catch (e: Exception) {
                 _transactionState.value = TransactionState.Error(e.message ?: "Failed to load transactions")
             }
         }
     }
+
+
+    fun loadAccountName(accountId: String) {
+        dataService.account.getAccount(accountId) { result ->
+            accountName.value = result?.name ?: "Unknown Account"
+        }
+    }
+
+
 
     fun refreshTransactions(accountId: String?) = loadTransactions(accountId ?: "")
 
@@ -122,7 +163,7 @@ class TransactionViewModel : ViewModel() {
             _transactionState.value = TransactionState.Loading
             try {
                 val transactionRef = firestore.collection("users")
-                    .document(auth.currentUser?.uid ?: "")
+                    .document(authService.getCurrentUser()?.uid ?: "")
                     .collection("accounts")
                     .document(accountId)
                     .collection("transactions")
@@ -144,7 +185,7 @@ class TransactionViewModel : ViewModel() {
      * Update an existing transaction.
      */
     fun updateTransaction(transaction: Transaction) {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = authService.getCurrentUser()?.uid ?: return
         val accountId = transaction.accountId
         _isLoading.value = true
         _error.value = null
@@ -176,7 +217,7 @@ class TransactionViewModel : ViewModel() {
      * Delete a transaction by ID.
      */
     fun deleteTransaction(transactionId: String, accountId: String) {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = authService.getCurrentUser()?.uid ?: return
         _isLoading.value = true
         _error.value = null
         _transactionState.value = TransactionState.Loading
@@ -255,7 +296,7 @@ class TransactionViewModel : ViewModel() {
                 }
 
                 // If not found in current list, try to fetch from Firestore
-                val userId = auth.currentUser?.uid ?: ""
+                val userId = authService.getCurrentUser()?.uid ?: ""
                 val accountsRef = firestore.collection("users")
                     .document(userId)
                     .collection("accounts")
@@ -328,4 +369,18 @@ class TransactionViewModel : ViewModel() {
         const val ACCOUNT_ID = "account_id"
         const val CATEGORY = "category"
     }
+
+    fun evaluateAchievements(
+        userId: String,
+        accounts: List<Account>,
+        categories: List<vc.prog3c.poe.data.models.Category>
+    ) {
+        val evaluator = vc.prog3c.poe.data.services.AchievementEvaluator(
+            userId = userId,
+            achievementViewModel = achievementViewModel
+        )
+        evaluator.run(accounts, allTransactions, categories)  // allTransactions already cached
+    }
+
+
 }

@@ -10,11 +10,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.Achievement
-import vc.prog3c.poe.data.models.AchievementDefinitions
 import vc.prog3c.poe.data.models.BoosterBucks
 import vc.prog3c.poe.data.models.BoosterBucksTransaction
 import vc.prog3c.poe.data.models.TransactionType
 import java.util.Date
+import vc.prog3c.poe.core.utils.Event
+import vc.prog3c.poe.data.models.AchievementCategory
 
 class AchievementViewModel(
     private val authService: AuthService = AuthService()
@@ -30,6 +31,9 @@ class AchievementViewModel(
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
+    private val _newlyCompleted = MutableLiveData<Event<Achievement>>()
+    val newlyCompleted: LiveData<Event<Achievement>> = _newlyCompleted
+
     init {
         loadAchievements()
         loadBoosterBucks()
@@ -39,29 +43,46 @@ class AchievementViewModel(
         viewModelScope.launch {
             try {
                 val userId = authService.getCurrentUser()?.uid ?: return@launch
-                val userAchievements =
-                    db.collection("users").document(userId).collection("achievements").get().await()
-                        .toObjects(Achievement::class.java)
 
-                // Merge with default achievements
-                val allAchievements =
-                    AchievementDefinitions.achievements.map { defaultAchievement ->
-                        userAchievements.find { it.id == defaultAchievement.id }
-                            ?.let { userAchievement ->
-                                defaultAchievement.copy(
-                                    isCompleted = userAchievement.isCompleted,
-                                    completedAt = userAchievement.completedAt,
-                                    progress = userAchievement.progress
-                                )
-                            } ?: defaultAchievement
-                    }
+                // Load master definitions
+                val masterSnapshot = db.collection("achievements").get().await()
+                val definitions = masterSnapshot.documents.mapNotNull { doc ->
+                    Achievement(
+                        id = doc.getString("id") ?: doc.id,
+                        title = doc.getString("title") ?: "",
+                        description = doc.getString("description") ?: "",
+                        category = AchievementCategory.valueOf(doc.getString("category") ?: "USER_MILESTONES"),
+                        boosterBucksReward = doc.getLong("boosterBucksReward")?.toInt() ?: 0,
+                        requiredProgress = doc.getLong("requiredProgress")?.toInt() ?: 1
+                    )
+                }
 
-                _achievements.value = allAchievements
+                // Load user progress
+                val userSnapshot = db.collection("users")
+                    .document(userId)
+                    .collection("achievements")
+                    .get().await()
+
+                val userData = userSnapshot.documents.associateBy { it.id }
+
+                // Merge
+                val merged = definitions.map { definition ->
+                    val progressDoc = userData[definition.id]
+                    definition.copy(
+                        progress = progressDoc?.getLong("progress")?.toInt() ?: 0,
+                        isCompleted = progressDoc?.getBoolean("isCompleted") ?: false,
+                        completedAt = progressDoc?.getTimestamp("completedAt")
+                    )
+                }
+
+                _achievements.value = merged
+
             } catch (e: Exception) {
                 _error.value = "Failed to load achievements: ${e.message}"
             }
         }
     }
+
 
     private fun loadBoosterBucks() {
         viewModelScope.launch {
@@ -142,6 +163,8 @@ class AchievementViewModel(
                 val achievement =
                     currentAchievements.find { it.id == achievementId } ?: return@launch
 
+                val isNewlyCompleted = progress >= achievement.requiredProgress && !achievement.isCompleted
+
                 val updatedAchievement = achievement.copy(
                     progress = progress,
                     isCompleted = progress >= achievement.requiredProgress,
@@ -158,8 +181,8 @@ class AchievementViewModel(
                 db.collection("users").document(userId).collection("achievements")
                     .document(achievementId).set(achievementData).await()
 
-                // If achievement was just completed, award Booster Bucks
-                if (updatedAchievement.isCompleted && !achievement.isCompleted) {
+                // Award Booster Bucks and emit unlock event if newly completed
+                if (isNewlyCompleted) {
                     val currentBoosterBucks = _boosterBucks.value ?: return@launch
                     val updatedBoosterBucks = currentBoosterBucks.copy(
                         totalEarned = currentBoosterBucks.totalEarned + updatedAchievement.boosterBucksReward,
@@ -171,6 +194,7 @@ class AchievementViewModel(
                         .document("balance").set(updatedBoosterBucks).await()
 
                     _boosterBucks.value = updatedBoosterBucks
+                    _newlyCompleted.value = Event(updatedAchievement) // 🔥 only emit once, here
                 }
 
                 // Update local achievements list
@@ -182,4 +206,5 @@ class AchievementViewModel(
             }
         }
     }
+
 } 

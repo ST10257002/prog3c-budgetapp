@@ -81,7 +81,6 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
 
     // --- ViewModel
 
-
     private fun observeViewModelState() = model.uiState.observe(this) { state ->
         when (state) {
             is TransactionUpsertUiState.Success -> {
@@ -139,9 +138,7 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
     private fun loadImageInView(path: String) {
         setPhotoPath(path)
         val uri = path.toUri()
-        Glide.with(binds.ivImage.context).apply {
-            load(uri).into(binds.ivImage)
-        }
+        Glide.with(binds.ivImage.context).load(uri).centerCrop().into(binds.ivImage)
     }
 
     private fun loadOptionsForCategoryDropdown(options: List<Category>) {
@@ -242,29 +239,29 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
             binds.btImageGallery.id -> galleryService.launchPicker()
             binds.etDate.id -> showDateSelectorDialog()
             binds.btSave.id -> submitTransaction()
+            binds.btnRemoveImage.id -> {
+                selectedPhotoUri = null
+                binds.ivImage.setImageDrawable(null)
+                Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     override fun onLongClick(view: View?): Boolean {
-        when (view?.id) {
-            binds.ivImage.id -> {
-                selectedPhotoUri = null
-                binds.ivImage.setImageDrawable(null)
-                Toast.makeText(
-                    this, "Deselected image", Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-
-        return true
+        // No longer used for image removal
+        return false
     }
 
     private fun setupClickListeners() {
-        binds.ivImage.setOnLongClickListener(this)
         binds.btImageCapture.setOnClickListener(this)
         binds.btImageGallery.setOnClickListener(this)
         binds.btSave.setOnClickListener(this)
         binds.etDate.setOnClickListener(this)
+        binds.btnRemoveImage.setOnClickListener {
+            selectedPhotoUri = null
+            binds.ivImage.setImageDrawable(null)
+            Toast.makeText(this, "Image removed", Toast.LENGTH_SHORT).show()
+        }
     }
 
     // --- UI Configuration
@@ -285,10 +282,14 @@ class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
     private fun setupLayoutUi() {
         enableEdgeToEdge()
         setContentView(binds.root)
-        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        // Handle system insets
+        ViewCompat.setOnApplyWindowInsetsListener(binds.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                insets.left, view.paddingTop, insets.right, insets.bottom
+            )
+            windowInsets
         }
 
         binds.btImageCapture.isEnabled = false

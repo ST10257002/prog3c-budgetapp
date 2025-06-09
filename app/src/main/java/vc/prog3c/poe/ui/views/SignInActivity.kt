@@ -4,9 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.Gravity
 import android.view.View
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -14,7 +12,6 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
 import vc.prog3c.poe.core.models.BiometricUiHost
 import vc.prog3c.poe.core.models.SignInCredentials
@@ -26,18 +23,14 @@ import vc.prog3c.poe.ui.viewmodels.SignInUiState
 import vc.prog3c.poe.ui.viewmodels.SignInViewModel
 
 class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHost {
-
-
-    private lateinit var binds: ActivitySignInBinding
-    private lateinit var model: SignInViewModel
-
     companion object {
         private const val TAG = "SignInActivity"
     }
 
+    private lateinit var binds: ActivitySignInBinding
+    private lateinit var model: SignInViewModel
 
     // --- Lifecycle
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,9 +48,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
         }
     }
 
-
     // --- ViewModel
-
 
     private fun observeViewModel() = model.uiState.observe(this) { state ->
         when (state) {
@@ -74,9 +65,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
         }
     }
 
-
     // --- Internals
-
 
     private fun tryAuthenticateWithCredentials() {
         val credentials = SignInCredentials(
@@ -86,7 +75,6 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
 
         model.signIn(credentials)
     }
-
 
     private fun tryAuthenticateUsingBiometrics() {
         BiometricTransactionUseCase(
@@ -106,10 +94,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
         }, 1000)
     }
 
-
-
     // --- Event Handlers
-
 
     override fun onClick(view: View?) {
         when (view?.id) {
@@ -124,19 +109,23 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
                     ).show()
                 }
             }
+
+            binds.tvForgotPassword.id -> startActivity(
+                Intent(
+                    this, ForgotPasswordActivity::class.java
+                )
+            )
         }
     }
-
 
     private fun setupClickListeners() {
         binds.btSignIn.setOnClickListener(this)
         binds.tvSignUp.setOnClickListener(this)
         binds.btIconFingerprint.setOnClickListener(this)
+        binds.tvForgotPassword.setOnClickListener(this)
     }
 
-
     // --- Biometrics
-
 
     override fun onShowBiometrics(
         uiBuilder: BiometricPrompt.PromptInfo.Builder
@@ -148,7 +137,6 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
         }
     }
 
-
     override fun onBiometricsSucceeded() {
         Toast.makeText(
             this, "Biometrics Succeeded", Toast.LENGTH_SHORT
@@ -157,13 +145,7 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
         model.tryAutoLoginUser()
     }
 
-
-    override fun onBiometricsDismissed() {
-        Toast.makeText(
-            this, "Biometrics Dismissed", Toast.LENGTH_SHORT
-        ).show()
-    }
-
+    override fun onBiometricsDismissed() {}
 
     override fun onBiometricsException(
         code: Int, message: String
@@ -171,14 +153,11 @@ class SignInActivity : AppCompatActivity(), View.OnClickListener, BiometricUiHos
         Blogger.e(TAG, message)
     }
 
-
     // --- UI
-
 
     private fun setupBindings() {
         binds = ActivitySignInBinding.inflate(layoutInflater)
     }
-
 
     private fun setupLayoutUi() {
         setContentView(binds.root)

@@ -18,7 +18,7 @@ import java.util.UUID
 
 class TransactionUpsertViewModel(
     private val authService: AuthService = AuthService(),
-    private val firestoreService: FirestoreService = FirestoreService
+    private val dataService: FirestoreService = FirestoreService
 ) : ViewModel() {
     companion object {
         private const val TAG = "TransactionUpsertViewModel"
@@ -31,13 +31,13 @@ class TransactionUpsertViewModel(
     private var selectedPhotoUri: String? = null
 
     fun loadAccountName(accountId: String) {
-        firestoreService.account.getAccount(accountId) { result ->
+        dataService.account.getAccount(accountId) { result ->
             accountName.value = result?.name ?: "Unknown Account"
         }
     }
 
     fun loadCategories() {
-        firestoreService.category.getAllCategories { result ->
+        dataService.category.getAllCategories { result ->
             categories.value = result ?: emptyList()
         }
     }
@@ -53,13 +53,13 @@ class TransactionUpsertViewModel(
     ) {
         val userId = authService.getCurrentUser()?.uid
         if (userId == null) {
-            uiState.value = TransactionUpsertUiState.Failure("User not authenticated")
+            uiState.value = Failure("User not authenticated")
             return
         }
 
         val amount = amountStr.toDoubleOrNull()
         if (amount == null || amount <= 0) {
-            uiState.value = TransactionUpsertUiState.Failure("Invalid amount")
+            uiState.value = Failure("Invalid amount")
             return
         }
 
@@ -91,7 +91,7 @@ class TransactionUpsertViewModel(
         )
 
         uiState.value = Loading
-        firestoreService.transaction.addTransaction(transaction) { success ->
+        dataService.transaction.addTransaction(transaction) { success ->
             uiState.value = if (success) {
                 Success("Transaction saved!")
             } else {

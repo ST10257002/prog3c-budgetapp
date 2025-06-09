@@ -71,33 +71,14 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
 
-                            <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:src="@drawable/ic_savings"
-                                app:tint="@color/white"
-                                android:layout_marginEnd="12dp"/>
-
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:id="@+id/savingsGoalTitle"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_weight="1"
                                 android:text="Savings Goal"
                                 android:textColor="@color/white"
                                 android:textSize="20sp"
-                                android:textStyle="bold" />
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="0dp"
-                                android:layout_weight="1" />
-
-                            <TextView
-                                android:id="@+id/savingsPercentageText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0%"
-                                android:textColor="@color/white"
-                                android:textSize="24sp"
                                 android:textStyle="bold" />
 
                             <com.google.android.material.button.MaterialButton
@@ -107,7 +88,34 @@
                                 android:layout_height="wrap_content"
                                 android:text="Manage"
                                 android:textColor="@color/white"
-                                android:layout_marginStart="8dp"/>
+                                android:textSize="14sp"
+                                android:minHeight="36dp"
+                                android:paddingHorizontal="12dp"
+                                android:layout_marginEnd="16dp"/>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginTop="16dp">
+
+                            <TextView
+                                android:id="@+id/savingsPercentageText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0%"
+                                android:textColor="@color/white"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:layout_marginStart="16dp" />
+
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1" />
 
                         </LinearLayout>
 
@@ -115,33 +123,34 @@
                             android:id="@+id/savingsGoalText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginStart="16dp"
                             android:text="Goal: R0"
                             android:textColor="@color/white"
-                            android:textSize="16sp"
+                            android:textSize="14sp"
                             android:alpha="0.8" />
 
-                        <!-- Added: Target Date Display -->
                         <TextView
                             android:id="@+id/savingsGoalDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text=""
-                            android:textSize="13sp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginStart="16dp"
                             android:textColor="@color/white"
-                            android:alpha="0.7"
-                            android:layout_marginBottom="4dp"
-                            android:layout_marginTop="2dp"/>
+                            android:textSize="12sp"
+                            android:alpha="0.7" />
 
                         <com.google.android.material.progressindicator.LinearProgressIndicator
                             android:id="@+id/savingsProgressBar"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="24dp"
-                            app:trackCornerRadius="12dp"
-                            app:trackThickness="16dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginHorizontal="16dp"
+                            android:layout_marginBottom="16dp"
+                            app:trackThickness="8dp"
+                            app:trackColor="#33FFFFFF"
                             app:indicatorColor="@color/white"
-                            app:trackColor="#33FFFFFF" />
+                            app:trackCornerRadius="12dp" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -199,6 +208,19 @@
 
                             </LinearLayout>
                         </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/contributeButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Contribute"
+                            android:layout_marginHorizontal="16dp"
+                            android:layout_marginBottom="16dp"
+                            app:backgroundTint="@color/green"
+                            app:rippleColor="@color/white"
+                            app:strokeColor="@color/white"
+                            app:strokeWidth="1dp"
+                            android:textColor="@color/white" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

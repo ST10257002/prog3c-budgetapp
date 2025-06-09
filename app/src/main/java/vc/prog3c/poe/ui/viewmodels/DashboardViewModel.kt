@@ -17,6 +17,12 @@ import vc.prog3c.poe.data.models.*
 import vc.prog3c.poe.data.services.FirestoreService
 import vc.prog3c.poe.ui.viewmodels.DashboardUiState.*
 import java.util.Calendar
+import java.util.Date
+import vc.prog3c.poe.core.services.AchievementEngine
+import vc.prog3c.poe.data.models.Account
+import vc.prog3c.poe.data.models.Transaction
+import java.util.UUID
+
 
 class DashboardViewModel(
     private val authService: AuthService = AuthService()
@@ -69,7 +75,7 @@ class DashboardViewModel(
 
         loadSavingsGoals()
         loadCurrentBudget(year, month)
-        loadMonthlyStats(year, month)
+        loadMonthlyStats()
         loadCategoryBreakdown(year, month)
         loadCategories()
     }
@@ -88,10 +94,53 @@ class DashboardViewModel(
         }
     }
 
-    private fun loadMonthlyStats(year: Int, month: Int) {
-        FirestoreService.budget.getMonthlyStats(year, month) { stats ->
-            _statistics = stats
-            emitUpdatedState()
+    private fun loadMonthlyStats() {
+        val userId = authService.getCurrentUser()?.uid ?: return
+        val currentMonth = Calendar.getInstance().get(Calendar.MONTH)
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+
+        // Get all accounts and calculate total expenses
+        FirestoreService.account.getAllAccounts { accounts ->
+            var totalExpenses = 0.0
+            var processedAccounts = 0
+
+            accounts.forEach { account ->
+                FirestoreService.account.getTransactionsForAccount(account.id) { transactions ->
+                    // Filter transactions for current month and sum expenses
+                    totalExpenses += transactions
+                        .filter { 
+                            val txDate = it.date.toDate()
+                            txDate.month == currentMonth && 
+                            txDate.year + 1900 == currentYear &&
+                            it.type == TransactionType.EXPENSE
+                        }
+                        .sumOf { it.amount }
+
+                    processedAccounts++
+
+                    // When all accounts are processed
+                    if (processedAccounts == accounts.size) {
+                        // Get the budget from the first savings goal (since it contains the monthly budget)
+                        FirestoreService.savingsGoal.fetchGoals { goals ->
+                            val goal = goals.firstOrNull()
+                            val monthlyBudget = goal?.monthlyBudget ?: 0.0
+                            
+                            val stats = MonthlyStats(
+                                totalExpenses = totalExpenses,
+                                budget = monthlyBudget
+                            )
+                            _statistics = stats
+                            currentBudget = Budget(
+                                max = monthlyBudget,
+                                min = goal?.minMonthlyGoal ?: 0.0,
+                                month = currentMonth + 1,
+                                year = currentYear
+                            )
+                            emitUpdatedState()
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -142,5 +191,164 @@ class DashboardViewModel(
             currentCategoryList = finalCategories
             emitUpdatedState()
         }
+    }
+
+    fun updateBudget(budget: Budget) {
+        FirestoreService.budget.updateBudget(budget) { success ->
+            if (success) {
+                currentBudget = budget
+                emitUpdatedState()
+            } else {
+                _uiState.value = Failure("Failed to update budget")
+            }
+        }
+    }
+
+    fun updateSavingsGoal(goal: SavingsGoal) {
+        val updates = mapOf<String, Any>(
+            "name" to goal.name,
+            "targetAmount" to goal.targetAmount,
+            "savedAmount" to goal.savedAmount,
+            "targetDate" to (goal.targetDate ?: Date()),
+            "minMonthlyGoal" to goal.minMonthlyGoal,
+            "maxMonthlyGoal" to goal.maxMonthlyGoal,
+            "monthlyBudget" to goal.monthlyBudget
+        )
+        
+        FirestoreService.savingsGoal.updateGoal(goal.id, updates) { success ->
+            if (success) {
+                currentSavingsGoals = currentSavingsGoals?.map {
+                    if (it.id == goal.id) goal else it
+                }
+                emitUpdatedState()
+            } else {
+                _uiState.value = Failure("Failed to update savings goal")
+            }
+        }
+    }
+
+    fun contributeToSavingsGoal(goalId: String, amount: Double) {
+        viewModelScope.launch {
+            try {
+                // Find the goal in our current list
+                val goal = currentSavingsGoals?.find { it.id == goalId }
+                if (goal == null) {
+                    _uiState.value = DashboardUiState.Failure("Savings goal not found")
+                    return@launch
+                }
+
+                // Get all accounts to calculate total income
+                FirestoreService.account.getAllAccounts { accounts ->
+                    var totalIncome = 0.0
+                    var processedAccounts = 0
+
+                    // Calculate total income from all accounts
+                    accounts.forEach { account ->
+                        FirestoreService.account.getTransactionsForAccount(account.id) { transactions ->
+                            totalIncome += transactions
+                                .filter { it.type == TransactionType.INCOME }
+                                .sumOf { it.amount }
+                            
+                            processedAccounts++
+                            
+                            // When all accounts are processed, check if contribution is valid
+                            if (processedAccounts == accounts.size) {
+                                if (amount > totalIncome) {
+                                    _uiState.value = DashboardUiState.Failure("Contribution amount exceeds available income")
+                                    return@getTransactionsForAccount
+                                }
+
+                                // Create a new income transaction to record the contribution
+                                val contributionTransaction = Transaction(
+                                    id = UUID.randomUUID().toString(),
+                                    type = TransactionType.EXPENSE, // Mark as expense to subtract from income
+                                    amount = amount,
+                                    description = "Contribution to ${goal.name}",
+                                    date = com.google.firebase.Timestamp.now(),
+                                    category = "Savings",
+                                    accountId = accounts.first().id, // Use first account for now
+                                    userId = authService.getCurrentUser()?.uid ?: return@getTransactionsForAccount
+                                )
+
+                                // Add the transaction first
+                                FirestoreService.transaction.addTransaction(contributionTransaction) { success ->
+                                    if (!success) {
+                                        _uiState.value = DashboardUiState.Failure("Failed to record contribution")
+                                        return@addTransaction
+                                    }
+
+                                    // Then update the goal
+                                    val updatedGoal = goal.copy(
+                                        savedAmount = goal.savedAmount + amount,
+                                        lastContributionDate = Date()
+                                    )
+
+                                    val updates = mapOf<String, Any>(
+                                        "savedAmount" to updatedGoal.savedAmount,
+                                        "lastContributionDate" to updatedGoal.lastContributionDate!!
+                                    )
+                                    
+                                    FirestoreService.savingsGoal.updateGoal(goalId, updates) { success ->
+                                        if (success) {
+                                            // Update local state
+                                            currentSavingsGoals = currentSavingsGoals?.map { 
+                                                if (it.id == goalId) updatedGoal else it 
+                                            }
+                                            emitUpdatedState()
+                                        } else {
+                                            _uiState.value = DashboardUiState.Failure("Failed to update savings goal")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.value = DashboardUiState.Failure("Failed to contribute to savings goal: ${e.message}")
+            }
+        }
+    }
+
+    fun getMonthlyBudgetForGoal(goalId: String): Double {
+        return currentSavingsGoals?.find { it.id == goalId }?.monthlyBudget ?: 0.0
+    }
+
+    fun getMonthlyContributionForGoal(goalId: String): Double {
+        return currentSavingsGoals?.find { it.id == goalId }?.monthlyContribution ?: 0.0
+    }
+
+    fun updateCategory(category: Category) {
+        val userId = authService.getCurrentUser()?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
+        
+        db.collection("users").document(userId).collection("categories")
+            .document(category.id)
+            .set(category)
+            .addOnSuccessListener {
+                currentCategoryList = currentCategoryList?.map { 
+                    if (it.id == category.id) category else it 
+                }
+                emitUpdatedState()
+            }
+            .addOnFailureListener {
+                _uiState.value = Failure("Failed to update category")
+            }
+    }
+
+    fun deleteCategory(categoryId: String) {
+        val userId = authService.getCurrentUser()?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
+        
+        db.collection("users").document(userId).collection("categories")
+            .document(categoryId)
+            .delete()
+            .addOnSuccessListener {
+                currentCategoryList = currentCategoryList?.filter { it.id != categoryId }
+                emitUpdatedState()
+            }
+            .addOnFailureListener {
+                _uiState.value = Failure("Failed to delete category")
+            }
     }
 }

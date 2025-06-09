@@ -5,8 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import vc.prog3c.poe.data.models.Budget
 import vc.prog3c.poe.data.models.MonthlyStats
-import vc.prog3c.poe.data.repository.BudgetRepository
-import vc.prog3c.poe.data.repository.TransactionRepository // you must already have this
+import vc.prog3c.poe.data.services.FirestoreService
 import java.util.Calendar
 
 class BudgetViewModel : ViewModel() {
@@ -18,16 +17,16 @@ class BudgetViewModel : ViewModel() {
     // --- Fields
     
     
-    private val budgetRepo = BudgetRepository()
-    private val transactionRepo = TransactionRepository()
-
-    
     private val _budget = MutableLiveData<Budget?>()
     val budget: LiveData<Budget?> = _budget
 
     
     private val _monthlyStats = MutableLiveData<MonthlyStats?>()
     val monthlyStats: LiveData<MonthlyStats?> = _monthlyStats
+
+    
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
 
     
     // --- Internals
@@ -39,22 +38,16 @@ class BudgetViewModel : ViewModel() {
         val month = cal.get(Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
 
         // Load budget
-        budgetRepo.getBudgetForMonth(year, month) { bud ->
+        FirestoreService.budget.getBudgetForMonth(year, month) { bud ->
             _budget.postValue(bud)
         }
 
         // Load stats (expenses + income)
-        budgetRepo.getMonthlyStats(year, month) { stats ->
+        FirestoreService.budget.getMonthlyStats(year, month) { stats ->
             _monthlyStats.postValue(stats)
         }
     }
 
-    fun saveBudget(budget: Budget) {
-        budgetRepo.saveBudget(budget) { success ->
-            if (success) loadBudgetAndStats()
-            // You can add error handling here
-        }
-    }
 
     // This is in BudgetViewModel
     fun refreshDashboardData() {
@@ -63,13 +56,23 @@ class BudgetViewModel : ViewModel() {
         val year = cal.get(Calendar.YEAR)
         val month = cal.get(Calendar.MONTH) + 1
 
-        budgetRepo.getBudgetForMonth(year, month) { bud ->
+        FirestoreService.budget.getBudgetForMonth(year, month) { bud ->
             _budget.postValue(bud)
         }
 
-        budgetRepo.getMonthlyStats(year, month) { stats ->
+        FirestoreService.budget.getMonthlyStats(year, month) { stats ->
             _monthlyStats.postValue(stats)
         }
     }
 
+    fun updateBudget(budget: Budget) {
+        FirestoreService.budget.updateBudget(budget) { success ->
+            if (success) {
+                _budget.postValue(budget)
+                _error.postValue(null)
+            } else {
+                _error.postValue("Failed to update budget")
+            }
+        }
+    }
 }

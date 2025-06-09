@@ -13,10 +13,12 @@ import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.core.utils.CurrencyFormatter
 import java.util.Locale
+import de.hdodenhof.circleimageview.CircleImageView
 
 class CategoryAdapter(
     private val onEditClick: (Category) -> Unit,
-    private val onDeleteClick: (Category) -> Unit
+    private val onDeleteClick: (Category) -> Unit,
+    private val isDashboard: Boolean = false
 ) : ListAdapter<Category, CategoryAdapter.CategoryViewHolder>(CategoryDiffCallback()) {
 
     private var categoryTotals: Map<String, Double> = emptyMap()
@@ -40,15 +42,12 @@ class CategoryAdapter(
         private val nameTextView: TextView = itemView.findViewById(R.id.categoryName)
         private val typeTextView: TextView = itemView.findViewById(R.id.categoryType)
         private val descriptionTextView: TextView = itemView.findViewById(R.id.categoryDescription)
-
-        //private val budgetLimitTextView: TextView = itemView.findViewById(R.id.categoryBudgetLimit)
         private val minBudgetTextView: TextView = itemView.findViewById(R.id.categoryMinBudget)
         private val maxBudgetTextView: TextView = itemView.findViewById(R.id.categoryMaxBudget)
-
-        private val iconImageView: ImageButton = itemView.findViewById(R.id.categoryIcon)
+        private val iconImageView: CircleImageView = itemView.findViewById(R.id.categoryIcon)
+        private val statusIndicator: View = itemView.findViewById(R.id.statusIndicator)
         private val editButton: ImageButton = itemView.findViewById(R.id.editButton)
         private val deleteButton: ImageButton = itemView.findViewById(R.id.deleteButton)
-        private val statusIndicator: View = itemView.findViewById(R.id.statusIndicator)
 
         fun bind(category: Category) {
             nameTextView.text = category.name
@@ -56,18 +55,13 @@ class CategoryAdapter(
             descriptionTextView.text = category.description
             descriptionTextView.visibility = if (category.description.isNullOrEmpty()) View.GONE else View.VISIBLE
             
-//            // Format budget limit with currency
-//            val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
-//            budgetLimitTextView.text = formatter.format(category.budgetLimit)
-//            budgetLimitTextView.visibility = if (category.budgetLimit > 0) View.VISIBLE else View.GONE
-
-            minBudgetTextView.text = "Min: ${CurrencyFormatter.format(category.minBudget)}"
-            maxBudgetTextView.text = "Max: ${CurrencyFormatter.format(category.maxBudget)}"
+            minBudgetTextView.text = "Min: R${String.format("%.2f", category.minBudget)}"
+            maxBudgetTextView.text = "Max: R${String.format("%.2f", category.maxBudget)}"
 
             minBudgetTextView.visibility = if (category.minBudget > 0) View.VISIBLE else View.GONE
             maxBudgetTextView.visibility = if (category.maxBudget > 0) View.VISIBLE else View.GONE
 
-            // Set icon and color
+            // Set icon and color for CircleImageView
             val iconResId = when (category.icon) {
                 "ic_category" -> R.drawable.ic_category
                 "ic_savings" -> R.drawable.ic_savings
@@ -87,7 +81,7 @@ class CategoryAdapter(
                 "colorOrange" -> R.color.colorOrange
                 else -> R.color.colorGreen
             }
-            iconImageView.setColorFilter(ContextCompat.getColor(itemView.context, colorResId))
+            iconImageView.circleBackgroundColor = ContextCompat.getColor(itemView.context, colorResId)
 
             // Set status indicator
             statusIndicator.setBackgroundColor(
@@ -98,8 +92,8 @@ class CategoryAdapter(
             )
 
             // Set edit and delete button visibility
-            editButton.visibility = if (category.isEditable) View.VISIBLE else View.GONE
-            deleteButton.visibility = if (category.isEditable) View.VISIBLE else View.GONE
+            editButton.visibility = if (!isDashboard && category.isEditable) View.VISIBLE else View.GONE
+            deleteButton.visibility = if (!isDashboard && category.isEditable) View.VISIBLE else View.GONE
 
             editButton.setOnClickListener { onEditClick(category) }
             deleteButton.setOnClickListener { onDeleteClick(category) }

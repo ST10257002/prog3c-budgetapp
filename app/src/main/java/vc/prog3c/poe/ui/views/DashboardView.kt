@@ -1,5 +1,10 @@
 // DashboardView.kt
 package vc.prog3c.poe.ui.views
+/**
+ * @reference MPAndroidChart - PieChart: https://github.com/PhilJay/MPAndroidChart/wiki/PieChart
+ * @reference ConstraintLayout: https://developer.android.com/reference/androidx/constraintlayout/widget/ConstraintLayout
+ * @reference ViewModelScope + LiveData Observation: https://developer.android.com/topic/libraries/architecture/livedata
+ */
 
 import android.content.Intent
 import android.os.Bundle

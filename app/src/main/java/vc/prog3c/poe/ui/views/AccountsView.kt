@@ -36,6 +36,11 @@ import java.text.NumberFormat
 import java.util.Locale
 import java.util.UUID
 import vc.prog3c.poe.core.utils.CurrencyFormatter
+/**
+ * @reference Android RecyclerView Guide: https://developer.android.com/guide/topics/ui/layout/recyclerview
+ * @reference ViewModelProvider usage: https://developer.android.com/topic/libraries/architecture/viewmodel/providers
+ * @reference SwipeRefreshLayout: https://developer.android.com/jetpack/androidx/releases/swiperefreshlayout
+ */
 
 class AccountsView : AppCompatActivity(), View.OnClickListener {
 

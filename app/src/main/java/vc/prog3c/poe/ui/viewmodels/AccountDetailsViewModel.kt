@@ -7,6 +7,10 @@ import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.data.repository.AccountRepository
+/**
+ * @reference Android LiveData: https://developer.android.com/topic/libraries/architecture/livedata
+ * @reference Firebase Firestore - Read Subcollections: https://firebase.google.com/docs/firestore/manage-data/structure-data#subcollections
+ */
 
 class AccountDetailsViewModel(
     private val repo: AccountRepository = AccountRepository()

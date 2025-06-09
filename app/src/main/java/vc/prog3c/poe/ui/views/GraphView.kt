@@ -1,4 +1,8 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference BarChart with MPAndroidChart: https://github.com/PhilJay/MPAndroidChart/wiki/BarChart
+ * @reference Android RecyclerView with Graph Data: https://developer.android.com/guide/topics/ui/layout/recyclerview
+ */
 
 import android.content.Intent
 import android.graphics.Color

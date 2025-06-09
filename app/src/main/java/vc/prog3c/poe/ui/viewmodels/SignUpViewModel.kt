@@ -14,6 +14,10 @@ import vc.prog3c.poe.data.services.FirestoreService
 import vc.prog3c.poe.ui.viewmodels.SignUpUiState.Failure
 import vc.prog3c.poe.ui.viewmodels.SignUpUiState.Loading
 import vc.prog3c.poe.ui.viewmodels.SignUpUiState.Success
+/**
+ * @reference Firebase Authentication - Create a User: https://firebase.google.com/docs/auth/android/start#create_a_password-based_account
+ * @reference Firebase Firestore - Set a Document: https://firebase.google.com/docs/firestore/manage-data/add-data#set_a_document
+ */
 
 class SignUpViewModel(
     private val authService: AuthService = AuthService()

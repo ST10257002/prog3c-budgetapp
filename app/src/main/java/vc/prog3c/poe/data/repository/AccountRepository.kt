@@ -7,6 +7,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import vc.prog3c.poe.data.models.Account
 import vc.prog3c.poe.data.models.Transaction
+/**
+ * @reference Firebase Firestore - Subcollections: https://firebase.google.com/docs/firestore/manage-data/structure-data#subcollections
+ * @reference Firebase Firestore - Order Query Results: https://firebase.google.com/docs/firestore/query-data/order-limit-data
+ * @reference Firebase Tasks API - whenAll: https://developers.google.com/android/reference/com/google/android/gms/tasks/Tasks#whenall
+ */
 
 class AccountRepository {
     private val db = FirebaseFirestore.getInstance()

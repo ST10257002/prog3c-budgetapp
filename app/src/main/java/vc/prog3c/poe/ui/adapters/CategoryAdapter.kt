@@ -14,6 +14,10 @@ import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.core.utils.CurrencyFormatter
 import java.util.Locale
 import de.hdodenhof.circleimageview.CircleImageView
+/**
+ * @reference Android Chip Component: https://m3.material.io/components/chips/android
+ * @reference Android View Binding - Adapters: https://developer.android.com/topic/libraries/view-binding
+ */
 
 class CategoryAdapter(
     private val onEditClick: (Category) -> Unit,

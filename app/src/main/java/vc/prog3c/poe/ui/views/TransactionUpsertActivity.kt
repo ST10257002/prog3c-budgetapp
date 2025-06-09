@@ -30,6 +30,12 @@ import vc.prog3c.poe.ui.viewmodels.TransactionUpsertViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+/**
+ * @reference Material Design TextInput: https://m3.material.io/components/text-fields/android
+ * @reference Android Spinner: https://developer.android.com/guide/topics/ui/controls/spinner
+ * @reference DatePickerDialog: https://developer.android.com/reference/android/app/DatePickerDialog
+ * @reference Glide for Image Loading: https://github.com/bumptech/glide
+ */
 
 class TransactionUpsertActivity : AppCompatActivity(), View.OnClickListener,
     View.OnLongClickListener, ConsentUiHost {

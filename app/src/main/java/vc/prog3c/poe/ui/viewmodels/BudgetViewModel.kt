@@ -7,6 +7,10 @@ import vc.prog3c.poe.data.models.Budget
 import vc.prog3c.poe.data.models.MonthlyStats
 import vc.prog3c.poe.data.services.FirestoreService
 import java.util.Calendar
+/**
+ * @reference Firebase Firestore - Document Reads and Updates: https://firebase.google.com/docs/firestore/manage-data/add-data#update-data
+ * @reference Android LiveData - Lifecycle-Aware Observables: https://developer.android.com/topic/libraries/architecture/livedata
+ */
 
 class BudgetViewModel : ViewModel() {
     companion object {

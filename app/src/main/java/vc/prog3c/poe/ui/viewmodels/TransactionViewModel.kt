@@ -22,7 +22,13 @@ import vc.prog3c.poe.data.services.FirestoreService
 /**
  * Unified ViewModel for both income and expense transactions.
  * All CRUD and filtering operations go through this single VM.
+ *
+ * @reference Android ViewModel Guide: https://developer.android.com/topic/libraries/architecture/viewmodel
+ * @reference Firebase Firestore - Query Collections: https://firebase.google.com/docs/firestore/query-data/queries
+ * @reference Firebase Firestore - Kotlin Coroutines Support: https://firebase.google.com/docs/firestore/query-data/get-data#kotlin+ktx
+ * @reference LiveData Guide: https://developer.android.com/topic/libraries/architecture/livedata
  */
+
 class TransactionViewModel(
     private val authService: AuthService = AuthService(),
     private val dataService: FirestoreService = FirestoreService

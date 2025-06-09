@@ -28,6 +28,11 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import vc.prog3c.poe.core.utils.CurrencyFormatter
+/**
+ * @reference CoordinatorLayout & AppBarLayout: https://developer.android.com/reference/androidx/coordinatorlayout/widget/CoordinatorLayout
+ * @reference MaterialToolbar: https://developer.android.com/reference/com/google/android/material/appbar/MaterialToolbar
+ * @reference NestedScrollView behavior: https://developer.android.com/reference/androidx/core/widget/NestedScrollView
+ */
 
 class AccountDetailsView : AppCompatActivity(), View.OnClickListener {
 

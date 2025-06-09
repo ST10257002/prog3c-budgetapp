@@ -3,6 +3,10 @@ package vc.prog3c.poe.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.data.models.SavingsGoal
+/**
+ * @reference Firebase Firestore - Auto-ID Documents: https://firebase.google.com/docs/firestore/manage-data/add-data#add_a_document
+ * @reference Firebase Firestore - Update a Document: https://firebase.google.com/docs/firestore/manage-data/add-data#update-data
+ */
 
 class SavingsGoalRepository {
     private val db = FirebaseFirestore.getInstance()

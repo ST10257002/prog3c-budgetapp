@@ -14,6 +14,10 @@ import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.GraphBarEntry
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
+/**
+ * @reference Firebase Firestore - Nested Collection Reads: https://firebase.google.com/docs/firestore/query-data/queries#compound_queries
+ * @reference Android Logging (Logcat): https://developer.android.com/studio/debug/logcat
+ */
 
 class GraphViewModel : ViewModel() {
 

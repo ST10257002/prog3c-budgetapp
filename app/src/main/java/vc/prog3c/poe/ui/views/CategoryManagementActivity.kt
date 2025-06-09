@@ -28,6 +28,11 @@ import vc.prog3c.poe.ui.adapters.CategoryAdapter
 import vc.prog3c.poe.ui.viewmodels.CategoryViewModel
 import java.util.UUID
 import androidx.core.content.ContextCompat
+/**
+ * @reference RecyclerView GridLayoutManager: https://developer.android.com/reference/androidx/recyclerview/widget/GridLayoutManager
+ * @reference AlertDialog for Confirmation: https://developer.android.com/reference/android/app/AlertDialog
+ * @reference Material Design CardView: https://developer.android.com/reference/androidx/cardview/widget/CardView
+ */
 
 class CategoryManagementActivity : AppCompatActivity(), View.OnClickListener {
 

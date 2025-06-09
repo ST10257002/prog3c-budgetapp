@@ -9,6 +9,10 @@ import vc.prog3c.poe.data.models.SavingsGoal
 import vc.prog3c.poe.data.services.FirestoreService
 import java.util.Date
 import java.util.UUID
+/**
+ * @reference Firebase Firestore - Save and Retrieve Documents: https://firebase.google.com/docs/firestore/manage-data/add-data
+ * @reference Firebase Firestore - Timestamp & Date Usage: https://firebase.google.com/docs/reference/kotlin/com/google/firebase/Timestamp
+ */
 
 // TODO: Replace with Firestore implementation
 // - Create Firestore collection for goals

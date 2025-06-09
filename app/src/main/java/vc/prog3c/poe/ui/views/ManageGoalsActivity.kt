@@ -1,4 +1,9 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference Material TextInputLayout with Error Handling: https://developer.android.com/reference/com/google/android/material/textfield/TextInputLayout
+ * @reference Firebase Firestore - Read & Update Documents: https://firebase.google.com/docs/firestore/manage-data/add-data
+ * @reference Snackbar and Toast for Feedback: https://developer.android.com/guide/topics/ui/notifiers/toasts
+ */
 
 import android.os.Bundle
 import android.view.MenuItem

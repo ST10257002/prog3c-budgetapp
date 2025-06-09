@@ -1,4 +1,9 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference View Binding with EditText and Spinner: https://developer.android.com/topic/libraries/view-binding
+ * @reference Android ArrayAdapter: https://developer.android.com/reference/android/widget/ArrayAdapter
+ * @reference Intent Navigation: https://developer.android.com/guide/components/intents-filters
+ */
 
 import android.content.Intent
 import android.os.Bundle

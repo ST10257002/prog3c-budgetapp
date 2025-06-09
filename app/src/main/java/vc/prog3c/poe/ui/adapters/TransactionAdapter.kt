@@ -12,6 +12,10 @@ import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Transaction
 import vc.prog3c.poe.data.models.TransactionType
 import vc.prog3c.poe.core.utils.CurrencyFormatter
+/**
+ * @reference Android RecyclerView - Guide: https://developer.android.com/develop/ui/views/layout/recyclerview
+ * @reference Android DiffUtil for RecyclerView: https://developer.android.com/reference/androidx/recyclerview/widget/DiffUtil
+ */
 
 class TransactionAdapter(
     private val onItemClick: (Transaction) -> Unit,

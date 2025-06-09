@@ -11,6 +11,10 @@ import vc.prog3c.poe.core.models.SignInCredentials
 import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.data.services.FirestoreService
+/**
+ * @reference Firebase Authentication - Sign in a User: https://firebase.google.com/docs/auth/android/password-auth#sign_in_a_user_with_an_email_address_and_password
+ * @reference Android Coroutine Timeout: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/with-timeout/
+ */
 
 class SignInViewModel(
     private val authService: AuthService = AuthService()

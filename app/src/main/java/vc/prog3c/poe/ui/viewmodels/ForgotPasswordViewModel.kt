@@ -11,6 +11,9 @@ import vc.prog3c.poe.core.utils.Blogger
 import vc.prog3c.poe.ui.viewmodels.ForgotPasswordUiState.Failure
 import vc.prog3c.poe.ui.viewmodels.ForgotPasswordUiState.Loading
 import vc.prog3c.poe.ui.viewmodels.ForgotPasswordUiState.Success
+/**
+ * @reference Firebase Authentication - Send Password Reset Email: https://firebase.google.com/docs/auth/android/manage-users#send_a_password_reset_email
+ */
 
 class ForgotPasswordViewModel(
     private val authService: AuthService = AuthService()

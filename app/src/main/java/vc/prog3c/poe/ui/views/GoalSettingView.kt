@@ -1,4 +1,9 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference Android EditText + Input Validation: https://developer.android.com/guide/topics/ui/controls/text
+ * @reference ViewModel Save & Validate: https://developer.android.com/topic/libraries/architecture/viewmodel
+ * @reference Android Intent Navigation: https://developer.android.com/guide/components/intents-filters
+ */
 
 import android.content.Intent
 import android.os.Bundle

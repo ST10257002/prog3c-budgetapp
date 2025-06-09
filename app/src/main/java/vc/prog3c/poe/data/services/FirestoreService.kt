@@ -4,6 +4,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.core.services.AuthService
 import vc.prog3c.poe.data.models.SavingsGoal
 import vc.prog3c.poe.data.repository.*
+/**
+ * @reference Firebase Firestore - Get a Document: https://firebase.google.com/docs/firestore/query-data/get-data#get_a_document
+ * @reference Firebase Firestore - Update a Document: https://firebase.google.com/docs/firestore/manage-data/add-data#update-data
+ */
 
 object FirestoreService {
     val savingsGoal = SavingsGoalRepository()

@@ -4,6 +4,10 @@ import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import vc.prog3c.poe.data.models.User
+/**
+ * @reference Firebase Auth - Current User: https://firebase.google.com/docs/auth/android/manage-users#get_the_currently_signed-in_user
+ * @reference Firebase Firestore - Set a Document: https://firebase.google.com/docs/firestore/manage-data/add-data#set_a_document
+ */
 
 class UserRepository {
 

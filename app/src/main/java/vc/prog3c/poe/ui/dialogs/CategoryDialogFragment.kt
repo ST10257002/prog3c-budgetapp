@@ -16,6 +16,11 @@ import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.CategoryType
 import java.util.UUID
+/**
+ * @reference Android BottomSheetDialogFragment: https://developer.android.com/reference/com/google/android/material/bottomsheet/BottomSheetDialogFragment
+ * @reference Material Components - TextInputLayout: https://m3.material.io/components/text-fields/android
+ * @reference Android AutoCompleteTextView: https://developer.android.com/reference/android/widget/AutoCompleteTextView
+ */
 
 class CategoryDialogFragment : BottomSheetDialogFragment() {
 

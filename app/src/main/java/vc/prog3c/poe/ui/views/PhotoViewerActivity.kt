@@ -5,6 +5,10 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import vc.prog3c.poe.databinding.ActivityPhotoViewerBinding
+/**
+ * @reference Android Photo Picker API (13+): https://developer.android.com/media/picker
+ * @reference Android Permissions for External Storage: https://developer.android.com/training/data-storage/shared/media#permissions
+ */
 
 class PhotoViewerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPhotoViewerBinding

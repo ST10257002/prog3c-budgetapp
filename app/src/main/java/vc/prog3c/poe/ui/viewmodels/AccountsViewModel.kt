@@ -10,6 +10,10 @@ import vc.prog3c.poe.data.repository.AccountRepository
 import vc.prog3c.poe.ui.viewmodels.AccountsUiState.Failure
 import vc.prog3c.poe.ui.viewmodels.AccountsUiState.Loading
 import vc.prog3c.poe.ui.viewmodels.AccountsUiState.Updated
+/**
+ * @reference Firebase Firestore - Reading Documents in Batches: https://firebase.google.com/docs/firestore/query-data/get-data
+ * @reference Android MutableLiveData: https://developer.android.com/reference/androidx/lifecycle/MutableLiveData
+ */
 
 class AccountsViewModel(
     private val repository: AccountRepository = AccountRepository()

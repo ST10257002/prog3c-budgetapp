@@ -1,4 +1,9 @@
 package vc.prog3c.poe.ui.views
+/**
+ * @reference Android ActivityResultLauncher: https://developer.android.com/training/basics/intents/result
+ * @reference Jetpack ViewModel with LiveData Observers: https://developer.android.com/topic/libraries/architecture/livedata
+ * @reference Toolbar and Navigation Patterns: https://developer.android.com/training/appbar
+ */
 
 import android.content.Intent
 import android.os.Bundle

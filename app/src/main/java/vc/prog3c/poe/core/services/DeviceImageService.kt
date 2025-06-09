@@ -6,6 +6,8 @@ import vc.prog3c.poe.core.utils.ImageFileUtil
 
 /**
  * Abstract contract for services that store images on the device.
+ * 
+ * @reference Callbacks - https://medium.com/@agayevrauf/kotlin-callback-functions-with-code-examples-3eb1f6bcadcf
  *
  * @see [DeviceCaptureService]
  * @see [DeviceGalleryService]

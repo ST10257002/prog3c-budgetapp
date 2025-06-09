@@ -6,6 +6,9 @@ import androidx.annotation.ChecksSdkIntAtLeast
 /**
  * Helper class for performing device version checks against specific versions
  * of the Android operating system.
+ * 
+ * @reference Checking Android Version - https://developer.android.com/reference/android/os/Build.VERSION
+ * @reference Version Check Annotation - https://developer.android.com/reference/androidx/annotation/ChecksSdkIntAtLeast
  *
  * @author ST10257002
  */

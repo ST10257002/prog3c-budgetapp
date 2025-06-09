@@ -11,6 +11,9 @@ class BiometricTransactionUseCase(
     private val caller: FragmentActivity, private val uiHost: BiometricUiHost
 ) {
 
+    /**
+     * @reference Android Biometrics - https://www.youtube.com/watch?v=_dCRQ9wta-I
+     */
     fun execute() {
         if (!isBiometricAvailable(caller)) {
             uiHost.onBiometricsException(
@@ -59,8 +62,11 @@ class BiometricTransactionUseCase(
         uiHost.onShowBiometrics(builder) // override from ui
         return builder.build()
     }
-    
 
+
+    /**
+     * @reference Android Credentials - https://www.youtube.com/watch?v=_dCRQ9wta-I
+     */
     private fun isBiometricAvailable(
         context: Context
     ): Boolean {

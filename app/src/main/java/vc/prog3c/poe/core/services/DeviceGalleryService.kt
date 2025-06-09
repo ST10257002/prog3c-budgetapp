@@ -17,6 +17,8 @@ import vc.prog3c.poe.core.utils.ImageFileUtil
 
 /**
  * Service to select an image from the device gallery.
+ * 
+ * @reference FragmentActivity - https://developer.android.com/reference/androidx/fragment/app/FragmentActivity
  *
  * @param caller The reference to the Fragment or Activity that is calling the
  *        abstract service. This is necessary for functions using Android File
@@ -44,7 +46,11 @@ class DeviceGalleryService(
         galleryLauncher.launch(MULTIMEDIA_TYPE)
     }
 
-    
+
+    /**
+     * @reference Activity Result - https://developer.android.com/training/basics/intents/result
+     * @reference Activity Result from Gallery - https://developer.android.com/reference/androidx/activity/result/contract/ActivityResultContracts.GetContent
+     */
     override fun registerForLauncherResult(
         callback: (ImageResult) -> Unit
     ) {

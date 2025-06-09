@@ -5,6 +5,9 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 /**
  * Logger to synchronise reports to Logcat and Crashlytics.
+ * 
+ * @reference Firebase Crashlytics - https://firebase.google.com/docs/crashlytics/get-started?platform=android
+ * @reference Crashlytics Logging - https://firebase.google.com/docs/crashlytics/customize-crash-reports?platform=android
  */
 object Blogger {
     private var crashlytics: FirebaseCrashlytics? = null
@@ -51,6 +54,8 @@ object Blogger {
      * **Note:** This function will record a non-fatal exception in Crashlytics
      * if a throwable is provided as a parameter. Otherwise, it will be treated
      * as any other error log.
+     * 
+     * @reference Non-Fatal Exception Logging in Firebase Crashlytics - https://firebase.google.com/docs/crashlytics/customize-crash-reports?platform=android
      */
     fun e(tag: String, message: String, throwable: Throwable? = null) {
         Log.e(tag, message, throwable)

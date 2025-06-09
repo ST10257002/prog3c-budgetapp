@@ -3,6 +3,10 @@ package vc.prog3c.poe.core.utils
 import android.util.Patterns
 
 object AuthValidator {
+
+    /**
+     * @reference Email Validation - https://medium.com/@python-javascript-php-html-css/validating-email-input-in-android-edittext-fields-a6d7e527f89d
+     */
     fun isValidEAddress(input: String): Boolean {
         return Patterns.EMAIL_ADDRESS.matcher(input).matches()
     }

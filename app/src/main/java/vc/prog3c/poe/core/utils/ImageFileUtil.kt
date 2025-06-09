@@ -22,6 +22,8 @@ object ImageFileUtil {
 
     /**
      * A simple date format to generate uniquely timestamped filenames.
+     * 
+     * @reference Simple Date Format - https://developer.android.com/reference/java/text/SimpleDateFormat
      *
      * @see SimpleDateFormat
      * @author ST10257002
@@ -34,6 +36,8 @@ object ImageFileUtil {
     
     /**
      * Creates and locates the private storage directory of the application.
+     * 
+     * @reference Android File Object - https://developer.android.com/reference/java/io/File
      *
      * @param caller This is necessary for functions using Android File APIs
      *        that require a valid context to be called from.
@@ -75,6 +79,9 @@ object ImageFileUtil {
 
     /**
      * Copies an image file from one directory to another.
+     * 
+     * @reference Content Resolver - https://stackoverflow.com/questions/52743934/using-contentresolver-and-openinputstream-android
+     * @reference Output Streaming - https://medium.com/@sujitpanda/file-read-write-with-kotlin-io-31eff564dfe3
      *
      * @param caller This is necessary for functions using Android File APIs
      *        that require a valid context to be called from.

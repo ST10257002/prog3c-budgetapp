@@ -21,6 +21,8 @@ import vc.prog3c.poe.core.utils.ConsentBundleTranslator
  *
  * request.execute()
  * ```
+ * 
+ * @reference Builder Pattern - https://medium.com/@dheerubhadoria/simplifying-object-creation-with-the-builder-design-pattern-in-kotlin-6fb282c0143e
  *
  * @throws IllegalArgumentException
  * @throws IllegalStateException

@@ -14,6 +14,8 @@ import vc.prog3c.poe.core.utils.Blogger
 /**
  * Service to capture an image from the device camera.
  *
+ * @reference FragmentActivity - https://developer.android.com/reference/androidx/fragment/app/FragmentActivity
+ *
  * @param caller The reference to the Fragment or Activity that is calling the
  *        abstract service. This is necessary for functions using Android File
  *        APIs that require a valid context to be called from.
@@ -57,7 +59,11 @@ class DeviceCaptureService(
         }
     }
 
-    
+
+    /**
+     * @reference Activity Result - https://developer.android.com/training/basics/intents/result
+     * @reference Activity Result from Capture - https://developer.android.com/reference/androidx/activity/result/contract/ActivityResultContracts.TakePicture
+     */
     override fun registerForLauncherResult(
         callback: (ImageResult) -> Unit
     ) {

@@ -10,6 +10,8 @@ import vc.prog3c.poe.core.models.ConsentUiHost
  * **Note:** This class should not be instantiated and invoked directly. Use the
  * coordinator class or the builder's Fluent API instead. This ensures that code
  * misconfigurations are guarded against correctly.
+ * 
+ * @reference - PermissionX Library Docs - https://github.com/guolindev/PermissionX
  *
  * @param caller The [FragmentActivity] that is requesting the permissions.
  * @param uiHost The [ConsentUiHost] delegate responsible for implementing logic

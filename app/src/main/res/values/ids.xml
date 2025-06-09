@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Icon IDs -->
+    <item name="iconCategory" type="id"/>
+    <item name="iconSavings" type="id"/>
+    <item name="iconUtilities" type="id"/>
+    <item name="iconEmergency" type="id"/>
+    <item name="iconIncome" type="id"/>
+    <item name="iconExpense" type="id"/>
+
+    <!-- Color IDs -->
+    <item name="colorGreen" type="id"/>
+    <item name="colorBlue" type="id"/>
+    <item name="colorRed" type="id"/>
+    <item name="colorPurple" type="id"/>
+    <item name="colorOrange" type="id"/>
+</resources> 

@@ -103,166 +103,111 @@
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="Icon"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
-
-        <HorizontalScrollView
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/iconChipGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:scrollbars="none">
+            android:layout_marginTop="16dp"
+            app:singleSelection="true">
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/iconChipGroup"
+            <com.google.android.material.chip.Chip
+                android:id="@+id/iconCategory"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:singleSelection="true">
+                android:text="Category"
+                app:chipIcon="@drawable/ic_category" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/iconCategory"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Category"
-                    app:chipIcon="@drawable/ic_category"
-                    app:chipIconSize="24dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/iconSavings"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Savings"
+                app:chipIcon="@drawable/ic_savings" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/iconSavings"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Savings"
-                    app:chipIcon="@drawable/ic_savings"
-                    app:chipIconSize="24dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/iconUtilities"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Utilities"
+                app:chipIcon="@drawable/ic_utilities" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/iconUtilities"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Utilities"
-                    app:chipIcon="@drawable/ic_utilities"
-                    app:chipIconSize="24dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/iconEmergency"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Emergency"
+                app:chipIcon="@drawable/ic_error" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/iconEmergency"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Emergency"
-                    app:chipIcon="@drawable/ic_error"
-                    app:chipIconSize="24dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/iconIncome"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Income"
+                app:chipIcon="@drawable/ic_income" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/iconIncome"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Income"
-                    app:chipIcon="@drawable/ic_income"
-                    app:chipIconSize="24dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/iconExpense"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Expense"
+                app:chipIcon="@drawable/ic_expense" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/iconExpense"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Expense"
-                    app:chipIcon="@drawable/ic_expense"
-                    app:chipIconSize="24dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+        </com.google.android.material.chip.ChipGroup>
 
-            </com.google.android.material.chip.ChipGroup>
-
-        </HorizontalScrollView>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="Color"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
-
-        <HorizontalScrollView
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/colorChipGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:scrollbars="none">
+            android:layout_marginTop="16dp"
+            app:singleSelection="true">
 
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/colorChipGroup"
+            <com.google.android.material.chip.Chip
+                android:id="@+id/colorGreen"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:singleSelection="true">
+                android:text="Green"
+                app:chipBackgroundColor="@color/green" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/colorGreen"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Green"
-                    app:chipBackgroundColor="@color/colorGreen"
-                    app:chipStrokeColor="@color/primary"
-                    app:chipStrokeWidth="1dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/colorBlue"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Blue"
+                app:chipBackgroundColor="@color/blue" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/colorBlue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Blue"
-                    app:chipBackgroundColor="@color/colorBlue"
-                    app:chipStrokeColor="@color/primary"
-                    app:chipStrokeWidth="1dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/colorRed"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Red"
+                app:chipBackgroundColor="@color/red" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/colorRed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Red"
-                    app:chipBackgroundColor="@color/colorRed"
-                    app:chipStrokeColor="@color/primary"
-                    app:chipStrokeWidth="1dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/colorPurple"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Purple"
+                app:chipBackgroundColor="@color/purple" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/colorPurple"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Purple"
-                    app:chipBackgroundColor="@color/colorPurple"
-                    app:chipStrokeColor="@color/primary"
-                    app:chipStrokeWidth="1dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/colorOrange"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Orange"
+                app:chipBackgroundColor="@color/orange" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/colorOrange"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Orange"
-                    app:chipBackgroundColor="@color/colorOrange"
-                    app:chipStrokeColor="@color/primary"
-                    app:chipStrokeWidth="1dp"
-                    app:checkedIcon="@drawable/ic_check"
-                    app:checkedIconVisible="true" />
-
-            </com.google.android.material.chip.ChipGroup>
-
-        </HorizontalScrollView>
+        </com.google.android.material.chip.ChipGroup>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/activeSwitch"

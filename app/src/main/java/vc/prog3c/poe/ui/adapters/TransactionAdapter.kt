@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -58,11 +59,12 @@ class TransactionAdapter(
             categoryTextView.text = transaction.category
 
             // Set text color based on transaction type
-            val colorRes = when (transaction.type) {
-                TransactionType.INCOME, TransactionType.EARNED -> R.color.income_green
-                TransactionType.EXPENSE, TransactionType.REDEEMED -> R.color.expense_red
-            }
-            amountTextView.setTextColor(itemView.context.getColor(colorRes))
+            amountTextView.setTextColor(
+                ContextCompat.getColor(
+                    itemView.context,
+                    if (transaction.type == TransactionType.INCOME) R.color.income_color else R.color.expense_color
+                )
+            )
         }
     }
 

@@ -30,6 +30,12 @@ import java.util.Locale
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.google.android.material.switchmaterial.SwitchMaterial
+import android.widget.AutoCompleteTextView
+import android.app.AlertDialog
+import android.widget.ArrayAdapter
 
 class DashboardView : AppCompatActivity(), View.OnClickListener {
 
@@ -126,12 +132,27 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
     private fun setupRecyclerView() {
         categoryAdapter = CategoryAdapter(
             onEditClick = { category ->
-                // TODO: Implement category editing
-                Toast.makeText(this, "Edit category: ${category.name}", Toast.LENGTH_SHORT).show()
+                if (!category.isEditable) {
+                    Snackbar.make(binds.root, "This category cannot be edited", Snackbar.LENGTH_SHORT).show()
+                    return@CategoryAdapter
+                }
+                startActivity(Intent(this, CategoryManagementActivity::class.java).apply {
+                    putExtra("categoryId", category.id)
+                })
             },
             onDeleteClick = { category ->
-                // TODO: Implement category deletion
-                Toast.makeText(this, "Delete category: ${category.name}", Toast.LENGTH_SHORT).show()
+                if (!category.isEditable) {
+                    Snackbar.make(binds.root, "This category cannot be deleted", Snackbar.LENGTH_SHORT).show()
+                    return@CategoryAdapter
+                }
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("Delete Category")
+                    .setMessage("Are you sure you want to delete ${category.name}?")
+                    .setPositiveButton("Delete") { _, _ ->
+                        model.deleteCategory(category.id)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             }
         )
         binds.categoriesRecyclerView.apply {
@@ -343,6 +364,173 @@ class DashboardView : AppCompatActivity(), View.OnClickListener {
         }
 
         dialog.show()
+    }
+
+    private fun showEditCategoryDialog(category: Category) {
+        if (!category.isEditable) {
+            Snackbar.make(binds.root, "This category cannot be edited", Snackbar.LENGTH_SHORT).show()
+            return
+        }
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_add_category, null)
+
+        val nameInput = dialogView.findViewById<TextInputLayout>(R.id.nameInput)
+        val descriptionInput = dialogView.findViewById<TextInputLayout>(R.id.descriptionInput)
+        val typeInput = dialogView.findViewById<TextInputLayout>(R.id.typeInput)
+        val typeDropdown = typeInput.editText as? AutoCompleteTextView
+        val minInput = dialogView.findViewById<TextInputLayout>(R.id.minBudgetInput)
+        val maxInput = dialogView.findViewById<TextInputLayout>(R.id.maxBudgetInput)
+        val iconChipGroup = dialogView.findViewById<ChipGroup>(R.id.iconChipGroup)
+        val colorChipGroup = dialogView.findViewById<ChipGroup>(R.id.colorChipGroup)
+        val activeSwitch = dialogView.findViewById<SwitchMaterial>(R.id.activeSwitch)
+
+        // Populate fields
+        nameInput.editText?.setText(category.name)
+        descriptionInput.editText?.setText(category.description)
+        typeDropdown?.setText(category.type.name, false)
+        minInput.editText?.setText(category.minBudget.toString())
+        maxInput.editText?.setText(category.maxBudget.toString())
+        activeSwitch.isChecked = category.isActive
+
+        // Set up type dropdown
+        val types = CategoryType.values().filter { it != CategoryType.SAVINGS }
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, types)
+        typeDropdown?.setAdapter(adapter)
+
+        // Set current selections
+        iconChipGroup.check(
+            when (category.icon) {
+                "ic_savings" -> R.id.iconSavings
+                "ic_utilities" -> R.id.iconUtilities
+                "ic_error" -> R.id.iconEmergency
+                "ic_income" -> R.id.iconIncome
+                "ic_expense" -> R.id.iconExpense
+                else -> R.id.iconCategory
+            }
+        )
+
+        colorChipGroup.check(
+            when (category.color) {
+                "colorBlue" -> R.id.colorBlue
+                "colorRed" -> R.id.colorRed
+                "colorPurple" -> R.id.colorPurple
+                "colorOrange" -> R.id.colorOrange
+                else -> R.id.colorGreen
+            }
+        )
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle("Edit Category")
+            .setView(dialogView)
+            .setPositiveButton("Save", null) // Set to null initially
+            .setNegativeButton("Cancel", null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val name = nameInput.editText?.text.toString()
+                val description = descriptionInput.editText?.text.toString()
+                val type = typeDropdown?.text.toString()
+                val min = minInput.editText?.text.toString().toDoubleOrNull() ?: 0.0
+                val max = maxInput.editText?.text.toString().toDoubleOrNull() ?: 0.0
+                val isActive = activeSwitch.isChecked
+
+                if (name.isBlank()) {
+                    nameInput.error = "Name is required"
+                    return@setOnClickListener
+                }
+
+                if (type.isBlank()) {
+                    typeInput.error = "Type is required"
+                    return@setOnClickListener
+                }
+
+                if (max < min) {
+                    maxInput.error = "Maximum budget must be greater than minimum budget"
+                    return@setOnClickListener
+                }
+
+                val selectedIconChip = iconChipGroup.findViewById<Chip>(iconChipGroup.checkedChipId)
+                val selectedColorChip = colorChipGroup.findViewById<Chip>(colorChipGroup.checkedChipId)
+
+                if (selectedIconChip == null || selectedColorChip == null) {
+                    Snackbar.make(binds.root, "Please select an icon and color", Snackbar.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                // Validate icon and color based on category type
+                val categoryType = CategoryType.valueOf(type)
+                val isValidIcon = when (categoryType) {
+                    CategoryType.INCOME -> selectedIconChip.id == R.id.iconIncome
+                    CategoryType.EXPENSE -> selectedIconChip.id == R.id.iconExpense
+                    else -> true // Allow any icon for other types
+                }
+
+                val isValidColor = when (categoryType) {
+                    CategoryType.INCOME -> selectedColorChip.id == R.id.colorGreen
+                    CategoryType.EXPENSE -> selectedColorChip.id == R.id.colorRed
+                    else -> true // Allow any color for other types
+                }
+
+                if (!isValidIcon) {
+                    Snackbar.make(binds.root, 
+                        "Income categories must use the income icon", 
+                        Snackbar.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                if (!isValidColor) {
+                    Snackbar.make(binds.root, 
+                        "Income categories must use green color, Expense categories must use red color", 
+                        Snackbar.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val updatedCategory = category.copy(
+                    name = name,
+                    type = CategoryType.valueOf(type),
+                    icon = when (selectedIconChip.id) {
+                        R.id.iconSavings -> "ic_savings"
+                        R.id.iconUtilities -> "ic_utilities"
+                        R.id.iconEmergency -> "ic_error"
+                        R.id.iconIncome -> "ic_income"
+                        R.id.iconExpense -> "ic_expense"
+                        else -> "ic_category"
+                    },
+                    color = when (selectedColorChip.id) {
+                        R.id.colorBlue -> "colorBlue"
+                        R.id.colorRed -> "colorRed"
+                        R.id.colorPurple -> "colorPurple"
+                        R.id.colorOrange -> "colorOrange"
+                        else -> "colorGreen"
+                    },
+                    description = description,
+                    minBudget = min,
+                    maxBudget = max,
+                    isActive = isActive
+                )
+                model.updateCategory(updatedCategory)
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun showDeleteConfirmationDialog(category: Category) {
+        if (!category.isEditable) {
+            Snackbar.make(binds.root, "This category cannot be deleted", Snackbar.LENGTH_SHORT).show()
+            return
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Delete Category")
+            .setMessage("Are you sure you want to delete ${category.name}?")
+            .setPositiveButton("Delete") { _, _ ->
+                model.deleteCategory(category.id)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
 }

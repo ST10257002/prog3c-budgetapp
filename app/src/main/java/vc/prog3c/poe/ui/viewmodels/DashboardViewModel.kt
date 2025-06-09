@@ -317,4 +317,38 @@ class DashboardViewModel(
     fun getMonthlyContributionForGoal(goalId: String): Double {
         return currentSavingsGoals?.find { it.id == goalId }?.monthlyContribution ?: 0.0
     }
+
+    fun updateCategory(category: Category) {
+        val userId = authService.getCurrentUser()?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
+        
+        db.collection("users").document(userId).collection("categories")
+            .document(category.id)
+            .set(category)
+            .addOnSuccessListener {
+                currentCategoryList = currentCategoryList?.map { 
+                    if (it.id == category.id) category else it 
+                }
+                emitUpdatedState()
+            }
+            .addOnFailureListener {
+                _uiState.value = Failure("Failed to update category")
+            }
+    }
+
+    fun deleteCategory(categoryId: String) {
+        val userId = authService.getCurrentUser()?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
+        
+        db.collection("users").document(userId).collection("categories")
+            .document(categoryId)
+            .delete()
+            .addOnSuccessListener {
+                currentCategoryList = currentCategoryList?.filter { it.id != categoryId }
+                emitUpdatedState()
+            }
+            .addOnFailureListener {
+                _uiState.value = Failure("Failed to delete category")
+            }
+    }
 }

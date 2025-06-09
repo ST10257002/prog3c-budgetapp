@@ -11,6 +11,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.chip.Chip
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.google.android.material.snackbar.Snackbar
 import vc.prog3c.poe.R
 import vc.prog3c.poe.data.models.Category
 import vc.prog3c.poe.data.models.CategoryType
@@ -153,7 +154,39 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
         val selectedIconChip = iconChipGroup.findViewById<Chip>(iconChipGroup.checkedChipId)
         val selectedColorChip = colorChipGroup.findViewById<Chip>(colorChipGroup.checkedChipId)
 
-        val icon = when (selectedIconChip?.id) {
+        if (selectedIconChip == null || selectedColorChip == null) {
+            Snackbar.make(requireView(), "Please select an icon and color", Snackbar.LENGTH_SHORT).show()
+            return
+        }
+
+        // Validate icon and color based on category type
+        val isValidIcon = when (type) {
+            CategoryType.INCOME -> selectedIconChip.id == R.id.iconIncome
+            CategoryType.EXPENSE -> selectedIconChip.id == R.id.iconExpense
+            else -> true // Allow any icon for other types
+        }
+
+        val isValidColor = when (type) {
+            CategoryType.INCOME -> selectedColorChip.id == R.id.colorGreen
+            CategoryType.EXPENSE -> selectedColorChip.id == R.id.colorRed
+            else -> true // Allow any color for other types
+        }
+
+        if (!isValidIcon) {
+            Snackbar.make(requireView(), 
+                "Income categories must use the income icon", 
+                Snackbar.LENGTH_SHORT).show()
+            return
+        }
+
+        if (!isValidColor) {
+            Snackbar.make(requireView(), 
+                "Income categories must use green color, Expense categories must use red color", 
+                Snackbar.LENGTH_SHORT).show()
+            return
+        }
+
+        val icon = when (selectedIconChip.id) {
             R.id.iconCategory -> "ic_category"
             R.id.iconSavings -> "ic_savings"
             R.id.iconUtilities -> "ic_utilities"
@@ -163,7 +196,7 @@ class CategoryDialogFragment : BottomSheetDialogFragment() {
             else -> "ic_category"
         }
 
-        val color = when (selectedColorChip?.id) {
+        val color = when (selectedColorChip.id) {
             R.id.colorGreen -> "colorGreen"
             R.id.colorBlue -> "colorBlue"
             R.id.colorRed -> "colorRed"

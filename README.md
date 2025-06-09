@@ -200,7 +200,7 @@ This project wouldn't be possible without our brilliant team:
 
 ## 📺 Youtube Walkthrough and Github Link
 
--add here
+* https://youtu.be/OwY2FZ9GIPA
 
 * https://github.com/ST10293362/PROG7313_POE_BudgetApp.git
 

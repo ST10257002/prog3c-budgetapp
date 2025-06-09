@@ -156,3 +156,210 @@
 - [Jetpack ViewModel with LiveData Observers](https://developer.android.com/topic/libraries/architecture/livedata)
 - [Toolbar and Navigation Patterns](https://developer.android.com/training/appbar)
 
+### TransactionUpsertActivity.kt
+- [Android DatePickerDialog](https://developer.android.com/guide/topics/ui/controls/pickers)
+- [Material DatePicker](https://m3.material.io/components/date-pickers/android)
+- [Android ViewModel for Data Binding](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Add and Update Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+
+### SignInActivity.kt
+- [Firebase Authentication - Sign In](https://firebase.google.com/docs/auth/android/password-auth#sign_in_a_user_with_an_email_address_and_password)
+- [Android ViewModel for Sign-In](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Snackbar for User Feedback](https://developer.android.com/reference/com/google/android/material/snackbar/Snackbar)
+
+### SignUpActivity.kt
+- [Firebase Authentication - Create User](https://firebase.google.com/docs/auth/android/start#create_a_password-based_account)
+- [Android ViewModel for Sign-Up](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Material Design TextInputLayout](https://m3.material.io/components/text-fields/android)
+- [Firebase Firestore - Set User Data](https://firebase.google.com/docs/firestore/manage-data/add-data#set_a_document)
+- [Android Intent Navigation](https://developer.android.com/guide/components/intents-filters)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Add Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [Android ViewModelProvider](https://developer.android.com/topic/libraries/architecture/viewmodel/providers)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Add Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+
+### ForgotPasswordActivity.kt
+- [Firebase Authentication - Password Reset](https://firebase.google.com/docs/auth/android/manage-users#send_a_password_reset_email)
+- [Android ViewModel for Forgot Password](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Snackbar for User Feedback](https://developer.android.com/reference/com/google/android/material/snackbar/Snackbar)
+
+### CategoryActivity.kt
+- [Android ViewModel for Category Management](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Read and Write Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [Material Design Chips](https://m3.material.io/components/chips/android)
+- [Android RecyclerView with DiffUtil](https://developer.android.com/reference/androidx/recyclerview/widget/DiffUtil)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Add and Update Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [Android ViewModelProvider](https://developer.android.com/topic/libraries/architecture/viewmodel/providers)
+
+### DashboardActivity.kt
+- [Android ViewModel for Dashboard](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Read Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [MPAndroidChart - Bar Chart](com.github.PhilJay:MPAndroidChart:v3.1.0)
+- [MPAndroidChart - Pie Chart](com.github.PhilJay:MPAndroidChart:v3.1.0)
+- [Android LiveData for Observing Data](https://developer.android.com/topic/libraries/architecture/livedata)
+- [Android ViewModel with Coroutines](https://developer.android.com/topic/libraries/architecture/coroutines)
+- [Android ViewModelProvider](https://developer.android.com/topic/libraries/architecture/viewmodel/providers)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Read Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [MPAndroidChart - Line Chart](com.github.PhilJay:MPAndroidChart:v3.1.0)
+- [MPAndroidChart - Pie Chart](com.github.PhilJay:MPAndroidChart:v3.1.0)
+
+
+### GraphActivity.kt
+- [MPAndroidChart - Bar Chart](com.github.PhilJay:MPAndroidChart:v3.1.0)
+- [MPAndroidChart - Line Chart](com.github.PhilJay:MPAndroidChart:v3.1.0)
+- [Android ViewModel for Graphs](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Read Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [Android LiveData for Observing Data](https://developer.android.com/topic/libraries/architecture/livedata)
+- [Android ViewModel with Coroutines](https://developer.android.com/topic/libraries/architecture/coroutines)
+- [Android ViewModelProvider](https://developer.android.com/topic/libraries/architecture/viewmodel/providers)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Read Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [MPAndroidChart - Combined Chart](com.github.PhilJay:MPAndroidChart:v3.1.0)
+- [MPAndroidChart - Bar Chart](com.github.PhilJay:MPAndroidChart:v3.1.0)
+
+### AccountDetailsActivity.kt
+- [Android ViewModel for Account Details](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Read Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [Android LiveData for Observing Data](https://developer.android.com/topic/libraries/architecture/livedata)
+- [Android ViewModel with Coroutines](https://developer.android.com/topic/libraries/architecture/coroutines)
+- [Android ViewModelProvider](https://developer.android.com/topic/libraries/architecture/viewmodel/providers)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Read Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [Android RecyclerView with DiffUtil](https://developer.android.com/reference/androidx/recyclerview/widget/DiffUtil)
+- [Android View Binding with RecyclerView](https://developer.android.com/topic/libraries/view-binding)
+- [Material Design Icons in Android](https://developer.android.com/reference/android/graphics/drawable/Drawable)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Read Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [Android RecyclerView with DiffUtil](https://developer.android.com/reference/androidx/recyclerview/widget/DiffUtil)
+- [Android View Binding with RecyclerView](https://developer.android.com/topic/libraries/view-binding)
+- [Material Design Icons in Android](https://developer.android.com/reference/android/graphics/drawable/Drawable)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Firebase Firestore - Read Data](https://firebase.google.com/docs/firestore/manage-data/add-data)
+- [Android RecyclerView with DiffUtil](https://developer.android.com/reference/androidx/recyclerview/widget/DiffUtil)
+- [Android View Binding with RecyclerView](https://developer.android.com/topic/libraries/view-binding)
+
+
+## XML and JSON
+### XML Layouts
+- [Android XML Layouts](https://developer.android.com/guide/topics/ui/declaring-layout)
+- [Android View Binding](https://developer.android.com/topic/libraries/view-binding)
+- [Android Material Design Components](https://m3.material.io/components)
+- [Android RecyclerView](https://developer.android.com/guide/topics/ui/layout/recyclerview)
+- [Android ConstraintLayout](https://developer.android.com/training/constraint-layout)
+- [Android Navigation Component](https://developer.android.com/guide/navigation/navigation-getting-started)
+- [Android Material Design](https://m3.material.io/)
+- [Android ViewModel and LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Android ViewModelProvider](https://developer.android.com/topic/libraries/architecture/viewmodel/providers)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Android ViewModel with Coroutines](https://developer.android.com/topic/libraries/architecture/coroutines)
+
+### activity_main.xml
+- [Android Main Activity Layout](https://developer.android.com/guide/topics/ui/declaring-layout)
+- [Android Navigation Drawer](https://developer.android.com/guide/navigation/navigation-ui#nav-drawer)
+- [Android Toolbar](https://developer.android.com/guide/topics/ui/toolbars)
+- [Android Bottom Navigation](https://developer.android.com/guide/navigation/navigation-ui#bottom-nav)
+- [Android View Binding](https://developer.android.com/topic/libraries/view-binding)
+- [Android Material Design](https://m3.material.io/components)
+- [Android ConstraintLayout](https://developer.android.com/training/constraint-layout)
+
+### activity_transaction_details.xml
+- [Android Transaction Details Layout](https://developer.android.com/guide/topics/ui/declaring-layout)
+- [Android TextView](https://developer.android.com/guide/topics/ui/controls/textview)
+- [Android ImageView](https://developer.android.com/guide/topics/ui/layout/image-view)
+- [Android Button](https://developer.android.com/guide/topics/ui/controls/button)
+- [Android DatePicker](https://developer.android.com/guide/topics/ui/controls/pickers#date-picker)
+- [Android View Binding](https://developer.android.com/topic/libraries/view-binding)
+- [Android Material Design](https://m3.material.io/components)
+- [Android ConstraintLayout](https://developer.android.com/training/constraint-layout)
+- [Android RecyclerView](https://developer.android.com/guide/topics/ui/layout/recyclerview)
+- [Android CardView](https://developer.android.com/guide/topics/ui/layout/card-view)
+- [Android Toolbar](https://developer.android.com/guide/topics/ui/toolbars)
+- [Android Floating Action Button](https://developer.android.com/guide/topics/ui/floating-action-button)
+- [Android Snackbar](https://developer.android.com/guide/topics/ui/notifiers/snackbar)
+- [Android ViewModel and LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Android ViewModelProvider](https://developer.android.com/topic/libraries/architecture/viewmodel/providers)
+- [Android ViewModel with LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+- [Android ViewModel with Coroutines](https://developer.android.com/topic/libraries/architecture/coroutines)
+
+### activity_transaction_upsert.xml
+- [Android Transaction Upsert Layout](https://developer.android.com/guide/topics/ui/declaring-layout)
+- [Android EditText](https://developer.android.com/guide/topics/ui/controls/text-input)
+- [Android Spinner](https://developer.android.com/guide/topics/ui/controls/spinner)
+- [Android DatePicker](https://developer.android.com/guide/topics/ui/controls/pickers#date-picker)
+- [Android Button](https://developer.android.com/guide/topics/ui/controls/button)
+- [Android View Binding](https://developer.android.com/topic/libraries/view-binding)
+- [Android Material Design](https://m3.material.io/components)
+- [Android ConstraintLayout](https://developer.android.com/training/constraint-layout)
+- [Android RecyclerView](https://developer.android.com/guide/topics/ui/layout/recyclerview)
+- [Android CardView](https://developer.android.com/guide/topics/ui/layout/card-view)
+- [Android Toolbar](https://developer.android.com/guide/topics/ui/toolbars)
+- [Android Floating Action Button](https://developer.android.com/guide/topics/ui/floating-action-button)
+- [Android Snackbar](https://developer.android.com/guide/topics/ui/notifiers/snackbar)
+- [Android ViewModel and LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+
+### activity_sign_in.xml
+- [Android Sign In Layout](https://developer.android.com/guide/topics/ui/declaring-layout)
+- [Android EditText](https://developer.android.com/guide/topics/ui/controls/text-input)
+- [Android Button](https://developer.android.com/guide/topics/ui/controls/button)
+- [Android TextView](https://developer.android.com/guide/topics/ui/controls/textview)
+- [Android View Binding](https://developer.android.com/topic/libraries/view-binding)
+- [Android Material Design](https://m3.material.io/components)
+- [Android ConstraintLayout](https://developer.android.com/training/constraint-layout)
+
+### activity_sign_up.xml
+- [Android Sign Up Layout](https://developer.android.com/guide/topics/ui/declaring-layout)
+- [Android EditText](https://developer.android.com/guide/topics/ui/controls/text-input)
+- [Android Button](https://developer.android.com/guide/topics/ui/controls/button)
+- [Android TextView](https://developer.android.com/guide/topics/ui/controls/textview)
+- [Android View Binding](https://developer.android.com/topic/libraries/view-binding)
+- [Android Material Design](https://m3.material.io/components)
+- [Android ConstraintLayout](https://developer.android.com/training/constraint-layout)
+- [Android Spinner](https://developer.android.com/guide/topics/ui/controls/spinner)
+
+### activity_forgot_password.xml
+- [Android Forgot Password Layout](https://developer.android.com/guide/topics/ui/declaring-layout)
+- [Android EditText](https://developer.android.com/guide/topics/ui/controls/text-input)
+- [Android Button](https://developer.android.com/guide/topics/ui/controls/button)
+- [Android TextView](https://developer.android.com/guide/topics/ui/controls/textview)
+- [Android View Binding](https://developer.android.com/topic/libraries/view-binding)
+- [Android Material Design](https://m3.material.io/components)
+- [Android ConstraintLayout](https://developer.android.com/training/constraint-layout)
+- [Android Snackbar](https://developer.android.com/guide/topics/ui/notifiers/snackbar)
+
+### activity_category.xml
+- [Android Category Layout](https://developer.android.com/guide/topics/ui/declaring-layout)
+- [Android EditText](https://developer.android.com/guide/topics/ui/controls/text-input)
+- [Android Button](https://developer.android.com/guide/topics/ui/controls/button)
+- [Android TextView](https://developer.android.com/guide/topics/ui/controls/textview)
+- [Android View Binding](https://developer.android.com/topic/libraries/view-binding)
+- [Android Material Design](https://m3.material.io/components)
+- [Android ConstraintLayout](https://developer.android.com/training/constraint-layout)
+- [Android RecyclerView](https://developer.android.com/guide/topics/ui/layout/recyclerview)
+- [Android CardView](https://developer.android.com/guide/topics/ui/layout/card-view)
+- [Android Toolbar](https://developer.android.com/guide/topics/ui/toolbars)
+- [Android Floating Action Button](https://developer.android.com/guide/topics/ui/floating-action-button)
+- [Android Snackbar](https://developer.android.com/guide/topics/ui/notifiers/snackbar)
+- [Android ViewModel and LiveData](https://developer.android.com/topic/libraries/architecture/viewmodel)
+
+### activity_dashboard.xml
+- [Android Dashboard Layout](https://developer.android.com/guide/topics/ui/declaring-layout
+
+## Forms
+
+### Transaction Form
+- [Android Form Validation](https://developer.android.com/guide/topics/ui/controls/text-input#validation)
+- [Android DatePicker](https://developer.android.com/guide/topics/ui/controls/pickers#date-picker)
+- [Android Spinner](https://developer.android.com/guide/topics/ui/controls/spinner)
+- [Android EditText](https://developer.android.com/guide/topics/ui/controls/text-input)
+- [Android Button](https://developer.android.com/guide/topics/ui/controls/button)
+- [Android View Binding](https://developer.android.com/topic/libraries/view-binding)
+- [Android Material Design](https://m3.material.io/components)
+- [Android ConstraintLayout](https://developer.android.com/training/constraint-layout)
+- [Android RecyclerView](https://developer.android.com/guide/topics/ui/layout/recyclerview)
+
+### Goal Setting Form
+- [Android Form Validation](https://developer.android.com/guide/topics/ui/controls/text-input#validation)
+
